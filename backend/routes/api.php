@@ -11,3 +11,4 @@ Route::apiResource('exercices', ExerciceController::class);
 Route::apiResource('users', UserController::class);
 Route::apiResource('classe', ClasseController::class);
 Route::apiResource('tentatives', TentativeController::class);
+Route::apiResource('fichiers', FichierController::class);
