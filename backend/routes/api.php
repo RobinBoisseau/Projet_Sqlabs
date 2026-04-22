@@ -5,6 +5,7 @@ use App\Http\Controllers\ExerciceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ClasseController;
 use App\Http\Controllers\TentativeController;
+use App\Http\Controllers\FichierController;
 
 
 Route::apiResource('exercices', ExerciceController::class);
