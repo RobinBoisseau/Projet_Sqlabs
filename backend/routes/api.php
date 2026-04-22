@@ -6,8 +6,10 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ClasseController;
 use App\Http\Controllers\TentativeController;
 use App\Http\Controllers\FichierController;
+use App\Http\Controllers\ReponseIAController;
 
 
+Route::apiResource('reponse-ia', ReponseIAController::class);
 Route::apiResource('exercices', ExerciceController::class);
 Route::apiResource('users', UserController::class);
 Route::apiResource('classe', ClasseController::class);
