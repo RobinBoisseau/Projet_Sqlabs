@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # 1. Le Serveur API (Laravel)
+  backend:
+    build: ./backend
+    container_name: laravel_api
+    volumes:
+      - ./backend:/var/www
+    ports:
+      - "8000:8000"
+    command: php artisan serve --host=0.0.0.0 --port=8000
+
+  # 2. Le Frontend (Angular)
+  frontend:
+    build: ./frontend
+    container_name: angular_front
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "4200:4200"
+    stdin_open: true
+    tty: true
+    command: npm start
+
+
+  # 3. La Base de Données (MySQL)
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: sqllabs
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql:/var/lib/mysql
+
+  # 4. L'interface de gestion BDD
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin_ui
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
