@@ -57,4 +57,11 @@ class ExerciceController extends Controller
         $exercice->delete();
         return response()->json(['message' => 'Exercice supprimé'], 200);
     }
+
+    public function showBySlug($slug){
+    // On cherche l'exercice qui a ce slug précis
+    $exercice = Exercice::where('slug', $slug)->firstOrFail();
+    return new ExerciceResource($exercice);
+    }
+    
 }

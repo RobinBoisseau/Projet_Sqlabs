@@ -17,6 +17,7 @@ class ExerciceResource extends JsonResource
     return [
         'id' => $this->id,
         'enonce' => $this->enonce,
+        'slug' => $this->slug, 
         'titre' => $this->titre,
         'type' => $this->type
     ];
