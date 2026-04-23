@@ -25,4 +25,9 @@ export class ExerciceService {
       map(response => response.data)
     );
   }
+
+  getExerciceBySlug(slug: string): Observable<Exercice> {
+    return this.http.get<{data: Exercice}>(`${this.apiUrl}/s/${slug}`).pipe(
+      map(response => response.data));
+  }
 }

@@ -4,9 +4,7 @@ import { ExerciceDetailComponent } from './components/exercice-detail/exercice-d
 
 export const routes: Routes = [
   { path: 'exercices', component: ExerciceListComponent },
-  
-  // Correction : Ajout de la virgule après 'full' }
-  { path: '', redirectTo: 'exercices', pathMatch: 'full' }, 
-  
-  { path: 'exercice/:id', component: ExerciceDetailComponent },
+
+  { path: 'exercice/:slug', component: ExerciceDetailComponent },
+  { path: '', redirectTo: 'exercices', pathMatch: 'full' }
 ];

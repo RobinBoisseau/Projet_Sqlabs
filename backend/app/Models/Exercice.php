@@ -16,4 +16,9 @@ class Exercice extends Model
         'etat',
         'user_id',
     ];
+
+    public function getRouteKeyName()
+{
+    return 'slug';
+}
 }
