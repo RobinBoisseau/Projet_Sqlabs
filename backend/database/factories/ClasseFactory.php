@@ -15,6 +15,8 @@ class ClasseFactory extends Factory
             
             // On génère un mot de passe simple de 8 caractères
             'mdp' => Str::random(10),
+
+            'user_id' => \App\Models\User::pluck('id')->random(),
         ];
     }
 }
