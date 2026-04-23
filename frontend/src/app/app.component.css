@@ -1,0 +1,10 @@
+
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Oblige l'appli à prendre toute la hauteur de l'écran */
+}
+
+main {
+  flex: 1; /* Ce bloc (le contenu) va "pousser" le footer vers le bas */
+}
