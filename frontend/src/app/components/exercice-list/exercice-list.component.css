@@ -1,67 +1,114 @@
-.main-wrapper {
+.workbench-wrapper {
     width: 100%;
-    height: 100vh; /* Toute la hauteur de l'écran */
-    background-color: #f0f2f5;
+    height: 100vh;
+    background: #f0f2f5;
+    overflow: hidden;
 }
 
-/* Style obligatoire pour les zones split */
 .panel-container {
     height: 100%;
     display: flex;
     flex-direction: column;
     background: white;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #dcdfe6;
 }
 
-.panel-title {
-    padding: 10px 15px;
-    font-size: 14px;
+.panel-header {
+    background: #f8f9fa;
+    padding: 12px 15px;
     font-weight: bold;
-    border-bottom: 1px solid #eee;
-    margin: 0;
-    background: #fafafa;
+    font-size: 0.85rem;
+    border-bottom: 1px solid #dcdfe6;
+    color: #333;
 }
 
 .panel-content {
     flex: 1;
+    padding: 10px;
+}
+
+.scrollable { overflow-y: auto; }
+
+/* Styles de l'Accordéon */
+.accordion-item {
+    border: 1px solid #ebeef5;
+    border-radius: 4px;
+    margin-bottom: 6px;
+}
+
+.accordion-title {
+    padding: 12px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.accordion-title:hover { background: #f5f7fa; color: #409eff; }
+
+.accordion-title.active { 
+    background: #ecf5ff; 
+    color: #409eff; 
+    font-weight: bold;
+    border-left: 3px solid #409eff;
+}
+
+.icon { font-size: 0.7rem; margin-right: 10px; width: 12px; }
+
+.accordion-body {
     padding: 15px;
+    background: #fafafa;
+    border-top: 1px solid #ebeef5;
+    font-size: 0.85rem;
+    color: #555;
+    line-height: 1.6;
 }
 
-.scrollable {
-    overflow-y: auto;
-}
+.enonce-content p { margin: 0; white-space: pre-line; }
 
-/* Barre d'outils (Colonne 3) */
+.meta-data { margin-top: 10px; font-size: 0.75rem; color: #999; }
+
+/* Zone Modélisation */
 .toolbar {
     padding: 8px;
-    border-bottom: 1px solid #ddd;
+    background: #fff;
+    border-bottom: 1px solid #dcdfe6;
     display: flex;
     gap: 10px;
-    align-items: center;
-    background: #fff;
 }
 
-/* Zone de dessin avec quadrillage */
-.canvas-area {
+.tool-btn {
+    padding: 6px 12px;
+    border: 1px solid #dcdfe6;
+    background: #fff;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.spacer { flex: 1; }
+
+.canvas-grid {
     flex: 1;
-    background-color: #ffffff;
-    background-image: radial-gradient(#d7d7d7 1px, transparent 1px);
-    background-size: 25px 25px; /* Quadrillage comme ta maquette */
+    background-color: #fff;
+    background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+    background-size: 20px 20px;
     display: flex;
     justify-content: center;
     align-items: center;
-    text-align: center;
-}
-
-.canvas-message {
-    color: #999;
+    color: #909399;
 }
 
 .btn-add {
-    color: #1a73e8;
     background: none;
     border: none;
-    font-weight: 500;
+    color: #409eff;
+    font-weight: bold;
     cursor: pointer;
     margin-top: 10px;
+    font-size: 0.8rem;
 }
+
+.placeholder-text { font-size: 0.8rem; color: #999; font-style: italic; }

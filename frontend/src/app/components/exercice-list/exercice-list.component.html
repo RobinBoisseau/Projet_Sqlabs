@@ -1,15 +1,37 @@
-<div class="main-wrapper">
-  <as-split direction="horizontal" unit="percent" gutterSize="10">
+<div class="workbench-wrapper">
+  <as-split direction="horizontal" unit="percent" gutterSize="8">
     
-    <!-- COLONNE 1 : Énoncé -->
+    <!-- COLONNE 1 : Liste des exercices cliquables -->
     <as-split-area [size]="25">
       <div class="panel-container">
-        <h3 class="panel-title">Énoncé de l'exercice</h3>
+        <div class="panel-header">Énoncés des exercices</div>
         <div class="panel-content scrollable">
-          <!-- Ici on boucle ou on affiche le premier exercice pour le test -->
-          <div *ngFor="let ex of exercices" class="exercice-item">
-             <p>{{ ex.enonce }}</p> 
-             <!-- Adapte "description" au nom de ton champ Laravel -->
+          
+          <!-- Boucle avec index 'i' -->
+          <div *ngFor="let ex of exercices; let i = index" class="accordion-item">
+            
+            <!-- Header cliquable lié à l'index i -->
+            <div class="accordion-title" 
+                 (click)="toggleExercise(i)" 
+                 [class.active]="selectedIndex === i">
+              <span class="icon">{{ selectedIndex === i ? '▼' : '▶' }}</span>
+              {{ ex.titre || 'Exercice n°' + (i + 1) }}
+            </div>
+            
+            <!-- Contenu affiché uniquement si l'index correspond -->
+            <div class="accordion-body" *ngIf="selectedIndex === i">
+              <div class="enonce-content">
+                <p>{{ ex.enonce }}</p>
+                <div class="meta-data" *ngIf="ex.type">
+                   <strong>Type :</strong> {{ ex.type }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Message si la liste est vide -->
+          <div *ngIf="exercices.length === 0" class="empty-msg">
+            Aucun exercice trouvé ou chargement...
           </div>
         </div>
       </div>
@@ -17,23 +39,23 @@
 
     <!-- COLONNE 2 : Dictionnaire & Dépendances -->
     <as-split-area [size]="30">
-      <as-split direction="vertical" gutterSize="10">
+      <as-split direction="vertical" gutterSize="8">
         
         <as-split-area [size]="50">
           <div class="panel-container">
-            <h3 class="panel-title">Dictionnaire des données</h3>
+            <div class="panel-header">Dictionnaire des données</div>
             <div class="panel-content">
-               <!-- Contenu du tableau ici -->
-               <button class="btn-add">+ Ajouter un attribut</button>
+              <p class="placeholder-text">Cliquez sur un exercice pour voir ses attributs</p>
+              <button class="btn-add">+ Ajouter un attribut</button>
             </div>
           </div>
         </as-split-area>
 
         <as-split-area [size]="50">
           <div class="panel-container">
-            <h3 class="panel-title">Dépendances fonctionnelles</h3>
+            <div class="panel-header">Dépendances fonctionnelles</div>
             <div class="panel-content">
-               <button class="btn-add">+ Ajouter une dépendance</button>
+              <button class="btn-add">+ Ajouter une dépendance</button>
             </div>
           </div>
         </as-split-area>
@@ -45,15 +67,17 @@
     <as-split-area [size]="45">
       <div class="panel-container">
         <div class="toolbar">
-           <span>Outils</span>
-           <button>⬜ Entité</button>
-           <button>◯ Attribut</button>
-           <button>→ Relation</button>
+          <button class="tool-btn">⬜ Entité</button>
+          <button class="tool-btn">◯ Attribut</button>
+          <button class="tool-btn">→ Relation</button>
+          <div class="spacer"></div>
+          <button class="tool-btn secondary">🗑️</button>
         </div>
-        <div class="canvas-area">
-          <div class="canvas-message">
+        
+        <div class="canvas-grid">
+          <div class="canvas-instructions">
             <h4>Zone de modélisation</h4>
-            <p>Utilisez la barre d'outils pour ajouter des entités</p>
+            <p>Glissez-déposez des éléments ici</p>
           </div>
         </div>
       </div>
