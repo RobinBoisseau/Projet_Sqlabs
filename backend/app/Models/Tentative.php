@@ -28,4 +28,14 @@ class Tentative extends Model {
         'modeleValide' => 'boolean',
         'dateHeureTentative' => 'datetime'
     ];
+
+    // Une tentative concerne plusieurs exercices
+    public function exercices() {
+        return $this->belongsToMany(Exercice::class, 'concerner', 'idTentative', 'idExercice');
+    }
+
+    // Une tentative est essayée par plusieurs étudiants (si c'est bien le sens de ta table)
+    public function etudiants() {
+        return $this->belongsToMany(Utilisateur::class, 'essayer', 'idTentative', 'idEtudiant');
+    }
 }
