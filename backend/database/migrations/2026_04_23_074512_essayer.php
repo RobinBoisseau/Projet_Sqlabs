@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('essayer', function (Blueprint $table) {
-            $table->foreignId('idEtudiant')->constrained('utilisateurs')->onDelete('cascade');
+            $table->foreignId('idEtudiant')->constrained('users')->onDelete('cascade');
             $table->foreignId('idTentative')->constrained('tentatives')->onDelete('cascade');
             
             // Définition de la clé primaire composée

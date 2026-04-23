@@ -35,7 +35,7 @@ class Tentative extends Model {
     }
 
     // Une tentative est essayée par plusieurs étudiants (si c'est bien le sens de ta table)
-    public function etudiants() {
+    public function users() {
         return $this->belongsToMany(Utilisateur::class, 'essayer', 'idTentative', 'idEtudiant');
     }
 }
