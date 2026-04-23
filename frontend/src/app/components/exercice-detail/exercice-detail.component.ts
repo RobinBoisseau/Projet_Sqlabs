@@ -5,6 +5,7 @@ import { AngularSplitModule } from 'angular-split';
 import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
 
+
 @Component({
   selector: 'app-exercice-detail',
   standalone: true,
@@ -21,16 +22,18 @@ export class ExerciceDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // 1. On récupère l'ID passé dans l'URL (le :id)
-    const id = Number(this.route.snapshot.paramMap.get('id'));
+    const slug = this.route.snapshot.paramMap.get('slug');
+    console.log('Slug détecté dans l URL :', slug);
 
-    // 2. On demande à Laravel les infos de cet exercice précis
-    if (id) {
-      this.exerciceService.getExercice(id).subscribe({
+    if (slug) {
+      this.exerciceService.getExerciceBySlug(slug).subscribe({
         next: (data) => {
+          console.log('Donnée reçue du Backend :', data);
           this.exercice = data;
         },
-        error: (err) => console.error('Erreur lors de la récupération de l\'exercice', err)
+        error: (err) => {
+          console.error('Erreur lors de la récupération :', err);
+        }
       });
     }
   }

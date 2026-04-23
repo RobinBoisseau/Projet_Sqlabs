@@ -14,6 +14,7 @@ return new class extends Migration
     Schema::create('exercices', function (Blueprint $table) {
     $table->id();
     $table->string('titre', 100);
+    $table->string('slug')->unique();
     $table->string('enonce', 1000);
     $table->string('type', 4);
     $table->string('etat', 10);
