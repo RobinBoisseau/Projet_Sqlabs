@@ -6,6 +6,7 @@ import { AngularSplitModule } from 'angular-split';
 import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
 
+
 @Component({
   selector: 'app-exercice-detail',
   standalone: true,
@@ -30,6 +31,7 @@ export class ExerciceDetailComponent implements OnInit {
       // On envoie le slug (string) au service
       this.exerciceService.getExercice(slug).subscribe({
         next: (data) => {
+          console.log('Donnée reçue du Backend :', data);
           this.exercice = data;
         },
         error: (err) => {
