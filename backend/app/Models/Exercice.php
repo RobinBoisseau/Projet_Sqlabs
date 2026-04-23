@@ -14,5 +14,6 @@ class Exercice extends Model
         'enonce',
         'type',
         'etat',
+        'user_id',
     ];
 }

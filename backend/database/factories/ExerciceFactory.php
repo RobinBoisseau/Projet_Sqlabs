@@ -15,13 +15,14 @@ class ExerciceFactory extends Factory
      *
      * @return array<string, mixed>
      */
-    public function definition()
+    public function definition(): array
 {
     return [
         'titre' => fake()->sentence(3),
         'enonce' => fake()->paragraph(),
-        'type' => fake()->randomElement(['SQL','BPMN']),
+        'type' => fake()->randomElement(['SQL', 'BPMN']),
         'etat' => fake()->randomElement(['Fini', 'Non fini']),
+        'user_id' => fake()->numberBetween(1, 10),
     ];
 }
 }
