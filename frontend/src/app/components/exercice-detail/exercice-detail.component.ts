@@ -22,12 +22,18 @@ export class ExerciceDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // On récupère le "slug" depuis l'URL
     const slug = this.route.snapshot.paramMap.get('slug');
-  
+    console.log('Slug détecté dans l URL :', slug);
+
     if (slug) {
-      this.exerciceService.getExerciceBySlug(slug).subscribe(data => {
-        this.exercice = data;
+      this.exerciceService.getExerciceBySlug(slug).subscribe({
+        next: (data) => {
+          console.log('Donnée reçue du Backend :', data);
+          this.exercice = data;
+        },
+        error: (err) => {
+          console.error('Erreur lors de la récupération :', err);
+        }
       });
     }
   }
