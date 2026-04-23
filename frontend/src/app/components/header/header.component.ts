@@ -7,10 +7,12 @@ import { Component } from '@angular/core';
   styleUrls: ['./header.component.css']
 })
 export class HeaderComponent {
-  onLoginClick() {
-    console.log('Login');
-  }
-  onSignupClick() {
-    console.log('Signup');
+  firstName: string = 'User';
+  lastName: string = 'User';
+
+  onProfileClick() {
+    console.log("Ouverture du profil... (Fonctionnalité à venir)");
+    // Tu peux ajouter une alerte pour montrer que ça marche
+    // alert('Bientôt vous pourrez voir votre profil !');
   }
 }

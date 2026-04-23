@@ -1,16 +1,32 @@
 <footer class="footer">
-  <!-- Contacts à gauche -->
-  <div class="footer-left">
-    <h3>Contact</h3>
-    <ul>
-      <li>06 06 07 07 08</li>
-      <li>IUT de Bayonne</li>
+  <!-- Zone Gauche : Contacts -->
+  <div class="footer-section footer-left">
+    <h3 class="contact-title">Contact</h3>
+    <ul class="contact-list">
+      <li>
+        <span>📧</span>
+        <a href="mailto:contact&#64;sqlabs.com"> contact&#64;sqlabs.com</a>
+      </li>
+      <li>
+        <span>📞</span>
+        <a href="tel:0606060606"> 06 06 06 06 06</a>
+      </li>
+      <li>
+        <span>📍</span>
+        <a href="https://www.google.com/maps/search/?api=1&query=IUT+de+Bayonne+et+du+Pays+Basque+Campus+d+Anglet" target="_blank"></a>
+         IUT de Bayonne - Campus de Anglet
+      </li>
     </ul>
   </div>
 
-  <!-- Copyright à droite -->
-  <div class="footer-right">
-    <p>&copy; {{ currentYear }} Sqlabs. Tous droits réservés.</p>
-    <p class="subtitle">Projet BUT Informatique</p>
+  <!-- Zone Milieu : Liens Légaux -->
+  <div class="footer-section footer-center">
+    <a routerLink="/conditions" class="middle-link">Conditions d'utilisation</a>
+  </div>
+
+  <!-- Zone Droite : Copyright -->
+  <div class="footer-section footer-right">
+    <p>&copy; 2026 Sqlabs. Tous droits réservés.</p>
+    <span class="subtitle">Projet BUT Informatique</span>
   </div>
 </footer>

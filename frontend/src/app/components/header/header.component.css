@@ -1,64 +1,45 @@
 .navbar {
   display: flex;
-  justify-content: space-between; /* Pousse le logo à gauche et l'auth à droite */
+  justify-content: space-between; /* Logo à gauche, Profil à droite */
   align-items: center;
-  padding: 0 2rem;
-  height: 70px;
-  background-color: #ffffff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.logo-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-
-.logo-img {
-  height: 40px; /* Ajuste selon ton image */
+  padding: 0 3rem;
+  height: 65px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .logo-text {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: bold;
   color: #2c3e50;
 }
 
-.auth-container {
+/* Conteneur nom + icône */
+.profile-section {
   display: flex;
-  gap: 15px;
+  align-items: center; /* Aligne verticalement le texte et l'icône */
+  gap: 10px; /* Espace entre le nom et l'icône */
 }
 
-/* Bouton Connexion */
-.btn-login {
-  background: none;
-  border: 1px solid #3498db;
-  color: #3498db;
-  padding: 8px 16px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: 0.3s;
+.user-name {
+  font-weight: 500;
+  color: #2c3e50;
+  font-size: 0.95rem;
 }
 
-.btn-login:hover {
-  background-color: #3498db;
-  color: white;
+/* L'icône cliquable */
+.avatar-clickable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer; /* Change le curseur en main */
+  transition: transform 0.2s, opacity 0.2s;
+  padding: 5px;
+  border-radius: 50%;
+  color: #2c3e50;
 }
 
-/* Bouton S'inscrire */
-.btn-signup {
-  background-color: #3498db;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.3s;
-}
-
-.btn-signup:hover {
-  background-color: #2980b9;
+.avatar-clickable:hover {
+  background-color: #f0f5f5; /* Petit effet au survol */
+  transform: scale(1.1); /* L'icône grossit un tout petit peu */
 }

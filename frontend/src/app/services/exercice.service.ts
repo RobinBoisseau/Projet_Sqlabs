@@ -25,3 +25,4 @@ export class ExerciceService {
       map(response => response.data)
     );
   }
+}
