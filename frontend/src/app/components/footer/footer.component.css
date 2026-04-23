@@ -1,0 +1,62 @@
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Aligne tout verticalement sur une seule ligne */
+  padding: 8px 3rem;   /* Padding très réduit (8px haut/bas) */
+  background-color: #ffffff;
+  color: #333;
+  border-top: 1px solid #eeeeee;
+  font-size: 0.85rem;  /* Écrit un peu plus petit pour le côté compact */
+}
+
+.contact-title {
+  margin: 0;       
+  font-size: 0.9rem;
+  color: #2c3e50;
+  font-weight: bold;
+}
+
+.contact-list {
+  list-style: none;
+  padding: 0;
+  margin: 2px 0 0 0;   /* Seulement 2px d'espace entre le titre et la liste */
+}
+
+.contact-list li {
+  line-height: 1.2;    /* Rapproche les lignes de texte entre elles */
+}
+
+.contact-list a {
+  color: inherit;
+  text-decoration: none; /* Enlève le souligné par défaut */
+}
+
+.contact-list a:hover {
+  text-decoration: underline; /* Souligne seulement au survol */
+  color: #3498db;
+}
+
+.footer-right {
+  text-align: right;
+}
+
+.footer-right p {
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.middle-link {
+  font-size: 0.8rem;
+  color: black;
+  cursor: pointer; 
+  transition: color 0.2s;
+}
+
+.middle-link:hover {
+  color: #3498db; 
+  text-decoration: underline;
+}
