@@ -1,0 +1,55 @@
+<div class="workbench-wrapper" *ngIf="exercice">
+  <as-split direction="horizontal" unit="percent" gutterSize="8">
+    
+    <!-- COLONNE 1 : Énoncé -->
+    <as-split-area [size]="25">
+      <div class="panel">
+        <div class="panel-header">Énoncé</div>
+        <div class="panel-content scrollable">
+          <h3>{{ exercice.titre }}</h3>
+          <p class="enonce-text">{{ exercice.enonce }}</p>
+        </div>
+      </div>
+    </as-split-area>
+
+    <!-- COLONNE 2 : Dico & Dépendances -->
+    <as-split-area [size]="30">
+      <as-split direction="vertical" gutterSize="8">
+        <as-split-area [size]="50">
+          <div class="panel">
+            <div class="panel-header">Dictionnaire des données</div>
+            <div class="panel-content">
+              <button class="btn-add">+ Ajouter un attribut</button>
+            </div>
+          </div>
+        </as-split-area>
+        <as-split-area [size]="50">
+          <div class="panel">
+            <div class="panel-header">Dépendances fonctionnelles</div>
+            <div class="panel-content">
+              <button class="btn-add">+ Ajouter une dépendance</button>
+            </div>
+          </div>
+        </as-split-area>
+      </as-split>
+    </as-split-area>
+
+    <!-- COLONNE 3 : Zone de Schéma (Blanche à pointillés) -->
+    <as-split-area [size]="45">
+      <div class="canvas-container">
+        <!-- Barre d'outils plus discrète -->
+        <div class="canvas-toolbar">
+          <button class="tool-item">⬜ Entité</button>
+          <button class="tool-item">◯ Attribut</button>
+          <button class="tool-item">→ Relation</button>
+        </div>
+        
+        <!-- La zone blanche à pointillés -->
+        <div class="dot-grid-canvas">
+            <!-- Ici viendront tes futurs schémas -->
+        </div>
+      </div>
+    </as-split-area>
+
+  </as-split>
+</div>
