@@ -8,8 +8,8 @@ import { Component } from '@angular/core';
 export class HeaderComponent {
 
   onLoginClick() {
-    console.log('Bouton Connexion cliqué ! (Fonctionnalité en cours de développement)');
-    alert('Le système de connexion sera bientôt disponible');
+    console.log('Bouton Connexion cliqué');
+
   }
 
 }
