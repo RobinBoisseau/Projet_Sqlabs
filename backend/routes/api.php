@@ -9,8 +9,9 @@ use App\Http\Controllers\FichierController;
 use App\Http\Controllers\ReponseIAController;
 
 
+Route::get('exercices/{slug}', [ExerciceController::class, 'show']);
+Route::apiResource('exercices', ExerciceController::class)->except(['show']);
 Route::apiResource('reponse-ia', ReponseIAController::class);
-Route::apiResource('exercices', ExerciceController::class);
 Route::apiResource('users', UserController::class);
 Route::apiResource('classe', ClasseController::class);
 Route::apiResource('tentatives', TentativeController::class);

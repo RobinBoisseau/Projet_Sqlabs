@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { AngularSplitModule } from 'angular-split';
 import { ExerciceService } from '../../services/exercice.service';
@@ -8,30 +9,41 @@ import { Exercice } from '../../models/exercice';
 @Component({
   selector: 'app-exercice-detail',
   standalone: true,
-  imports: [CommonModule, AngularSplitModule],
+  imports: [CommonModule, FormsModule, AngularSplitModule],
   templateUrl: './exercice-detail.component.html',
   styleUrls: ['./exercice-detail.component.css']
 })
 export class ExerciceDetailComponent implements OnInit {
   exercice: Exercice | undefined;
+  attributes: any[] = []; // Pour le dictionnaire des données
 
   constructor(
-    private route: ActivatedRoute,       // Pour lire l'ID dans l'URL
-    private exerciceService: ExerciceService // Ton service Laravel
+    private route: ActivatedRoute,
+    private exerciceService: ExerciceService
   ) {}
 
   ngOnInit(): void {
-    // 1. On récupère l'ID passé dans l'URL (le :id)
-    const id = Number(this.route.snapshot.paramMap.get('id'));
+    // Récupère le texte (slug) de l'URL
+    const slug = this.route.snapshot.paramMap.get('slug');
 
-    // 2. On demande à Laravel les infos de cet exercice précis
-    if (id) {
-      this.exerciceService.getExercice(id).subscribe({
+    if (slug) {
+      // On envoie le slug (string) au service
+      this.exerciceService.getExercice(slug).subscribe({
         next: (data) => {
           this.exercice = data;
         },
-        error: (err) => console.error('Erreur lors de la récupération de l\'exercice', err)
+        error: (err) => {
+          console.error('Erreur : Exercice introuvable', err);
+        }
       });
     }
+  }
+
+  addAttribute() {
+    this.attributes.push({ nom: '', type: 'INT' });
+  }
+
+  removeAttribute(index: number) {
+    this.attributes.splice(index, 1);
   }
 }

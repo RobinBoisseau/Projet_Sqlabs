@@ -10,7 +10,7 @@ import { environment } from '../../environments/environment';
 })
 export class ExerciceService {
 
-  private apiUrl = `http://localhost:8000/api/exercices`;
+  private apiUrl = `${environment.apiUrl}/exercices`;
 
   constructor(private http: HttpClient) {}
 
@@ -20,8 +20,9 @@ export class ExerciceService {
     );
   }
 
-  getExercice(id: number): Observable<Exercice> {
-    return this.http.get<{data: Exercice}>(`${this.apiUrl}/${id}`).pipe(
+  // LA CORRECTION EST ICI : slug: string au lieu de id: number
+  getExercice(slug: string): Observable<Exercice> {
+    return this.http.get<{data: Exercice}>(`${this.apiUrl}/${slug}`).pipe(
       map(response => response.data)
     );
   }

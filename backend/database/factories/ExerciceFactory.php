@@ -2,27 +2,21 @@
 
 namespace Database\Factories;
 
-use App\Models\Exercice;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
-/**
- * @extends Factory<Exercice>
- */
 class ExerciceFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
-{
-    return [
-        'titre' => fake()->sentence(3),
-        'enonce' => fake()->paragraph(),
-        'type' => fake()->randomElement(['SQL', 'BPMN']),
-        'etat' => fake()->randomElement(['Fini', 'Non fini']),
-        'user_id' => fake()->numberBetween(1, 10),
-    ];
-}
+    {
+        $titre = $this->faker->sentence(3);
+        return [
+            'titre'   => $titre,
+            'slug'    => Str::slug($titre),
+            'enonce'  => $this->faker->paragraph(),
+            'type'    => $this->faker->randomElement(['SQL', 'BPMN']),
+            'etat'    => $this->faker->randomElement(['Fini', 'Non fini']),
+            'user_id' => $this->faker->numberBetween(1, 10),
+        ];
+    }
 }
