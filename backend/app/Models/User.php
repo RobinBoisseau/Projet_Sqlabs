@@ -48,6 +48,13 @@ class User extends Authenticatable
         ];
     }
 
+    // app/Models/User.php
+
+    public function tentatives(){
+        // On précise bien la table pivot 'essayer' et les clés personnalisées
+        return $this->belongsToMany(Tentative::class, 'essayer', 'idEtudiant', 'idTentative');
+    }
+
     public function classes()
 {
     // On précise la table pivot car elle ne suit pas l'ordre alphabétique anglais (classes_users)

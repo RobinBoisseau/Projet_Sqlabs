@@ -28,4 +28,13 @@ class Tentative extends Model {
         'modeleValide' => 'boolean',
         'dateHeureTentative' => 'datetime'
     ];
+
+    public function etudiants() {
+        return $this->belongsToMany(Utilisateur::class, 'essayer', 'idTentative', 'idEtudiant');
+    }
+
+    public function exercices() {
+        return $this->belongsToMany(Exercice::class, 'concerner', 'idTentative', 'idExercice');
+    }
+
 }
