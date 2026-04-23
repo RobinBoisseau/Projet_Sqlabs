@@ -20,10 +20,12 @@ class DatabaseSeeder extends Seeder
         ExerciceSeeder::class,
         ClasseSeeder::class,
         TentativeSeeder::class,
+        ClasseUserSeeder::class,
         FichierSeeder::class,
         ReponseIASeeder::class,
         EssayerSeeder::class,     
         ConcernerSeeder::class,
+        TentativeSeeder::class,
     ]);
 }
 }

@@ -12,7 +12,7 @@ class Tentative extends Model {
         'dictionnaire', 'dependance', 'modele',
         'dictionnaireValide', 'dependanceValide', 'modeleValide',
         'dictionnaireCorrige', 'dependanceCorrige', 'modeleCorrige',
-        'dateHeureTentative'
+        'dateHeureTentative','user_id','exercice_id',
     ];
 
     // Important pour transformer le JSON en tableau PHP automatiquement

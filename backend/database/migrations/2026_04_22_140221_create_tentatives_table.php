@@ -1,5 +1,4 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -18,6 +17,11 @@ return new class extends Migration {
             $table->json('dependanceCorrige')->nullable();
             $table->json('modeleCorrige')->nullable();
             $table->dateTime('dateHeureTentative')->nullable();
+
+            // Clés étrangères
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('exercice_id')->constrained('exercices')->onDelete('cascade');
+
             $table->timestamps();
         });
     }

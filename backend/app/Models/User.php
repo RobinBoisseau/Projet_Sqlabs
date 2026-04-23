@@ -55,4 +55,9 @@ class User extends Authenticatable
         return $this->belongsToMany(Tentative::class, 'essayer', 'idEtudiant', 'idTentative');
     }
 
+    public function classes()
+{
+    // On précise la table pivot car elle ne suit pas l'ordre alphabétique anglais (classes_users)
+    return $this->belongsToMany(Classe::class, 'classe_user');
+}
 }
