@@ -2,6 +2,6 @@ export interface Exercice {
   id: number;
   titre: string;
   enonce: string;
-  type: string;
-  etat: string;
+  type: 'SQL' | 'BPMN';
+  etat: 'Fait' | 'Non Fait';
 }

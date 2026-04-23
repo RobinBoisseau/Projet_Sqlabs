@@ -1,87 +1,42 @@
-<div class="workbench-wrapper">
-  <as-split direction="horizontal" unit="percent" gutterSize="8">
-    
-    <!-- COLONNE 1 : Liste des exercices cliquables -->
-    <as-split-area [size]="25">
-      <div class="panel-container">
-        <div class="panel-header">Énoncés des exercices</div>
-        <div class="panel-content scrollable">
-          
-          <!-- Boucle avec index 'i' -->
-          <div *ngFor="let ex of exercices; let i = index" class="accordion-item">
-            
-            <!-- Header cliquable lié à l'index i -->
-            <div class="accordion-title" 
-                 (click)="toggleExercise(i)" 
-                 [class.active]="selectedIndex === i">
-              <span class="icon">{{ selectedIndex === i ? '▼' : '▶' }}</span>
-              {{ ex.titre || 'Exercice n°' + (i + 1) }}
-            </div>
-            
-            <!-- Contenu affiché uniquement si l'index correspond -->
-            <div class="accordion-body" *ngIf="selectedIndex === i">
-              <div class="enonce-content">
-                <p>{{ ex.enonce }}</p>
-                <div class="meta-data" *ngIf="ex.type">
-                   <strong>Type :</strong> {{ ex.type }}
-                </div>
-              </div>
-            </div>
-          </div>
+<div class="container">
+  <h1>Liste des exercices</h1>
 
-          <!-- Message si la liste est vide -->
-          <div *ngIf="exercices.length === 0" class="empty-msg">
-            Aucun exercice trouvé ou chargement...
-          </div>
-        </div>
+  <!-- SECTION SQL -->
+  <section class="type-section">
+    <h2 class="category-title">📁 Exercices SQL</h2>
+    <div class="exercise-card" *ngFor="let exo of sqlExercises">
+      <div class="left-part">
+        <!-- Lien cliquable à gauche (icône d'action) -->
+        <a [routerLink]="['/exercice', exo.id]" class="open-link" title="Ouvrir l'exercice">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+        <span class="exercise-info">Exercice {{ exo.id }} : <strong>{{ exo.titre }}</strong></span>
       </div>
-    </as-split-area>
 
-    <!-- COLONNE 2 : Dictionnaire & Dépendances -->
-    <as-split-area [size]="30">
-      <as-split direction="vertical" gutterSize="8">
-        
-        <as-split-area [size]="50">
-          <div class="panel-container">
-            <div class="panel-header">Dictionnaire des données</div>
-            <div class="panel-content">
-              <p class="placeholder-text">Cliquez sur un exercice pour voir ses attributs</p>
-              <button class="btn-add">+ Ajouter un attribut</button>
-            </div>
-          </div>
-        </as-split-area>
-
-        <as-split-area [size]="50">
-          <div class="panel-container">
-            <div class="panel-header">Dépendances fonctionnelles</div>
-            <div class="panel-content">
-              <button class="btn-add">+ Ajouter une dépendance</button>
-            </div>
-          </div>
-        </as-split-area>
-
-      </as-split>
-    </as-split-area>
-
-    <!-- COLONNE 3 : Modélisation -->
-    <as-split-area [size]="45">
-      <div class="panel-container">
-        <div class="toolbar">
-          <button class="tool-btn">⬜ Entité</button>
-          <button class="tool-btn">◯ Attribut</button>
-          <button class="tool-btn">→ Relation</button>
-          <div class="spacer"></div>
-          <button class="tool-btn secondary">🗑️</button>
-        </div>
-        
-        <div class="canvas-grid">
-          <div class="canvas-instructions">
-            <h4>Zone de modélisation</h4>
-            <p>Glissez-déposez des éléments ici</p>
-          </div>
-        </div>
+      <div class="right-part">
+        <!-- Badge de statut style "Bouton Moodle" -->
+        <span [class]="'status-badge ' + (exo.etat === 'Fait' ? 'done' : 'todo')">
+          {{ exo.etat === 'Fait' ? 'Terminé' : 'À faire' }}
+        </span>
       </div>
-    </as-split-area>
+    </div>
+  </section>
 
-  </as-split>
+  <!-- SECTION BPMN -->
+  <section class="type-section">
+    <h2 class="category-title">📊 Exercices BPMN</h2>
+    <div class="exercise-card" *ngFor="let exo of bpmnExercises">
+      <div class="left-part">
+        <a [routerLink]="['/exercice', exo.id]" class="open-link">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+        <span class="exercise-info">Exercice {{ exo.id }} : <strong>{{ exo.titre }}</strong></span>
+      </div>
+      <div class="right-part">
+        <span [class]="'status-badge ' + (exo.etat === 'Fait' ? 'done' : 'todo')">
+          {{ exo.etat === 'Fait' ? 'Terminé' : 'À faire' }}
+        </span>
+      </div>
+    </div>
+  </section>
 </div>

@@ -1,35 +1,27 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { AngularSplitModule } from 'angular-split';
 import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-exercice-list',
   standalone: true,
-  imports: [CommonModule, AngularSplitModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './exercice-list.component.html',
   styleUrls: ['./exercice-list.component.css']
 })
 export class ExerciceListComponent implements OnInit {
-  exercices: Exercice[] = [];
-  
-  // On utilise l'index de la liste pour l'accordéon
-  selectedIndex: number | null = null; 
+  sqlExercises: Exercice[] = [];
+  bpmnExercises: Exercice[] = [];
 
   constructor(private exerciceService: ExerciceService) {}
 
   ngOnInit(): void {
-    this.exerciceService.getExercices().subscribe({
-      next: (data) => {
-        this.exercices = data;
-      },
-      error: (err) => console.error('Erreur API Laravel:', err)
+    this.exerciceService.getExercices().subscribe(data => {
+      // On sépare les exos selon leur type
+      this.sqlExercises = data.filter(e => e.type === 'SQL');
+      this.bpmnExercises = data.filter(e => e.type === 'BPMN');
     });
-  }
-
-  // Ouvre ou ferme l'exercice cliqué
-  toggleExercise(index: number): void {
-    this.selectedIndex = (this.selectedIndex === index) ? null : index;
   }
 }

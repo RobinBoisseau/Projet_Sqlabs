@@ -1,114 +1,75 @@
-.workbench-wrapper {
-    width: 100%;
-    height: 100vh;
-    background: #f0f2f5;
-    overflow: hidden;
+.container {
+  padding: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
-.panel-container {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    background: white;
-    border: 1px solid #dcdfe6;
+.type-section {
+  margin-bottom: 40px;
 }
 
-.panel-header {
-    background: #f8f9fa;
-    padding: 12px 15px;
-    font-weight: bold;
-    font-size: 0.85rem;
-    border-bottom: 1px solid #dcdfe6;
-    color: #333;
+.category-title {
+  border-bottom: 2px solid #2c3e50;
+  padding-bottom: 10px;
+  color: #2c3e50;
+  font-size: 1.2rem;
+  margin-bottom: 20px;
 }
 
-.panel-content {
-    flex: 1;
-    padding: 10px;
+.exercise-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.scrollable { overflow-y: auto; }
-
-/* Styles de l'Accordéon */
-.accordion-item {
-    border: 1px solid #ebeef5;
-    border-radius: 4px;
-    margin-bottom: 6px;
+.exercise-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  background-color: #fcfcfc;
 }
 
-.accordion-title {
-    padding: 12px;
-    background: #fff;
-    cursor: pointer;
-    font-size: 0.85rem;
-    display: flex;
-    align-items: center;
-    transition: all 0.2s;
+.left-part {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
-.accordion-title:hover { background: #f5f7fa; color: #409eff; }
-
-.accordion-title.active { 
-    background: #ecf5ff; 
-    color: #409eff; 
-    font-weight: bold;
-    border-left: 3px solid #409eff;
+.open-link {
+  color: #3498db;
+  transition: color 0.2s;
 }
 
-.icon { font-size: 0.7rem; margin-right: 10px; width: 12px; }
-
-.accordion-body {
-    padding: 15px;
-    background: #fafafa;
-    border-top: 1px solid #ebeef5;
-    font-size: 0.85rem;
-    color: #555;
-    line-height: 1.6;
+.open-link:hover {
+  color: #2980b9;
 }
 
-.enonce-content p { margin: 0; white-space: pre-line; }
-
-.meta-data { margin-top: 10px; font-size: 0.75rem; color: #999; }
-
-/* Zone Modélisation */
-.toolbar {
-    padding: 8px;
-    background: #fff;
-    border-bottom: 1px solid #dcdfe6;
-    display: flex;
-    gap: 10px;
+.exercise-info {
+  font-size: 1rem;
+  color: #333;
 }
 
-.tool-btn {
-    padding: 6px 12px;
-    border: 1px solid #dcdfe6;
-    background: #fff;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    cursor: pointer;
+/* Les Badges de statut */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  border: 1px solid transparent;
 }
 
-.spacer { flex: 1; }
-
-.canvas-grid {
-    flex: 1;
-    background-color: #fff;
-    background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
-    background-size: 20px 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #909399;
+.status-badge.todo {
+  background-color: #f8f9fa;
+  color: #7f8c8d;
+  border-color: #bdc3c7;
 }
 
-.btn-add {
-    background: none;
-    border: none;
-    color: #409eff;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 10px;
-    font-size: 0.8rem;
+.status-badge.done {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-color: #a5d6a7;
 }
-
-.placeholder-text { font-size: 0.8rem; color: #999; font-style: italic; }
