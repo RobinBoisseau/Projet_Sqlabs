@@ -1,0 +1,67 @@
+.main-wrapper {
+    width: 100%;
+    height: 100vh; /* Toute la hauteur de l'écran */
+    background-color: #f0f2f5;
+}
+
+/* Style obligatoire pour les zones split */
+.panel-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border: 1px solid #e0e0e0;
+}
+
+.panel-title {
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    border-bottom: 1px solid #eee;
+    margin: 0;
+    background: #fafafa;
+}
+
+.panel-content {
+    flex: 1;
+    padding: 15px;
+}
+
+.scrollable {
+    overflow-y: auto;
+}
+
+/* Barre d'outils (Colonne 3) */
+.toolbar {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: #fff;
+}
+
+/* Zone de dessin avec quadrillage */
+.canvas-area {
+    flex: 1;
+    background-color: #ffffff;
+    background-image: radial-gradient(#d7d7d7 1px, transparent 1px);
+    background-size: 25px 25px; /* Quadrillage comme ta maquette */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.canvas-message {
+    color: #999;
+}
+
+.btn-add {
+    color: #1a73e8;
+    background: none;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 10px;
+}
