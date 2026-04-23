@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
         TentativeSeeder::class,
         FichierSeeder::class,
         ReponseIASeeder::class,
+        EssayerSeeder::class,     
+        ConcernerSeeder::class,
     ]);
 }
 }
