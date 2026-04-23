@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         ClasseUserSeeder::class,
         FichierSeeder::class,
         ReponseIASeeder::class,
+        TentativeSeeder::class,
     ]);
 }
 }
