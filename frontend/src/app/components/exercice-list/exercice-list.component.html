@@ -1,0 +1,8 @@
+<div>
+  <h2>Liste des exercices</h2>
+  <ul>
+    <li *ngFor="let exercice of exercices">
+      {{ exercice.titre }} - {{ exercice.type }} - {{ exercice.etat }}
+    </li>
+  </ul>
+</div>
