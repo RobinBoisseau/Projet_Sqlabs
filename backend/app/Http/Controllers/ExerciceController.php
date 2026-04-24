@@ -22,13 +22,17 @@ class ExerciceController extends Controller
         return new ExerciceResource($exercice);
     }
 
-    // GET /api/exercices/{id}
-    public function show($id)
+    // GET /api/exercices/{slug}
+    // CORRIGÉ : Recherche par slug sans erreur de syntaxe
+    public function show($slug)
     {
-        $exercice = Exercice::find($id);
+        // On cherche par le champ slug
+        $exercice = Exercice::where('slug', $slug)->first();
+
         if (!$exercice) {
             return response()->json(['message' => 'Exercice non trouvé'], 404);
         }
+
         return new ExerciceResource($exercice);
     }
 

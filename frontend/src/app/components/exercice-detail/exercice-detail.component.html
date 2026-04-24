@@ -1,55 +1,46 @@
-<div class="workbench-wrapper" *ngIf="exercice">
-  <as-split direction="horizontal" unit="percent" gutterSize="8">
-    
-    <!-- COLONNE 1 : Énoncé -->
-    <as-split-area [size]="25">
-      <div class="panel">
-        <div class="panel-header">Énoncé</div>
-        <div class="panel-content scrollable">
-          <h3>{{ exercice.titre }}</h3>
-          <p class="enonce-text">{{ exercice.enonce }}</p>
-        </div>
-      </div>
-    </as-split-area>
+<div class="container">
+  <h1>Liste des exercices</h1>
 
-    <!-- COLONNE 2 : Dico & Dépendances -->
-    <as-split-area [size]="30">
-      <as-split direction="vertical" gutterSize="8">
-        <as-split-area [size]="50">
-          <div class="panel">
-            <div class="panel-header">Dictionnaire des données</div>
-            <div class="panel-content">
-              <button class="btn-add">+ Ajouter un attribut</button>
-            </div>
-          </div>
-        </as-split-area>
-        <as-split-area [size]="50">
-          <div class="panel">
-            <div class="panel-header">Dépendances fonctionnelles</div>
-            <div class="panel-content">
-              <button class="btn-add">+ Ajouter une dépendance</button>
-            </div>
-          </div>
-        </as-split-area>
-      </as-split>
-    </as-split-area>
-
-    <!-- COLONNE 3 : Zone de Schéma (Blanche à pointillés) -->
-    <as-split-area [size]="45">
-      <div class="canvas-container">
-        <!-- Barre d'outils plus discrète -->
-        <div class="canvas-toolbar">
-          <button class="tool-item">⬜ Entité</button>
-          <button class="tool-item">◯ Attribut</button>
-          <button class="tool-item">→ Relation</button>
-        </div>
+  <!-- SECTION SQL -->
+  <section class="type-section">
+    <h2 class="category-title">📁 Exercices SQL</h2>
+    <div class="exercise-card" *ngFor="let exo of sqlExercises">
+      <div class="left-part">
         
-        <!-- La zone blanche à pointillés -->
-        <div class="dot-grid-canvas">
-            <!-- Ici viendront tes futurs schémas -->
-        </div>
+        <!-- ICI : On remplace exo.id par exo.slug -->
+        <a [routerLink]="['/exercice', exo.slug]" class="open-link" title="Ouvrir l'exercice">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+        
+        <span class="exercise-info">Exercice {{ exo.id }} : <strong>{{ exo.titre }}</strong></span>
       </div>
-    </as-split-area>
 
-  </as-split>
+      <div class="right-part">
+        <span [class]="'status-badge ' + (exo.etat === 'Fait' ? 'done' : 'todo')">
+          {{ exo.etat === 'Fait' ? 'Terminé' : 'À faire' }}
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION BPMN -->
+  <section class="type-section">
+    <h2 class="category-title">📊 Exercices BPMN</h2>
+    <div class="exercise-card" *ngFor="let exo of bpmnExercises">
+      <div class="left-part">
+
+        <!-- ICI AUSSI : On remplace exo.id par exo.slug -->
+        <a [routerLink]="['/exercice', exo.slug]" class="open-link">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+
+        <span class="exercise-info">Exercice {{ exo.id }} : <strong>{{ exo.titre }}</strong></span>
+      </div>
+      <div class="right-part">
+        <span [class]="'status-badge ' + (exo.etat === 'Fait' ? 'done' : 'todo')">
+          {{ exo.etat === 'Fait' ? 'Terminé' : 'À faire' }}
+        </span>
+      </div>
+    </div>
+  </section>
 </div>
