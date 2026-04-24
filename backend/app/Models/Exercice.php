@@ -10,7 +10,6 @@ class Exercice extends Model
 {
     use HasFactory;
 
-<<<<<<< HEAD
     protected $fillable = ['titre', 'slug', 'enonce', 'type', 'etat', 'user_id'];
 
     protected static function boot()
@@ -22,18 +21,4 @@ class Exercice extends Model
             }
         });
     }
-=======
-    protected $fillable = [
-        'titre',
-        'enonce',
-        'type',
-        'etat',
-        'user_id',
-    ];
-
-    public function getRouteKeyName()
-{
-    return 'slug';
-}
->>>>>>> 4c1ce90b0119953c92c83bf3bf93f8cefa80c216
 }
