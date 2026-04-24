@@ -55,9 +55,14 @@ class ExerciceController extends Controller
     }
 
     public function showBySlug($slug){
-    // On cherche l'exercice qui a ce slug précis
-    $exercice = Exercice::where('slug', $slug)->firstOrFail();
-    return new ExerciceResource($exercice);
+        // On cherche l'exercice par le slug
+        $exercice = Exercice::where('slug', $slug)->first();
+
+        if (!$exercice) {
+            return response()->json(['message' => 'Exercice non trouvé en base'], 404);
+        }
+
+        return new ExerciceResource($exercice);
     }
     
 }
