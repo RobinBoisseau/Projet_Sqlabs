@@ -20,13 +20,6 @@ export class ExerciceService {
     );
   }
 
-  // LA CORRECTION EST ICI : slug: string au lieu de id: number
-  getExercice(slug: string): Observable<Exercice> {
-    return this.http.get<{data: Exercice}>(`${this.apiUrl}/${slug}`).pipe(
-      map(response => response.data)
-    );
-  }
-
   getExerciceBySlug(slug: string): Observable<Exercice> {
     return this.http.get<{data: Exercice}>(`${this.apiUrl}/s/${slug}`).pipe(
       map(response => response.data));

@@ -29,7 +29,7 @@ export class ExerciceDetailComponent implements OnInit {
 
     if (slug) {
       // On envoie le slug (string) au service
-      this.exerciceService.getExercice(slug).subscribe({
+      this.exerciceService.getExerciceBySlug(slug).subscribe({
         next: (data) => {
           console.log('Donnée reçue du Backend :', data);
           this.exercice = data;
