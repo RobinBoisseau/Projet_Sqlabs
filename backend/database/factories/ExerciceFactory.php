@@ -7,16 +7,19 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ExerciceFactory extends Factory
 {
-    public function definition(): array
-    {
-        $titre = $this->faker->sentence(3);
-        return [
-            'titre'   => $titre,
-            'slug'    => Str::slug($titre),
-            'enonce'  => $this->faker->paragraph(),
-            'type'    => $this->faker->randomElement(['SQL', 'BPMN']),
-            'etat'    => $this->faker->randomElement(['Fini', 'Non fini']),
-            'user_id' => $this->faker->numberBetween(1, 10),
-        ];
-    }
+    public function definition(): array{
+    // 1. On stocke le texte dans $titre
+    $titre = fake()->sentence(3);
+     
+    return [
+        'titre' => $titre, // On utilise la variable
+        'slug'  => \Illuminate\Support\Str::slug($titre), // On utilise la MÊME variable (avec un R)
+        'enonce' => fake()->paragraph(),
+        'type'   => fake()->randomElement(['SQL', 'BPMN']),
+        'etat'   => fake()->randomElement(['Fini', 'Non fini']),
+        'type'   => fake()->randomElement(['SQL', 'BPMN']),
+        'etat'   => fake()->randomElement(['Fini', 'Non fini']),
+        'user_id' => fake()->numberBetween(1, 10),
+    ];
+}
 }

@@ -5,5 +5,4 @@ export interface Exercice {
   enonce: string;
   type: 'SQL' | 'BPMN';
   etat: 'Fait' | 'Non Fait';
-  slug: string;
 }

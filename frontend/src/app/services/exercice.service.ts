@@ -26,13 +26,9 @@ export class ExerciceService {
       map(response => response.data)
     );
   }
-<<<<<<< HEAD
-}
-=======
 
   getExerciceBySlug(slug: string): Observable<Exercice> {
     return this.http.get<{data: Exercice}>(`${this.apiUrl}/s/${slug}`).pipe(
       map(response => response.data));
   }
 }
->>>>>>> 4c1ce90b0119953c92c83bf3bf93f8cefa80c216
