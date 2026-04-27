@@ -18,7 +18,6 @@ class ExerciceFactory extends Factory
         'type'   => fake()->randomElement(['SQL', 'BPMN']),
         'etat'   => fake()->randomElement(['Fini', 'Non fini']),
         'type'   => fake()->randomElement(['SQL', 'BPMN']),
-        'etat'   => fake()->randomElement(['Fini', 'Non fini']),
         'user_id' => fake()->numberBetween(1, 10),
     ];
 }

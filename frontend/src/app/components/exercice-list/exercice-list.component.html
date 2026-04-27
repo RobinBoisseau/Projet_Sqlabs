@@ -1,42 +1,41 @@
 <div class="container">
-  <h1>Liste des exercices</h1>
+  <h1 class="main-title">Liste des Exercices</h1>
 
   <!-- SECTION SQL -->
-  <section class="type-section">
-    <h2 class="category-title">📁 Exercices SQL</h2>
-    <div class="exercise-card" *ngFor="let exo of sqlExercises">
-      <div class="left-part">
-        <!-- Lien cliquable à gauche (icône d'action) -->
-        <a [routerLink]="['/exercice', exo.slug]" class="open-link" title="Ouvrir l'exercice">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+  <div class="section-container" *ngIf="sqlExercises.length > 0">
+    <h2 class="section-header">📁 Exercices SQL</h2>
+    <div class="exercise-list">
+      <div class="exercise-row" *ngFor="let exo of sqlExercises; let i = index">
+        <a [routerLink]="['/exercice', exo.slug]" class="exercise-info">
+          <span class="exo-number">Exercice {{ i + 1 }} :</span>
+          <span class="exo-title">{{ exo.titre }}</span>
         </a>
-        <span class="exercise-info">Exercice {{ exo.id }} : <strong>{{ exo.titre }}</strong></span>
-      </div>
-
-      <div class="right-part">
-        <!-- Badge de statut style "Bouton Moodle" -->
-        <span [class]="'status-badge ' + (exo.etat === 'Fait' ? 'done' : 'todo')">
-          {{ exo.etat === 'Fait' ? 'Terminé' : 'À faire' }}
-        </span>
+        
+        <!-- L'état sur la même ligne, à droite -->
+        <div class="status-zone">
+          <span [class]="exo.est_termine ? 'status-done' : 'status-todo'">
+            {{ exo.est_termine ? '✅ Fait' : '□ À faire' }}
+          </span>
+        </div>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- SECTION BPMN -->
-  <section class="type-section">
-    <h2 class="category-title">📊 Exercices BPMN</h2>
-    <div class="exercise-card" *ngFor="let exo of bpmnExercises">
-      <div class="left-part">
-        <a [routerLink]="['/exercice', exo.slug]" class="open-link">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+  <!-- SECTION BPMN (Pareil ici) -->
+  <div class="section-container" *ngIf="bpmnExercises.length > 0">
+    <h2 class="section-header">📊 Exercices BPMN</h2>
+    <div class="exercise-list">
+      <div class="exercise-row" *ngFor="let exo of bpmnExercises; let i = index">
+        <a [routerLink]="['/exercice', exo.slug]" class="exercise-info">
+          <span class="exo-number">Exercice {{ i + 1 }} :</span>
+          <span class="exo-title">{{ exo.titre }}</span>
         </a>
-        <span class="exercise-info">Exercice {{ exo.id }} : <strong>{{ exo.titre }}</strong></span>
-      </div>
-      <div class="right-part">
-        <span [class]="'status-badge ' + (exo.etat === 'Fait' ? 'done' : 'todo')">
-          {{ exo.etat === 'Fait' ? 'Terminé' : 'À faire' }}
-        </span>
+        <div class="status-zone">
+          <span [class]="exo.est_termine ? 'status-done' : 'status-todo'">
+            {{ exo.est_termine ? '✅ Fait' : '□ À faire' }}
+          </span>
+        </div>
       </div>
     </div>
-  </section>
+  </div>
 </div>
