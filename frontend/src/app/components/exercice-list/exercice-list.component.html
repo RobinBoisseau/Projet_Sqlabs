@@ -5,28 +5,53 @@
   <div class="section-container" *ngIf="sqlExercises.length > 0">
     <h2 class="section-header">📁 Exercices SQL</h2>
     <div class="exercise-list">
-      <app-exercice-card 
-        *ngFor="let exo of sqlExercises; let i = index" 
-        [exo]="exo" 
-        [index]="i">
-      </app-exercice-card>
+      <div class="exercise-row" *ngFor="let exo of sqlExercises; let i = index">
+        <a [routerLink]="['/exercice', exo.slug]" class="exercise-info">
+          <span class="exo-number">Exercice {{ i + 1 }} :</span>
+          <span class="exo-title">{{ exo.titre }}</span>
+        </a>
+        
+        <!-- L'état sur la même ligne, à droite -->
+        <div class="status-zone">
+          <span [ngClass]="{
+            'status-done': exo.statut === 'Terminé',
+            'status-progress': exo.statut === 'En cours',
+            'status-todo': exo.statut === 'A faire'
+          }">
+            <ng-container [ngSwitch]="exo.statut">
+              <span *ngSwitchCase="'Terminé'">✅ Terminé</span>
+              <span *ngSwitchCase="'En cours'">🟠 En cours</span>
+              <span *ngSwitchCase="'A faire'">□ À faire</span>
+            </ng-container>
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- SECTION BPMN -->
+  <!-- SECTION BPMN (Pareil ici) -->
   <div class="section-container" *ngIf="bpmnExercises.length > 0">
     <h2 class="section-header">📊 Exercices BPMN</h2>
     <div class="exercise-list">
-      <app-exercice-card 
-        *ngFor="let exo of bpmnExercises; let i = index" 
-        [exo]="exo" 
-        [index]="i">
-      </app-exercice-card>
+      <div class="exercise-row" *ngFor="let exo of bpmnExercises; let i = index">
+        <a [routerLink]="['/exercice', exo.slug]" class="exercise-info">
+          <span class="exo-number">Exercice {{ i + 1 }} :</span>
+          <span class="exo-title">{{ exo.titre }}</span>
+        </a>
+        <div class="status-zone">
+          <span [ngClass]="{
+            'status-done': exo.statut === 'Terminé',
+            'status-progress': exo.statut === 'En cours',
+            'status-todo': exo.statut === 'A faire'
+          }">
+            <ng-container [ngSwitch]="exo.statut">
+              <span *ngSwitchCase="'Terminé'">✅ Terminé</span>
+              <span *ngSwitchCase="'En cours'">🟠 En cours</span>
+              <span *ngSwitchCase="'A faire'">□ À faire</span>
+            </ng-container>
+          </span>
+        </div>
+      </div>
     </div>
-  </div>
-
-  <!-- MESSAGE SI VIDE -->
-  <div *ngIf="sqlExercises.length === 0 && bpmnExercises.length === 0" class="loading-msg">
-    Aucun exercice trouvé. Vérifiez la connexion à Laravel.
   </div>
 </div>

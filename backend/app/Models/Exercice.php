@@ -5,27 +5,28 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Exercice extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['titre', 'slug', 'enonce', 'type', 'etat', 'user_id'];
+    protected $fillable = [
+        'titre',
+        'enonce',
+        'slug',
+        'type',
+        'etat',
+        'user_id',
+    ];
 
-    // --- AJOUTE CETTE FONCTION ICI ---
-    public function tentatives()
-    {
-        // Un exercice a plusieurs tentatives (HasMany)
-        return $this->hasMany(Tentative::class);
+    public function getRouteKeyName(){
+    return 'slug';
     }
 
-    protected static function boot()
+    public function tentatives(): BelongsToMany
     {
-        parent::boot();
-        static::creating(function ($exercice) {
-            if (empty($exercice->slug)) {
-                $exercice->slug = Str::slug($exercice->titre);
-            }
-        });
+        // On précise : Modèle lié, nom de la table pivot, clé de l'exo, clé de la tentative
+        return $this->belongsToMany(Tentative::class, 'concerner', 'idExercice', 'idTentative');
     }
 }
