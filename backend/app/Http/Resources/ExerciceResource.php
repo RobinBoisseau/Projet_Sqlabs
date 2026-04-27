@@ -46,7 +46,8 @@ class ExerciceResource extends JsonResource
             'titre' => $this->titre,
             'slug' => $this->slug,
             'type' => $this->type,
-            'statut' => $statut, // Renvoie 'Terminé', 'En cours' ou 'A faire'
+            'statut' => $statut,
+            'enonce' => $this->enonce,
         ];
     }
 
