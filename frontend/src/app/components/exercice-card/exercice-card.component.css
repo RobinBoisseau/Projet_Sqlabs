@@ -1,0 +1,66 @@
+/* Alignement de la ligne */
+.exercise-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Effet au survol */
+.exercise-row:hover {
+  border-color: #1a73e8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Infos de l'exercice (Lien + Titre) */
+.exercise-info {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+}
+
+.exo-number {
+  font-weight: bold;
+  color: #5f6368;
+  min-width: 95px;
+}
+
+.exo-title {
+  color: #1a73e8;
+  font-weight: 500;
+}
+
+/* Style de base des badges */
+.status-done, .status-progress, .status-todo {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* Couleurs spécifiques par état */
+.status-done {
+  background-color: #e6f4ea; /* Vert clair */
+  color: #1e8e3e;            /* Vert foncé */
+}
+
+.status-progress {
+  background-color: #fef7e0; /* Orange clair */
+  color: #e37400;            /* Orange foncé */
+}
+
+.status-todo {
+  background-color: #f1f3f4; /* Gris clair */
+  color: #5f6368;            /* Gris foncé */
+}
