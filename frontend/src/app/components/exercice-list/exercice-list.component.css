@@ -1,75 +1,66 @@
 .container {
-  padding: 40px;
   max-width: 1000px;
-  margin: 0 auto;
+  margin: 2rem auto;
+  padding: 0 1rem;
 }
 
-.type-section {
-  margin-bottom: 40px;
-}
-
-.category-title {
-  border-bottom: 2px solid #2c3e50;
-  padding-bottom: 10px;
+.section-header {
+  font-size: 1.1rem;
   color: #2c3e50;
-  font-size: 1.2rem;
-  margin-bottom: 20px;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 8px;
+  margin-top: 2rem;
 }
 
-.exercise-card {
+.exercise-list {
+  margin-top: 10px;
+}
+
+/* LA LIGNE MAGIQUE */
+.exercise-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* Nom à gauche, État à droite */
   align-items: center;
-  padding: 15px 20px;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  padding: 12px 15px;
+  border-bottom: 1px solid #f1f1f1;
+  transition: background 0.2s;
 }
 
-.exercise-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  background-color: #fcfcfc;
-}
-
-.left-part {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.open-link {
-  color: #3498db;
-  transition: color 0.2s;
-}
-
-.open-link:hover {
-  color: #2980b9;
+.exercise-row:hover {
+  background-color: #f8fafc; /* Petit effet au survol */
 }
 
 .exercise-info {
-  font-size: 1rem;
-  color: #333;
+  text-decoration: none;
+  color: #34495e;
+  display: flex;
+  gap: 8px;
 }
 
-/* Les Badges de statut */
-.status-badge {
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 0.8rem;
+.exo-number {
   font-weight: bold;
-  border: 1px solid transparent;
+  color: #3498db;
 }
 
-.status-badge.todo {
-  background-color: #f8f9fa;
-  color: #7f8c8d;
-  border-color: #bdc3c7;
+.exo-title:hover {
+  text-decoration: underline;
 }
 
-.status-badge.done {
+/* STYLES DES ÉTATS */
+.status-done {
+  color: #27ae60;
   background-color: #e8f5e9;
-  color: #2e7d32;
-  border-color: #a5d6a7;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.status-todo {
+  color: #8d887f;
+  background-color: #f9faf8;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  border: 1px solid #eee;
 }

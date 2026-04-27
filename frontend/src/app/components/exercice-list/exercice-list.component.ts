@@ -19,6 +19,7 @@ export class ExerciceListComponent implements OnInit {
 
   ngOnInit(): void {
     this.exerciceService.getExercices().subscribe(data => {
+      console.log('Données brutes reçues :', data); 
       // On sépare les exos selon leur type
       this.sqlExercises = data.filter(e => e.type === 'SQL');
       this.bpmnExercises = data.filter(e => e.type === 'BPMN');
