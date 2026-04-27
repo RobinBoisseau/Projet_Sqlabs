@@ -5,12 +5,13 @@ import { ActivatedRoute } from '@angular/router';
 import { AngularSplitModule } from 'angular-split';
 import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
+import { PanelComponent } from '../panel/panel.component';
 
 
 @Component({
   selector: 'app-exercice-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, AngularSplitModule],
+  imports: [CommonModule, FormsModule, AngularSplitModule,PanelComponent],
   templateUrl: './exercice-detail.component.html',
   styleUrls: ['./exercice-detail.component.css']
 })

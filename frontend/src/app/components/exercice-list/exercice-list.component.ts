@@ -3,11 +3,12 @@ import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { ExerciceCardComponent } from '../exercice-card/exercice-card.component';
 
 @Component({
   selector: 'app-exercice-list',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink,ExerciceCardComponent],
   templateUrl: './exercice-list.component.html',
   styleUrls: ['./exercice-list.component.css']
 })

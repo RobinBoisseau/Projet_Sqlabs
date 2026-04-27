@@ -1,63 +1,14 @@
-<div class="main-wrapper">
-  <as-split direction="horizontal" unit="percent" gutterSize="10">
-    
-    <!-- COLONNE 1 : Énoncé -->
-    <as-split-area [size]="25">
-      <div class="panel-container">
-        <h3 class="panel-title">Énoncé de l'exercice</h3>
-        <div class="panel-content scrollable">
-          <!-- Ici on boucle ou on affiche le premier exercice pour le test -->
-          <div *ngFor="let ex of exercices" class="exercice-item">
-             <p>{{ ex.titre }}</p> 
-             <!-- Adapte "description" au nom de ton champ Laravel -->
-          </div>
-        </div>
-      </div>
-    </as-split-area>
+<div class="container">
+  <div class="container">
+  <h1>Liste des exercices</h1>
 
-    <!-- COLONNE 2 : Dictionnaire & Dépendances -->
-    <as-split-area [size]="30">
-      <as-split direction="vertical" gutterSize="10">
-        
-        <as-split-area [size]="50">
-          <div class="panel-container">
-            <h3 class="panel-title">Dictionnaire des données</h3>
-            <div class="panel-content">
-               <!-- Contenu du tableau ici -->
-               <button class="btn-add">+ Ajouter un attribut</button>
-            </div>
-          </div>
-        </as-split-area>
+  <section class="type-section">
+    <h2 class="category-title">📁 Exercices SQL</h2>
+    <app-exercice-card *ngFor="let exo of sqlExercises" [exo]="exo"></app-exercice-card>
+  </section>
 
-        <as-split-area [size]="50">
-          <div class="panel-container">
-            <h3 class="panel-title">Dépendances fonctionnelles</h3>
-            <div class="panel-content">
-               <button class="btn-add">+ Ajouter une dépendance</button>
-            </div>
-          </div>
-        </as-split-area>
-
-      </as-split>
-    </as-split-area>
-
-    <!-- COLONNE 3 : Modélisation -->
-    <as-split-area [size]="45">
-      <div class="panel-container">
-        <div class="toolbar">
-           <span>Outils</span>
-           <button>⬜ Entité</button>
-           <button>◯ Attribut</button>
-           <button>→ Relation</button>
-        </div>
-        <div class="canvas-area">
-          <div class="canvas-message">
-            <h4>Zone de modélisation</h4>
-            <p>Utilisez la barre d'outils pour ajouter des entités</p>
-          </div>
-        </div>
-      </div>
-    </as-split-area>
-
-  </as-split>
+  <section class="type-section">
+    <h2 class="category-title">📊 Exercices BPMN</h2>
+    <app-exercice-card *ngFor="let exo of bpmnExercises" [exo]="exo"></app-exercice-card>
+  </section>
 </div>

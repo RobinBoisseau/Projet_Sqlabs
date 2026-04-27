@@ -1,164 +1,73 @@
 <div class="workbench-wrapper" *ngIf="exercice">
-
-
-
   <as-split direction="horizontal" unit="percent" gutterSize="8">
 
-
-    
-
-
-    <!-- COLONNE 1 : Énoncé -->
-
-
+    <!-- COLONNE 1 : Énoncé (25%) -->
     <as-split-area [size]="25">
-
-
-      <div class="panel">
-
-
-        <div class="panel-header">Énoncé</div>
-
-
-        <div class="panel-content scrollable">
-
-
-          <h3>{{ exercice.titre }}</h3>
-
-
+      <app-panel title="Énoncé">
+        <div class="enonce-container">
+          <h3 class="exercice-title">{{ exercice.titre }}</h3>
           <p class="enonce-text">{{ exercice.enonce }}</p>
-
-
+          <span class="type-badge" *ngIf="exercice.type">{{ exercice.type }}</span>
         </div>
-
-
-      </div>
-
-
+      </app-panel>
     </as-split-area>
 
 
-
-
-
-    <!-- COLONNE 2 : Dico & Dépendances -->
-
-
+    <!-- COLONNE 2 : Dico & Dépendances (30%) -->
     <as-split-area [size]="30">
-
-
       <as-split direction="vertical" gutterSize="8">
-
-
+        
+        <!-- Haut : Dictionnaire -->
         <as-split-area [size]="50">
-
-
-          <div class="panel">
-
-
-            <div class="panel-header">Dictionnaire des données</div>
-
-
-            <div class="panel-content">
-
-
-              <button class="btn-add">+ Ajouter un attribut</button>
-
-
+          <app-panel title="Dictionnaire des données">
+            <div class="dictionnaire-actions">
+              <p *ngIf="attributes.length === 0" class="placeholder">Aucun attribut pour le moment.</p>
+              
+              <!-- Si tu as déjà fait le tableau d'attributs, remets-le ici -->
+              
+              <button class="btn-add" (click)="addAttribute()">+ Ajouter un attribut</button>
             </div>
-
-
-          </div>
-
-
+          </app-panel>
         </as-split-area>
 
-
+        <!-- Bas : Dépendances -->
         <as-split-area [size]="50">
-
-
-          <div class="panel">
-
-
-            <div class="panel-header">Dépendances fonctionnelles</div>
-
-
-            <div class="panel-content">
-
-
+          <app-panel title="Dépendances fonctionnelles">
+            <div class="dependances-actions">
               <button class="btn-add">+ Ajouter une dépendance</button>
-
-
             </div>
-
-
-          </div>
-
-
+          </app-panel>
         </as-split-area>
-
 
       </as-split>
-
-
     </as-split-area>
 
 
-
-
-
-    <!-- COLONNE 3 : Zone de Schéma (Blanche à pointillés) -->
-
-
+    <!-- COLONNE 3 : Zone de Schéma (45%) -->
     <as-split-area [size]="45">
-
-
-      <div class="canvas-container">
-
-
-        <!-- Barre d'outils plus discrète -->
-
-
-        <div class="canvas-toolbar">
-
-
-          <button class="tool-item">⬜ Entité</button>
-
-
-          <button class="tool-item">◯ Attribut</button>
-
-
-          <button class="tool-item">→ Relation</button>
-
+      <app-panel title="Zone de modélisation" [scrollable]="false">
+        <div class="canvas-wrapper">
+          
+          <!-- Barre d'outils interne au panel -->
+          <div class="canvas-toolbar">
+            <button class="tool-item">⬜ Entité</button>
+            <button class="tool-item">◯ Attribut</button>
+            <button class="tool-item">→ Relation</button>
+          </div>
+          
+          <!-- La grille à pointillés -->
+          <div class="dot-grid-canvas">
+            <!-- Les futurs schémas viendront ici -->
+          </div>
 
         </div>
-
-
-        
-
-
-        <!-- La zone blanche à pointillés -->
-
-
-        <div class="dot-grid-canvas">
-
-
-            <!-- Ici viendront tes futurs schémas -->
-
-
-        </div>
-
-
-      </div>
-
-
+      </app-panel>
     </as-split-area>
-
-
-
-
 
   </as-split>
+</div>
 
-
+<!-- Message d'attente si l'exercice n'est pas encore chargé -->
+<div *ngIf="!exercice" class="loading-overlay">
+  <p>Chargement de l'exercice...</p>
 </div>
