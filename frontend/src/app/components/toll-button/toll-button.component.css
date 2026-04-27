@@ -1,0 +1,23 @@
+.tool-item {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Espace entre l'icône et le texte */
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.tool-item:hover {
+    border-color: #1a73e8;
+    background: #f0f7ff;
+    color: #1a73e8;
+}
+
+.tool-icon {
+    font-size: 1rem;
+}

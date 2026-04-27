@@ -5,17 +5,18 @@
   </a>
   
   <div class="status-zone">
-    <!-- On se base sur 'etat' (le nom en BD) et les valeurs 'fini', 'en cours', etc. -->
+    <!-- On utilise [ngClass] et [ngSwitch] sur exo.statut -->
     <span [ngClass]="{
-      'status-done': exo.etat === 'fini',
-      'status-progress': exo.etat === 'en cours',
-      'status-todo': exo.etat === 'non fini'
+      'status-done': exo.statut === 'Terminé',
+      'status-progress': exo.statut === 'En cours',
+      'status-todo': exo.statut === 'A faire'
     }">
-      <ng-container [ngSwitch]="exo.etat">
-        <!-- ICI : On fait le lien entre valeur BD et texte d'affichage -->
-        <span *ngSwitchCase="'fini'">✅ Terminé</span>
-        <span *ngSwitchCase="'en cours'">🟠 En cours</span>
-        <span *ngSwitchCase="'non fini'">□ À faire</span>
+      <ng-container [ngSwitch]="exo.statut">
+        <span *ngSwitchCase="'Terminé'">✅ Terminé</span>
+        <span *ngSwitchCase="'En cours'">🟠 En cours</span>
+        <span *ngSwitchCase="'A faire'">□ À faire</span>
+        <!-- Sécurité au cas où -->
+        <span *ngSwitchDefault>□ À faire</span>
       </ng-container>
     </span>
   </div>
