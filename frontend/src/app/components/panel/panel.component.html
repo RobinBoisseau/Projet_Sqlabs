@@ -1,0 +1,6 @@
+<div class="panel">
+  <div class="panel-header">{{ title }}</div>
+  <div class="panel-content" [class.scrollable]="scrollable">
+    <ng-content></ng-content> <!-- C'est ici que ton code spécifique sera "injecté" -->
+  </div>
+</div>
