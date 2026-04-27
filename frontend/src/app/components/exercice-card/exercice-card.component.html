@@ -1,17 +1,22 @@
-<div class="exercise-card">
-  <div class="left-part">
-    <a [routerLink]="['/exercice', exo.slug]" class="open-link" title="Ouvrir l'exercice">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-        <polyline points="15 3 21 3 21 9"/>
-        <line x1="10" y1="14" x2="21" y2="3"/>
-      </svg>
-    </a>
-    <span class="exercise-info">Exercice {{ exo.id }} : <strong>{{ exo.titre }}</strong></span>
-  </div>
-  <div class="right-part">
-    <span [class]="'status-badge ' + (exo.etat === 'Fait' ? 'done' : 'todo')">
-      {{ exo.etat === 'Fait' ? 'Terminé' : 'À faire' }}
+<div class="exercise-row">
+  <a [routerLink]="['/exercice', exo.slug]" class="exercise-info">
+    <span class="exo-number">Exercice {{ index + 1 }} :</span>
+    <span class="exo-title">{{ exo.titre }}</span>
+  </a>
+  
+  <div class="status-zone">
+    <!-- On se base sur 'etat' (le nom en BD) et les valeurs 'fini', 'en cours', etc. -->
+    <span [ngClass]="{
+      'status-done': exo.etat === 'fini',
+      'status-progress': exo.etat === 'en cours',
+      'status-todo': exo.etat === 'non fini'
+    }">
+      <ng-container [ngSwitch]="exo.etat">
+        <!-- ICI : On fait le lien entre valeur BD et texte d'affichage -->
+        <span *ngSwitchCase="'fini'">✅ Terminé</span>
+        <span *ngSwitchCase="'en cours'">🟠 En cours</span>
+        <span *ngSwitchCase="'non fini'">□ À faire</span>
+      </ng-container>
     </span>
   </div>
 </div>
