@@ -1,14 +1,32 @@
 <div class="container">
-  <div class="container">
-  <h1>Liste des exercices</h1>
+  <h1 class="main-title">Liste des Exercices</h1>
 
-  <section class="type-section">
-    <h2 class="category-title">📁 Exercices SQL</h2>
-    <app-exercice-card *ngFor="let exo of sqlExercises" [exo]="exo"></app-exercice-card>
-  </section>
+  <!-- SECTION SQL -->
+  <div class="section-container" *ngIf="sqlExercises.length > 0">
+    <h2 class="section-header">📁 Exercices SQL</h2>
+    <div class="exercise-list">
+      <app-exercice-card 
+        *ngFor="let exo of sqlExercises; let i = index" 
+        [exo]="exo" 
+        [index]="i">
+      </app-exercice-card>
+    </div>
+  </div>
 
-  <section class="type-section">
-    <h2 class="category-title">📊 Exercices BPMN</h2>
-    <app-exercice-card *ngFor="let exo of bpmnExercises" [exo]="exo"></app-exercice-card>
-  </section>
+  <!-- SECTION BPMN -->
+  <div class="section-container" *ngIf="bpmnExercises.length > 0">
+    <h2 class="section-header">📊 Exercices BPMN</h2>
+    <div class="exercise-list">
+      <app-exercice-card 
+        *ngFor="let exo of bpmnExercises; let i = index" 
+        [exo]="exo" 
+        [index]="i">
+      </app-exercice-card>
+    </div>
+  </div>
+
+  <!-- MESSAGE SI VIDE -->
+  <div *ngIf="sqlExercises.length === 0 && bpmnExercises.length === 0" class="loading-msg">
+    Aucun exercice trouvé. Vérifiez la connexion à Laravel.
+  </div>
 </div>

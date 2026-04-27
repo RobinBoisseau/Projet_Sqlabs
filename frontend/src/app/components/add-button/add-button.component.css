@@ -1,0 +1,18 @@
+.btn-add {
+    width: 100%;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px dashed #1a73e8; /* Bordure en pointillés bleue */
+    color: #1a73e8;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 10px;
+}
+
+.btn-add:hover {
+    background-color: #f0f7ff;
+    border-style: solid; /* Devient une ligne pleine au survol */
+}

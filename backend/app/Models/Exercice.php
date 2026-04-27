@@ -10,16 +10,22 @@ class Exercice extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'titre',
-        'enonce',
-        'type',
-        'etat',
-        'user_id',
-    ];
+    protected $fillable = ['titre', 'slug', 'enonce', 'type', 'etat', 'user_id'];
 
-    public function getRouteKeyName()
-{
-    return 'slug';
-}
+    // --- AJOUTE CETTE FONCTION ICI ---
+    public function tentatives()
+    {
+        // Un exercice a plusieurs tentatives (HasMany)
+        return $this->hasMany(Tentative::class);
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($exercice) {
+            if (empty($exercice->slug)) {
+                $exercice->slug = Str::slug($exercice->titre);
+            }
+        });
+    }
 }
