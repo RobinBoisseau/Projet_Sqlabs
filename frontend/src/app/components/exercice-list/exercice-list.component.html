@@ -1,63 +1,41 @@
-<div class="main-wrapper">
-  <as-split direction="horizontal" unit="percent" gutterSize="10">
-    
-    <!-- COLONNE 1 : Énoncé -->
-    <as-split-area [size]="25">
-      <div class="panel-container">
-        <h3 class="panel-title">Énoncé de l'exercice</h3>
-        <div class="panel-content scrollable">
-          <!-- Ici on boucle ou on affiche le premier exercice pour le test -->
-          <div *ngFor="let ex of exercices" class="exercice-item">
-             <p>{{ ex.titre }}</p> 
-             <!-- Adapte "description" au nom de ton champ Laravel -->
-          </div>
-        </div>
-      </div>
-    </as-split-area>
+<div class="container">
+  <h1 class="main-title">Liste des Exercices</h1>
 
-    <!-- COLONNE 2 : Dictionnaire & Dépendances -->
-    <as-split-area [size]="30">
-      <as-split direction="vertical" gutterSize="10">
+  <!-- SECTION SQL -->
+  <div class="section-container" *ngIf="sqlExercises.length > 0">
+    <h2 class="section-header">📁 Exercices SQL</h2>
+    <div class="exercise-list">
+      <div class="exercise-row" *ngFor="let exo of sqlExercises; let i = index">
+        <a [routerLink]="['/exercice', exo.slug]" class="exercise-info">
+          <span class="exo-number">Exercice {{ i + 1 }} :</span>
+          <span class="exo-title">{{ exo.titre }}</span>
+        </a>
         
-        <as-split-area [size]="50">
-          <div class="panel-container">
-            <h3 class="panel-title">Dictionnaire des données</h3>
-            <div class="panel-content">
-               <!-- Contenu du tableau ici -->
-               <button class="btn-add">+ Ajouter un attribut</button>
-            </div>
-          </div>
-        </as-split-area>
-
-        <as-split-area [size]="50">
-          <div class="panel-container">
-            <h3 class="panel-title">Dépendances fonctionnelles</h3>
-            <div class="panel-content">
-               <button class="btn-add">+ Ajouter une dépendance</button>
-            </div>
-          </div>
-        </as-split-area>
-
-      </as-split>
-    </as-split-area>
-
-    <!-- COLONNE 3 : Modélisation -->
-    <as-split-area [size]="45">
-      <div class="panel-container">
-        <div class="toolbar">
-           <span>Outils</span>
-           <button>⬜ Entité</button>
-           <button>◯ Attribut</button>
-           <button>→ Relation</button>
-        </div>
-        <div class="canvas-area">
-          <div class="canvas-message">
-            <h4>Zone de modélisation</h4>
-            <p>Utilisez la barre d'outils pour ajouter des entités</p>
-          </div>
+        <!-- L'état sur la même ligne, à droite -->
+        <div class="status-zone">
+          <span [class]="exo.est_termine ? 'status-done' : 'status-todo'">
+            {{ exo.est_termine ? '✅ Fait' : '□ À faire' }}
+          </span>
         </div>
       </div>
-    </as-split-area>
+    </div>
+  </div>
 
-  </as-split>
+  <!-- SECTION BPMN (Pareil ici) -->
+  <div class="section-container" *ngIf="bpmnExercises.length > 0">
+    <h2 class="section-header">📊 Exercices BPMN</h2>
+    <div class="exercise-list">
+      <div class="exercise-row" *ngFor="let exo of bpmnExercises; let i = index">
+        <a [routerLink]="['/exercice', exo.slug]" class="exercise-info">
+          <span class="exo-number">Exercice {{ i + 1 }} :</span>
+          <span class="exo-title">{{ exo.titre }}</span>
+        </a>
+        <div class="status-zone">
+          <span [class]="exo.est_termine ? 'status-done' : 'status-todo'">
+            {{ exo.est_termine ? '✅ Fait' : '□ À faire' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

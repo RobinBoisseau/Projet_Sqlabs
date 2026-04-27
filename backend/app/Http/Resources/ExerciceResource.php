@@ -12,14 +12,22 @@ class ExerciceResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-   public function toArray(Request $request)
-{
-    return [
-        'id' => $this->id,
-        'enonce' => $this->enonce,
-        'slug' => $this->slug, 
-        'titre' => $this->titre,
-        'type' => $this->type
-    ];
-}
+   public function toArray(Request $request): array{
+        // Laravel va regarder dans la table 'concerner' pour trouver les tentatives liées
+        // puis vérifier les 3 conditions dans la table 'tentatives'
+        $estFini = $this->tentatives()
+            ->where('dictionnaireValide', true)
+            ->where('dependanceValide', true)
+            ->where('modeleValide', true)
+            ->exists();
+
+        return [
+            'id' => $this->id,
+            'titre' => $this->titre,
+            'slug' => $this->slug,
+            'type' => $this->type,
+            'est_termine' => $estFini, // Renvoie true ou false
+        ];
+    }
+
 }
