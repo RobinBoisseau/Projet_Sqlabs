@@ -1,18 +1,17 @@
-<header class="navbar">
-  <div class="logo-container">
-    <span class="logo-text">Sqlabs</span>
+<header class="header-container">
+  <!-- Groupe Gauche : Aligné horizontalement -->
+  <div class="left-group">
+    <a routerLink="/" class="logo">Sqlabs</a>
+    
+    <!-- Le lien "plus beau" -->
+    <a *ngIf="isOnDetail()" routerLink="/exercices" class="back-link">
+       <span class="arrow">←</span> Liste des exercices
+    </a>
   </div>
 
-  <!-- Bloc Profil -->
-  <div class="profile-section">
-    <!-- Le nom à gauche -->
+  <!-- Groupe Droite -->
+  <div class="user-profile" (click)="onProfileClick()">
     <span class="user-name">{{ firstName }} {{ lastName }}</span>
-    
-    <!-- L'icône à droite et cliquable -->
-    <div class="avatar-clickable" (click)="onProfileClick()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-      </svg>
-    </div>
+    <span class="avatar-icon">👤</span>
   </div>
 </header>
