@@ -4,5 +4,5 @@ export interface Exercice {
   slug:string;
   enonce: string;
   type: 'SQL' | 'BPMN';
-  etat: 'Fait' | 'Non Fait';
+  etat: 'fini' | 'en cours' | 'non fini';
 }

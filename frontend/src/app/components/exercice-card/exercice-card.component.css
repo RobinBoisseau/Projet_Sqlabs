@@ -1,0 +1,78 @@
+/* Conteneur de la ligne d'exercice */
+.exercise-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  cursor: pointer;
+}
+
+/* Effet au survol de la ligne */
+.exercise-row:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #1a73e8;
+}
+
+/* Zone d'information (Lien + Titre) */
+.exercise-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none; /* Enlève le souligné du lien */
+  color: inherit;
+  flex: 1;
+}
+
+.exo-number {
+  font-weight: 700;
+  color: #5f6368;
+  min-width: 100px;
+  font-size: 0.95rem;
+}
+
+.exo-title {
+  font-weight: 500;
+  color: #1a73e8;
+  font-size: 1rem;
+}
+
+/* Zone du Badge à droite */
+.status-zone {
+  display: flex;
+  align-items: center;
+}
+
+/* Style de base des badges (commun aux 3 états) */
+.status-done, .status-progress, .status-todo {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* ÉTAT : Terminé (Fini) -> VERT */
+.status-done {
+  background-color: #e6f4ea; /* Fond vert clair */
+  color: #1e8e3e;            /* Texte vert foncé */
+}
+
+/* ÉTAT : En cours -> ORANGE */
+.status-progress {
+  background-color: #fef7e0; /* Fond orange/jaune très clair */
+  color: #e37400;            /* Texte orange foncé */
+}
+
+/* ÉTAT : À faire (Non fini) -> GRIS */
+.status-todo {
+  background-color: #f1f3f4; /* Fond gris clair */
+  color: #5f6368;            /* Texte gris foncé */
+}

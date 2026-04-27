@@ -12,4 +12,5 @@ import { Exercice } from '../../models/exercice';
 })
 export class ExerciceCardComponent {
   @Input() exo!: Exercice;
+  @Input() index!: number;
 }
