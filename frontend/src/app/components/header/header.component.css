@@ -43,3 +43,15 @@
   background-color: #f0f5f5; /* Petit effet au survol */
   transform: scale(1.1); /* L'icône grossit un tout petit peu */
 }
+
+.logo-link {
+  text-decoration: none; 
+  color: inherit;      
+  cursor: pointer;       
+}
+
+
+.logo-link:hover .logo-text {
+  color: #3498db;      
+  transition: color 0.2s ease-in-out;
+}
