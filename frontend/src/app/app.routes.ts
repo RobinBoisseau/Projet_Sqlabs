@@ -1,9 +1,12 @@
 import { Routes } from '@angular/router';
+import { HomeComponent } from './components/home-page/home-page.component'
 import { ExerciceListComponent } from './components/exercice-list/exercice-list.component';
 import { ExerciceDetailComponent } from './components/exercice-detail/exercice-detail.component';
 
 export const routes: Routes = [
-  // Page de la liste (ton collègue)
+  // Page ds'accueil
+  { path: '', component: HomeComponent },
+  // Page de la liste
   { path: 'exercices', component: ExerciceListComponent },
 
   // TA PAGE : On change :id par :slug pour correspondre à ton composant
