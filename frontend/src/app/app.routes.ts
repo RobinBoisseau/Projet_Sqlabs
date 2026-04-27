@@ -6,6 +6,9 @@ export const routes: Routes = [
   // Page de la liste (ton collègue)
   { path: 'exercices', component: ExerciceListComponent },
 
+  // TA PAGE : On change :id par :slug pour correspondre à ton composant
   { path: 'exercice/:slug', component: ExerciceDetailComponent },
-  { path: '', redirectTo: 'exercices', pathMatch: 'full' }
+
+  // Redirection par défaut vers la liste
+  { path: '', redirectTo: 'exercices', pathMatch: 'full' },
 ];
