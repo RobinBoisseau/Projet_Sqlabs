@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-tool-button',
+  selector: 'app-toll-button', // Doit matcher la balise dans ton HTML
   standalone: true,
   imports: [CommonModule],
   template: `
@@ -11,11 +11,29 @@ import { CommonModule } from '@angular/common';
       <span class="tool-label">{{ label }}</span>
     </button>
   `,
-  styleUrls: ['./toll-button.component.css']
+  styles: [`
+    .tool-item {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    .tool-item:hover {
+        border-color: #1a73e8;
+        background: #f0f7ff;
+        color: #1a73e8;
+    }
+  `]
 })
-export class ToolButtonComponent {
-  @Input() icon: string = '';   // Exemple : '⬜'
-  @Input() label: string = '';  // Exemple : 'Entité'
+export class ToolButtonComponent { // Ta classe s'appelle ToolButton
+  @Input() icon: string = '';
+  @Input() label: string = '';
   @Output() toolClick = new EventEmitter<void>();
 
   onClick() {

@@ -1,111 +1,163 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { AngularSplitModule } from 'angular-split';
+
+// Moteur de rendu et Plugin de sélection (v2)
+import { Graph } from '@antv/x6';
+import { Selection } from '@antv/x6-plugin-selection';
+
+// Services et Modèles
 import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
-import { PanelComponent } from '../panel/panel.component';
-import { AddButtonComponent} from '../add-button/add-button.component';
-import { ToolButtonComponent } from '../toll-button/toll-button.component';
 
+// Composants partagés
+import { PanelComponent } from '../panel/panel.component';
+import { AddButtonComponent } from '../add-button/add-button.component';
+import { ToolButtonComponent } from '../toll-button/toll-button.component';
 
 @Component({
   selector: 'app-exercice-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, AngularSplitModule,PanelComponent,AddButtonComponent,ToolButtonComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    AngularSplitModule, 
+    PanelComponent, 
+    AddButtonComponent, 
+    ToolButtonComponent
+  ],
   templateUrl: './exercice-detail.component.html',
   styleUrls: ['./exercice-detail.component.css']
 })
-export class ExerciceDetailComponent implements OnInit {
+export class ExerciceDetailComponent implements OnInit, OnDestroy {
   exercice: Exercice | undefined;
+  
+  // Tableaux pour les formulaires de la colonne 2
   attributes: any[] = [];
   dependances: any[] = [];
-  entities: any[] = [];
-  schemaAttributes: any[] = [];
-  relations: any[] = [];
+
+  // Instance du graphe
+  private graph?: Graph;
 
   constructor(
     private route: ActivatedRoute,
     private exerciceService: ExerciceService
   ) {}
 
-  ngOnInit(): void {
-    // Récupère le texte (slug) de l'URL
-    const slug = this.route.snapshot.paramMap.get('slug');
+  // --- LOGIQUE DE SUPPRESSION (TOUCHE CLAVIER) ---
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    // Si on appuie sur Suppr ou Backspace et qu'un élément est sélectionné
+    if ((event.key === 'Delete' || event.key === 'Backspace') && this.graph) {
+      const cells = this.graph.getSelectedCells();
+      if (cells.length > 0) {
+        this.graph.removeCells(cells);
+        console.log(`${cells.length} élément(s) supprimé(s)`);
+      }
+    }
+  }
 
+  ngOnInit(): void {
+    const slug = this.route.snapshot.paramMap.get('slug');
     if (slug) {
-      // On envoie le slug (string) au service
       this.exerciceService.getExerciceBySlug(slug).subscribe({
         next: (data) => {
-          console.log('Donnée reçue du Backend :', data);
           this.exercice = data;
+          // On attend que le HTML soit rendu pour initialiser le graphe
+          setTimeout(() => {
+            this.initGraph();
+          }, 100);
         },
-        error: (err) => {
-          console.error('Erreur : Exercice introuvable', err);
-        }
+        error: (err) => console.error('Erreur lors de la récupération de l\'exercice', err)
       });
     }
   }
 
-  addAttribute() {
-    this.attributes.push({ nom: '', type: 'INT' });
+  // --- INITIALISATION DU GRAPHE ANTV X6 (VERSION 2) ---
+  initGraph() {
+    const container = document.getElementById('container');
+    if (!container) {
+      console.error("Le container #container est introuvable");
+      return;
+    }
+
+    // 1. Création du graphe
+    this.graph = new Graph({
+      container: container,
+      autoResize: true,
+      grid: {
+        size: 20,
+        visible: true,
+        type: 'dot',
+        args: { color: '#d7d7d7', thickness: 1 },
+      },
+      panning: true,
+      mousewheel: { enabled: true, modifiers: ['ctrl'] },
+    });
+
+    // 2. Activation du plugin de SÉLECTION (Nécessaire en v2 pour getSelectedCells)
+    this.graph.use(
+      new Selection({
+        enabled: true,
+        multiple: true,      // Permet de sélectionner plusieurs éléments (Maj + clic)
+        rubberband: true,    // Permet de sélectionner par zone (lasso)
+        showNodeSelectionBox: true, // Affiche le cadre bleu de sélection
+      })
+    );
+
+    console.log("AntV X6 v2 initialisé avec succès");
   }
-  addDependance() {
-    this.dependances.push({ gauche: '', droite: '' });
-    console.log("Dépendance ajoutée !");
-  }
+
+  // --- FONCTIONS DE DESSIN ---
 
   addEntity() {
-    this.entities.push({ 
-      id: Date.now(),
-      nom: 'NOUVELLE_ENTITE', 
-      x: 50, 
-      y: 50 
+    this.graph?.addNode({
+      shape: 'rect',
+      x: 100, y: 100,
+      width: 120, height: 60,
+      label: 'ENTITÉ',
+      attrs: {
+        body: { fill: '#fff', stroke: '#34495e', strokeWidth: 2 },
+        label: { text: 'ENTITÉ', fill: '#333', fontWeight: 'bold' }
+      }
     });
-    console.log("Ajout d'une entité sur la grille...");
-}
+  }
 
-addAttributeToSchema() {
-   this.schemaAttributes.push({
-      id: Date.now(),
-      nom: 'attribut_1',
-      x: 120, // Position initiale sur la grille
-      y: 120
+  addAttributeToSchema() {
+    this.graph?.addNode({
+      shape: 'ellipse',
+      x: 150, y: 150,
+      width: 90, height: 45,
+      label: 'attribut',
+      attrs: {
+        body: { fill: '#fff', stroke: '#1a73e8', strokeWidth: 1.5 }
+      }
     });
-  console.log("Ajout d'un attribut sur la grille...");
-}
+  }
 
-addRelation() {
-  this.relations.push({ 
-      id: Date.now(), 
-      nom: 'RELATION', 
-      x: 150, 
-      y: 150 
+  addRelation() {
+    this.graph?.addNode({
+      shape: 'polygon',
+      x: 200, y: 100,
+      width: 100, height: 50,
+      label: 'RELATION',
+      points: '0,25 50,0 100,25 50,50', // Forme losange
+      attrs: {
+        body: { fill: '#fff', stroke: '#e67e22', strokeWidth: 2 }
+      }
     });
-  console.log("Ajout d'une relation sur la grille...");
-}
-
-  removeAttribute(index: number) {
-    this.attributes.splice(index, 1);
   }
 
-  removeDependance(index: number) {
-    this.dependances.splice(index, 1);
+  ngOnDestroy(): void {
+    // Nettoyage de la mémoire quand on quitte le composant
+    this.graph?.dispose();
   }
 
-  // Supprimer une entité du schéma
-  removeEntity(index: number): void {
-    this.entities.splice(index, 1);
-  }
-
-  // Supprimer un attribut du schéma
-  removeSchemaAttribute(index: number): void {
-    this.schemaAttributes.splice(index, 1);
-  }
-
-  // Supprimer une relation du schéma
-  removeRelation(index: number): void {
-    this.relations.splice(index, 1);
-  }
+  // --- LOGIQUE DICTIONNAIRE ET DÉPENDANCES ---
+  addAttribute() { this.attributes.push({ nom: '', type: 'INT' }); }
+  removeAttribute(index: number) { this.attributes.splice(index, 1); }
+  addDependance() { this.dependances.push({ gauche: '', droite: '' }); }
+  removeDependance(index: number) { this.dependances.splice(index, 1); }
 }

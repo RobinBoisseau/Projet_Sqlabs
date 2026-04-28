@@ -1,0 +1,35 @@
+/* Force le composant à occuper tout l'espace disponible dans le split */
+:host {
+    display: block;
+    height: 100%;
+}
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Important : occupe toute la hauteur du parent */
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+}
+
+.panel-header {
+    padding: 12px 15px;
+    background-color: #fcfcfc;
+    border-bottom: 1px solid #eee;
+    font-weight: bold;
+    font-size: 0.85rem;
+    color: #333;
+}
+
+/* C'est ici que la magie opère : flex-grow permet au contenu de s'étirer */
+.panel-content {
+    flex: 1; 
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* Empêche le contenu de casser le flexbox */
+}
+
+.panel-content.scrollable {
+    overflow-y: auto;
+}
