@@ -1,119 +1,45 @@
 <div class="workbench-wrapper" *ngIf="exercice">
   <as-split direction="horizontal" unit="percent" gutterSize="8">
 
-    <!-- COLONNE 1 : Énoncé (L'aspect "Consultation") -->
+    <!-- COLONNE 1 -->
     <as-split-area [size]="25">
       <app-panel title="Énoncé">
-        <div class="enonce-container">
-          <h3 class="exercice-title">{{ exercice.titre }}</h3>
-          <p class="enonce-text">{{ exercice.enonce }}</p>
-          <div class="badge-type" *ngIf="exercice.type">{{ exercice.type }}</div>
-        </div>
+        <h3>{{ exercice.titre }}</h3>
+        <p>{{ exercice.enonce }}</p>
       </app-panel>
     </as-split-area>
 
-
-    <!-- COLONNE 2 : Dictionnaire & Dépendances (L'aspect "Saisie") -->
-    <as-split-area [size]="30">
+    <!-- COLONNE 2 -->
+    <as-split-area [size]="30" *ngIf="exercice.type === 'SQL'">
       <as-split direction="vertical" gutterSize="8">
-        
-        <!-- HAUT : Dictionnaire (Seulement si SQL) -->
-        <as-split-area [size]="50" *ngIf="exercice.type === 'SQL'">
-          <app-panel title="Dictionnaire des données">
-            <div class="dictionnaire-container">
-              
-              <table class="data-table" *ngIf="attributes.length > 0">
-                <thead>
-                  <tr>
-                    <th>Attribut</th>
-                    <th>Type</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let attr of attributes; let i = index">
-                    <td><input [(ngModel)]="attr.nom" placeholder="nom_col"></td>
-                    <td>
-                      <select [(ngModel)]="attr.type">
-                        <option value="INT">INT</option>
-                        <option value="VARCHAR">VARCHAR</option>
-                        <option value="DATE">DATE</option>
-                      </select>
-                    </td>
-                    <td><button class="btn-remove" (click)="removeAttribute(i)">✕</button></td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <p *ngIf="attributes.length === 0" class="placeholder">Aucun attribut défini.</p>
-              
-              <app-add-button 
-                label="+ Ajouter un attribut" 
-                (btnClick)="addAttribute()">
-              </app-add-button>
-            </div>
+        <as-split-area [size]="50">
+          <app-panel title="Dictionnaire">
+             <!-- Ton code tableau ici -->
+             <app-add-button label="+ Ajouter un attribut" (btnClick)="addAttribute()"></app-add-button>
           </app-panel>
         </as-split-area>
-
-        <!-- BAS : Dépendances (Seulement si SQL) -->
-        <as-split-area [size]="50" *ngIf="exercice.type === 'SQL'">
-          <app-panel title="Dépendances fonctionnelles">
-            <div class="dependances-container">
-              
-              <div *ngFor="let dep of dependances; let i = index" class="dep-row">
-                <input [(ngModel)]="dep.gauche" placeholder="A, B"> 
-                <span class="arrow">→</span>
-                <input [(ngModel)]="dep.droite" placeholder="C">
-                <button class="btn-remove" (click)="removeDependance(i)">✕</button>
-              </div>
-
-              <p *ngIf="dependances.length === 0" class="placeholder">Aucune dépendance définie.</p>
-
-              <app-add-button 
-                label="+ Ajouter une dépendance" 
-                (btnClick)="addDependance()">
-              </app-add-button>
-            </div>
+        <as-split-area [size]="50">
+          <app-panel title="Dépendances">
+             <app-add-button label="+ Ajouter une dépendance" (btnClick)="addDependance()"></app-add-button>
           </app-panel>
         </as-split-area>
-
       </as-split>
     </as-split-area>
 
-
-    <!-- COLONNE 3 : Zone de Schéma (L'aspect "Graphique") -->
+    <!-- COLONNE 3 : Zone AntV X6 -->
     <as-split-area [size]="45">
       <app-panel title="Zone de modélisation" [scrollable]="false">
         <div class="canvas-wrapper">
-          
           <div class="canvas-toolbar">
-            
-            <!-- OUTILS DYNAMIQUES SELON LE TYPE -->
-            <ng-container *ngIf="exercice.type === 'SQL'">
-              <app-tool-button icon="⬜" label="Entité" (toolClick)="addEntity()"></app-tool-button>
-              <app-tool-button icon="◯" label="Attribut" (toolClick)="addAttributeToSchema()"></app-tool-button>
-              <app-tool-button icon="→" label="Relation" (toolClick)="addRelation()"></app-tool-button>
-            </ng-container>
-
-            <ng-container *ngIf="exercice.type === 'BPMN'">
-              <app-tool-button icon="⭕" label="Événement"></app-tool-button>
-              <app-tool-button icon="⬜" label="Tâche"></app-tool-button>
-              <app-tool-button icon="♢" label="Passerelle"></app-tool-button>
-            </ng-container>
-
+            <app-toll-button icon="⬜" label="Entité" (toolClick)="addEntity()"></app-toll-button>
+            <app-toll-button icon="◯" label="Attribut" (toolClick)="addAttributeToSchema()"></app-toll-button>
+            <app-toll-button icon="→" label="Relation" (toolClick)="addRelation()"></app-toll-button>
           </div>
-          
-          <div class="dot-grid-canvas">
-            <div class="canvas-hint">Utilisez les outils {{ exercice.type }} pour dessiner</div>
-          </div>
-
+          <!-- Conteneur pour le graphe -->
+          <div id="container" style="flex: 1; width: 100%; background: #fff;"></div>
         </div>
       </app-panel>
     </as-split-area>
 
   </as-split>
-</div>
-
-<div *ngIf="!exercice" class="loading-overlay">
-  <p>Chargement de l'exercice en cours...</p>
 </div>
