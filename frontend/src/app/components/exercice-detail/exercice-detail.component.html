@@ -10,12 +10,13 @@
     </as-split-area>
 
     <!-- COLONNE 2 -->
+    
     <as-split-area [size]="30" *ngIf="exercice.type === 'SQL'">
       <as-split direction="vertical" gutterSize="8">
         <as-split-area [size]="50">
-          <app-panel title="Dictionnaire">
+          <app-panel title="Dictionnaire des données">
              <!-- Ton code tableau ici -->
-             <app-add-button label="+ Ajouter un attribut" (btnClick)="addAttribute()"></app-add-button>
+            <app-dictionary-table></app-dictionary-table>
           </app-panel>
         </as-split-area>
         <as-split-area [size]="50">

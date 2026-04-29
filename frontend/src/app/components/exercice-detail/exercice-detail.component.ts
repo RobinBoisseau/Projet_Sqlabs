@@ -16,6 +16,7 @@ import { Exercice } from '../../models/exercice';
 import { PanelComponent } from '../panel/panel.component';
 import { AddButtonComponent } from '../add-button/add-button.component';
 import { ToolButtonComponent } from '../toll-button/toll-button.component';
+import { DictionaryTableComponent } from '../dictionary-table/dictionary-table.component'
 
 @Component({
   selector: 'app-exercice-detail',
@@ -26,7 +27,8 @@ import { ToolButtonComponent } from '../toll-button/toll-button.component';
     AngularSplitModule, 
     PanelComponent, 
     AddButtonComponent, 
-    ToolButtonComponent
+    ToolButtonComponent,
+    DictionaryTableComponent
   ],
   templateUrl: './exercice-detail.component.html',
   styleUrls: ['./exercice-detail.component.css']
