@@ -1,7 +1,8 @@
-<div class="workbench-wrapper" *ngIf="exercice">
+<!-- On ajoute cdkDropListGroup ici -->
+<div class="workbench-wrapper" *ngIf="exercice" cdkDropListGroup>
   <as-split direction="horizontal" unit="percent" gutterSize="8">
 
-    <!-- COLONNE 1 -->
+    <!-- COLONNE 1 : Énoncé -->
     <as-split-area [size]="25">
       <app-panel title="Énoncé">
         <h3>{{ exercice.titre }}</h3>
@@ -9,20 +10,22 @@
       </app-panel>
     </as-split-area>
 
-    <!-- COLONNE 2 -->
+    <!-- COLONNE 2 : Dictionnaire & Dépendances -->
     <as-split-area [size]="30" *ngIf="exercice.type === 'SQL'">
       <as-split direction="vertical" gutterSize="8">
+        
         <as-split-area [size]="50">
-          <app-panel title="Dictionnaire">
-             <!-- Ton code tableau ici -->
-             <app-add-button label="+ Ajouter un attribut" (btnClick)="addAttribute()"></app-add-button>
+          <app-panel title="Dictionnaire des données">
+            <app-dictionary-table></app-dictionary-table>
           </app-panel>
         </as-split-area>
+
         <as-split-area [size]="50">
           <app-panel title="Dépendances">
-             <app-add-button label="+ Ajouter une dépendance" (btnClick)="addDependance()"></app-add-button>
+            <app-dependence-table></app-dependence-table>
           </app-panel>
         </as-split-area>
+
       </as-split>
     </as-split-area>
 
@@ -35,7 +38,6 @@
             <app-toll-button icon="◯" label="Attribut" (toolClick)="addAttributeToSchema()"></app-toll-button>
             <app-toll-button icon="→" label="Relation" (toolClick)="addRelation()"></app-toll-button>
           </div>
-          <!-- Conteneur pour le graphe -->
           <div id="container" style="flex: 1; width: 100%; background: #fff;"></div>
         </div>
       </app-panel>
