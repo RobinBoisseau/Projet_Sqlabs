@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 /* You can add global styles to this file, and also import other style files */
 /* Style de l'étiquette pendant le vol */
 .cdk-drag-preview {
@@ -25,6 +26,8 @@
 .cdk-drop-list-receiving {
   background-color: #d1e7ff !important;
 =======
+=======
+>>>>>>> 6e105f3ac17607fb83f8913bea950cd5cb0a8a80
 /* 1. L'aspect de l'étiquette dans le tableau */
 .tag-source {
   display: inline-block;
@@ -58,5 +61,8 @@
 /* 3. Forcer les volets à laisser passer l'objet (Sécurité) */
 as-split-area {
   overflow: visible !important;
+<<<<<<< HEAD
+>>>>>>> 6e105f3ac17607fb83f8913bea950cd5cb0a8a80
+=======
 >>>>>>> 6e105f3ac17607fb83f8913bea950cd5cb0a8a80
 }
