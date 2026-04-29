@@ -1,87 +1,43 @@
-.dict-container {
-  width: 100%;
-  background-color: white;
-  overflow: visible !important;
-}
+.dict-container { width: 100%; background: white; overflow: visible; }
+.dict-table { width: 100%; border-collapse: collapse; border: 1px solid #dcdcdc; table-layout: fixed; }
 
-.dict-table {
-  width: 100%;
-  border-collapse: collapse;
-  border: 1px solid #dcdcdc;
-}
-
-.dict-table thead th {
-  background-color: #0066CC;
-  color: white;
-  padding: 12px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  text-align: left;
-}
-
-.col-divider {
-  border-right: 1px solid #e0e0e0 !important;
-}
-
-/* Lignes zébrées */
-.dict-table tbody tr:nth-child(odd) { background-color: #ffffff; }
+.dict-table thead th { background: #0066CC; color: white; padding: 12px; font-size: 0.9rem; font-weight: bold; }
+.col-divider { border-right: 1px solid #e0e0e0 !important; }
 .dict-table tbody tr:nth-child(even) { background-color: #EAEAEA; }
 
 .dict-table td {
   height: 50px;
   padding: 0;
   border-bottom: 1px solid #dcdcdc;
+  overflow: visible !important; /* CHANGÉ : Permet au menu de sortir de la cellule */
 }
 
-input, select {
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: transparent;
-  padding: 0 10px;
-  outline: none;
-}
+/* --- INPUTS & TAGS --- */
+input, select { width: 100%; height: 100%; border: none; background: transparent; padding: 0 10px; outline: none; }
+.drag-zone { display: flex; align-items: center; gap: 8px; }
+.tag-pill { background: #dbeafe; color: #1e40af; padding: 2px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; border: 1px solid #bfdbfe; cursor: grab; }
 
-.drag-zone {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+/* --- MENU ⋮ --- */
+.dropdown { position: relative; display: inline-block; z-index: 10; }
+.dropdown:hover { z-index: 9999; } /* Passe au-dessus des autres lignes au survol */
 
-.tag-pill {
-  background: #dbeafe;
-  color: #1e40af;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: bold;
-  border: 1px solid #bfdbfe;
-  cursor: grab;
-  white-space: nowrap;
-}
+.dots-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; color: #95a5a6; padding: 5px 10px; }
 
-/* Menu Burger ⋮ */
-.dots-btn {
-  background: none; border: none; cursor: pointer;
-  font-size: 1.2rem; color: #95a5a6; padding: 5px 10px;
-}
-.dropdown { position: relative; display: inline-block; }
 .dropdown-content {
-  display: none; position: absolute; right: 10px;
-  background: white; min-width: 120px; border-radius: 4px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 1000;
+  display: none;
+  position: absolute;
+  right: 5px;
+  top: 35px; /* Ajusté */
+  background: white;
+  min-width: 120px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  z-index: 99999 !important; /* Premier plan */
+  border-radius: 4px;
+  border: 1px solid #ddd;
 }
 .dropdown:hover .dropdown-content { display: block; }
-.dropdown-content a {
-  display: block; padding: 10px; font-size: 0.8rem;
-  cursor: pointer; color: #333; text-decoration: none;
-}
-.dropdown-content a:hover { background: #f0f0f0; }
-.delete-text { color: red !important; }
+.dropdown-content a { display: block; padding: 10px; font-size: 0.8rem; cursor: pointer; color: #333; text-decoration: none; text-align: left; }
+.dropdown-content a:hover { background: #f5f5f5; }
+.delete-text { color: red !important; border-top: 1px solid #eee; }
 
-.add-section { padding: 15px; border: 1px solid #dcdcdc; border-top: none; }
-.dashed-add-btn {
-  width: 100%; padding: 15px; background: transparent;
-  color: #0066CC; border: 2px dashed #0066CC;
-  border-radius: 4px; font-weight: bold; cursor: pointer;
-}
+.dashed-add-btn { width: 100%; padding: 12px; background: transparent; color: #0066CC; border: 2px dashed #0066CC; border-radius: 4px; font-weight: bold; cursor: pointer; }
