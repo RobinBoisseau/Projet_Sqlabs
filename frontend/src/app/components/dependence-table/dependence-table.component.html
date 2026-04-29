@@ -1,0 +1,39 @@
+<div class="dep-container">
+  <div class="header-blue">
+    <div class="col">Attributs déterminants</div>
+    <div class="col">Attributs déterminés</div>
+  </div>
+
+  <div class="rows-container">
+    <div class="dep-row" *ngFor="let ligne of lignes; let i = index">
+      
+      <!-- Case GAUCHE (Déterminants) -->
+      <div class="drop-zone" 
+           cdkDropList 
+           (cdkDropListDropped)="onDrop($event, ligne.source)">
+        <div class="tag" *ngFor="let attr of ligne.source; let j = index">
+          {{ attr }}
+          <span class="remove-tag" (click)="removeAtribut(ligne.source, j)">×</span>
+        </div>
+        <span class="placeholder" *ngIf="ligne.source.length === 0">Déposez ici</span>
+      </div>
+
+      <div class="arrow">➔</div>
+
+      <!-- Case DROITE (Déterminés) -->
+      <div class="drop-zone" 
+           cdkDropList 
+           (cdkDropListDropped)="onDrop($event, ligne.cible)">
+        <div class="tag" *ngFor="let attr of ligne.cible; let j = index">
+          {{ attr }}
+          <span class="remove-tag" (click)="removeAtribut(ligne.cible, j)">×</span>
+        </div>
+        <span class="placeholder" *ngIf="ligne.cible.length === 0">Déposez ici</span>
+      </div>
+
+      <div class="actions">⋮</div>
+    </div>
+  </div>
+
+  <button class="add-btn-dashed" (click)="ajouterDependence()">+ Ajouter une nouvelle dépendance</button>
+</div>
