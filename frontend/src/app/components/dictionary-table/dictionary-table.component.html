@@ -10,35 +10,33 @@
     </thead>
     <tbody>
       <tr *ngFor="let ligne of lignes; let i = index">
-        <!-- Dans ton <tr> -->
-        <td>
-        <div class="drag-zone">
-            <!-- L'input pour taper -->
-            <input [(ngModel)]="ligne.NomTechnique" placeholder="ex: nom_cli">
-            
-            <!-- L'étiquette qu'on attrape (seulement si le texte est pas vide) -->
-            <div *ngIf="ligne.NomTechnique" 
-                class="tag-source"
-                cdkDrag 
-                [cdkDragData]="ligne.NomTechnique">
+        <td><input [(ngModel)]="ligne.NomMetier" placeholder="ex: Nom client"></td>
+        <td class="drag-cell">
+          <input [(ngModel)]="ligne.NomTechnique" placeholder="ex: nom_cli">
+          <!-- Étiquette draggable qui apparaît quand on a tapé un nom -->
+          <div *ngIf="ligne.NomTechnique" 
+               class="tag-pill" 
+               cdkDrag 
+               [cdkDragData]="ligne.NomTechnique"
+               cdkDragPreviewContainer="global">
             {{ ligne.NomTechnique }}
-            
-            <!-- C'est ce petit bout qui permet de sortir du cadre ! -->
-            <div *cdkDragPlaceholder></div>
-            </div>
-        </div>
-        </td>>
-
+          </div>
+        </td>
         <td>
           <select [(ngModel)]="ligne.Type">
-            <option value="INT">INT</option>
             <option value="VARCHAR2">VARCHAR2</option>
             <option value="NUMBER">NUMBER</option>
             <option value="DATE">DATE</option>
           </select>
         </td>
         <td class="actions-cell">
-          <!-- Ton menu burger... -->
+          <div class="dropdown">
+            <button class="dots-btn">⋮</button>
+            <div class="dropdown-content">
+              <a (click)="dupliquerLigne(i)">Dupliquer</a>
+              <a (click)="supprimerLigne(i)" class="delete-text">Supprimer</a>
+            </div>
+          </div>
         </td>
       </tr>
     </tbody>

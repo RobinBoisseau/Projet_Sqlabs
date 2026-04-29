@@ -1,39 +1,7 @@
-.dict-container {
-  width: 100%;
-  background: white;
-}
-
-.dict-table {
-  width: 100%;
-  border-collapse: collapse;
-  border: 1px solid #ddd;
-}
-
-.dict-table th {
-  background-color: #0066cc; /* Le bleu de ta capture */
-  color: white;
-  padding: 12px;
-  text-align: center;
-}
-
-.dict-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
-}
-
-.dict-table input, .dict-table select {
-  width: 100%;
-  border: none;
-  background: transparent;
-  outline: none;
-}
-
-/* Menu 3 points (Dropdown) */
-.dots-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 20px;
+/* Force la cellule à laisser déborder le menu */
+.actions-cell, .actions {
+  position: relative;
+  overflow: visible !important;
 }
 
 .dropdown {
@@ -45,40 +13,71 @@
   display: none;
   position: absolute;
   right: 0;
+  top: 100%; /* S'affiche juste en dessous du bouton */
   background-color: white;
-  box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
-  z-index: 10;
-  min-width: 120px;
+  min-width: 140px;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
+  z-index: 9999 !important; /* PASSE AU PREMIER PLAN */
+  border: 1px solid #ddd;
   border-radius: 4px;
 }
 
 .dropdown:hover .dropdown-content {
-  display: block;
+  display: block; /* S'affiche quand on survole la zone */
 }
 
-.dropdown-content a {
-  padding: 8px 12px;
+.dropdown-content button, .dropdown-content a {
+  width: 100%;
+  padding: 10px 15px;
+  text-decoration: none;
   display: block;
+  background: none;
+  border: none;
+  text-align: left;
   cursor: pointer;
+  color: #333;
   font-size: 14px;
 }
 
-.dropdown-content a:hover { background-color: #f1f1f1; }
-.delete-text { color: red; }
+.dropdown-content button:hover {
+  background-color: #f5f5f5;
+}
 
-/* Bouton Ajouter en bas */
-.add-row-btn {
+.input-tag-container {
+  position: relative;
+  display: flex;
+  align-items: center;
   width: 100%;
-  margin-top: 15px;
-  padding: 15px;
-  border: 2px dashed #0066cc;
-  background: #f8fbff;
-  color: #0066cc;
-  font-weight: bold;
-  cursor: pointer;
-  border-radius: 4px;
+  min-height: 35px;
 }
 
-.add-row-btn:hover {
-  background: #eef5ff;
+.input-tag-container input {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  outline: none;
 }
+
+.tag-source {
+  position: absolute; /* L'étiquette se place par dessus l'input */
+  left: 5px;
+  background-color: #3498db;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 3px;
+  cursor: grab;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.dict-table { width: 100%; border-collapse: collapse; }
+.dict-table th { background: #0061d5; color: white; padding: 10px; }
+.dict-table td { border: 1px solid #eee; padding: 5px; position: relative; }
+.dict-table tr:nth-child(even) { background: #f9f9f9; }
+
+.drag-cell { display: flex; align-items: center; gap: 5px; min-width: 150px; }
+.tag-pill { 
+    background: #3498db; color: white; padding: 3px 8px; 
+    border-radius: 4px; font-size: 11px; cursor: grab; white-space: nowrap;
+}
+.dots-btn { background: none; border: none; font-size: 20px; cursor: pointer; }

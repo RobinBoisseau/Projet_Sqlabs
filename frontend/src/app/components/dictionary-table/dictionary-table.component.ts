@@ -12,7 +12,6 @@ import { DictionaryLine } from '../../models/dictionary-line.model';
   styleUrls: ['./dictionary-table.component.css']
 })
 export class DictionaryTableComponent {
-  // On crée 4 lignes vides par défaut
   lignes: DictionaryLine[] = [
     new DictionaryLine("1", "", "", ""),
     new DictionaryLine("2", "", "", ""),
@@ -25,20 +24,12 @@ export class DictionaryTableComponent {
     this.lignes.push(new DictionaryLine(id, "", "", ""));
   }
 
-  // Supprimer une ligne
   supprimerLigne(index: number) {
     this.lignes.splice(index, 1);
   }
 
-  // Dupliquer une ligne
   dupliquerLigne(index: number) {
-    const ligneACopier = this.lignes[index];
-    const copie = new DictionaryLine(
-      (this.lignes.length + 1).toString(),
-      ligneACopier.NomMetier + " (copie)",
-      ligneACopier.NomTechnique + "_copy",
-      ligneACopier.Type
-    );
-    this.lignes.push(copie);
+    const s = this.lignes[index];
+    this.lignes.push(new DictionaryLine(Date.now().toString(), s.NomMetier, s.NomTechnique, s.Type));
   }
 }

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { DependenceLine } from '../../models/dependence-line.model';
 
 @Component({
@@ -11,28 +11,27 @@ import { DependenceLine } from '../../models/dependence-line.model';
   styleUrls: ['./dependence-table.component.css']
 })
 export class DependenceTableComponent {
-  // Liste des DFs (on commence avec 4 lignes vides)
   lignes: DependenceLine[] = [
     new DependenceLine("1", [], []),
-    new DependenceLine("2", [], []),
+    new DependenceLine("2", [], [])
   ];
 
-  // Fonction pour supprimer un attribut d'une case (la petite croix)
-  removeAtribut(liste: string[], index: number) {
-    liste.splice(index, 1);
-  }
-
-
-  onDrop(event: CdkDragDrop<string[]>, targetList: string[]) {
-    // On récupère la valeur (ex: "PSG")
+  onDrop(event: CdkDragDrop<string[]>, list: string[]) {
     const data = event.item.data;
-    
-    if (data && !targetList.includes(data)) {
-      targetList.push(data);
+    if (data && !list.includes(data)) {
+      list.push(data);
     }
   }
 
-  ajouterDependence() {
-    this.lignes.push(new DependenceLine((this.lignes.length + 1).toString(), [], []));
+  removeAtribut(list: string[], index: number) {
+    list.splice(index, 1);
+  }
+
+  ajouterDependance() {
+    this.lignes.push(new DependenceLine(Date.now().toString(), [], []));
+  }
+
+  supprimerLigne(index: number) {
+    this.lignes.splice(index, 1);
   }
 }

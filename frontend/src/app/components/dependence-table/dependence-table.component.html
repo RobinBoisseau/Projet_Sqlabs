@@ -7,33 +7,35 @@
   <div class="rows-container">
     <div class="dep-row" *ngFor="let ligne of lignes; let i = index">
       
-      <!-- Case GAUCHE (Déterminants) -->
-      <div class="drop-zone" 
-           cdkDropList 
-           (cdkDropListDropped)="onDrop($event, ligne.source)">
+      <!-- Zone GAUCHE -->
+      <div class="drop-zone" cdkDropList (cdkDropListDropped)="onDrop($event, ligne.source)">
         <div class="tag" *ngFor="let attr of ligne.source; let j = index">
-          {{ attr }}
-          <span class="remove-tag" (click)="removeAtribut(ligne.source, j)">×</span>
+          {{ attr }} <span class="remove" (click)="removeAtribut(ligne.source, j)">☒</span>
         </div>
         <span class="placeholder" *ngIf="ligne.source.length === 0">Déposez ici</span>
       </div>
 
       <div class="arrow">➔</div>
 
-      <!-- Case DROITE (Déterminés) -->
-      <div class="drop-zone" 
-           cdkDropList 
-           (cdkDropListDropped)="onDrop($event, ligne.cible)">
+      <!-- Zone DROITE -->
+      <div class="drop-zone" cdkDropList (cdkDropListDropped)="onDrop($event, ligne.cible)">
         <div class="tag" *ngFor="let attr of ligne.cible; let j = index">
-          {{ attr }}
-          <span class="remove-tag" (click)="removeAtribut(ligne.cible, j)">×</span>
+          {{ attr }} <span class="remove" (click)="removeAtribut(ligne.cible, j)">☒</span>
         </div>
         <span class="placeholder" *ngIf="ligne.cible.length === 0">Déposez ici</span>
       </div>
 
-      <div class="actions">⋮</div>
+      <!-- Menu burger décalé pour ne pas être gêné -->
+      <div class="actions-cell">
+        <div class="dropdown">
+          <button class="dots-btn">⋮</button>
+          <div class="dropdown-content">
+            <a (click)="supprimerLigne(i)" class="delete-text">Supprimer</a>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <button class="add-btn-dashed" (click)="ajouterDependence()">+ Ajouter une nouvelle dépendance</button>
+  <button class="add-btn-dashed" (click)="ajouterDependance()">+ Ajouter une nouvelle dépendance</button>
 </div>

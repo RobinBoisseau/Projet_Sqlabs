@@ -65,3 +65,57 @@
   font-weight: bold;
   cursor: pointer;
 }
+
+/* Force la cellule à laisser déborder le menu */
+.actions-cell, .actions {
+  position: relative;
+  overflow: visible !important;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%; /* S'affiche juste en dessous du bouton */
+  background-color: white;
+  min-width: 140px;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
+  z-index: 9999 !important; /* PASSE AU PREMIER PLAN */
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block; /* S'affiche quand on survole la zone */
+}
+
+.dropdown-content button, .dropdown-content a {
+  width: 100%;
+  padding: 10px 15px;
+  text-decoration: none;
+  display: block;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: #333;
+  font-size: 14px;
+}
+
+.dropdown-content button:hover {
+  background-color: #f5f5f5;
+}
+
+.dep-row { display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #eee; }
+.drop-zone { 
+    flex: 1; min-height: 50px; background: #e0e0e0; border: 1px solid #ccc;
+    display: flex; flex-wrap: wrap; gap: 5px; padding: 5px;
+}
+.tag { background: white; border: 1px solid #333; padding: 2px 6px; font-size: 12px; font-weight: bold; }
+.remove { cursor: pointer; color: red; margin-left: 5px; }
+.arrow { font-weight: bold; font-size: 20px; }
