@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* You can add global styles to this file, and also import other style files */
 /* Style de l'étiquette pendant le vol */
 .cdk-drag-preview {
@@ -23,4 +24,39 @@
 /* Zone de dépôt qui change de couleur quand on survole avec un objet */
 .cdk-drop-list-receiving {
   background-color: #d1e7ff !important;
+=======
+/* 1. L'aspect de l'étiquette dans le tableau */
+.tag-source {
+  display: inline-block;
+  padding: 4px 10px;
+  background-color: white;
+  border: 1px solid #333;
+  border-radius: 2px;
+  cursor: grab;
+  font-weight: bold;
+  font-size: 13px;
+  box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+}
+
+/* 2. L'étiquette PENDANT qu'on la déplace (Le Fantôme) */
+/* C'est ce style qui permet de passer la barrière ! */
+.etiquette-volante, .cdk-drag-preview {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 15px !important;
+  background: white !important;
+  border: 2px solid #000 !important;
+  border-radius: 2px !important;
+  font-weight: bold !important;
+  color: black !important;
+  box-shadow: 10px 10px 20px rgba(0,0,0,0.3) !important;
+  z-index: 99999 !important; /* Priorité maximale */
+  pointer-events: none;
+}
+
+/* 3. Forcer les volets à laisser passer l'objet (Sécurité) */
+as-split-area {
+  overflow: visible !important;
+>>>>>>> 6e105f3ac17607fb83f8913bea950cd5cb0a8a80
 }
