@@ -1,0 +1,67 @@
+.header-blue {
+  display: flex;
+  background-color: #0061d5;
+  color: white;
+  padding: 10px 0;
+  font-weight: bold;
+  text-align: center;
+  font-size: 13px;
+}
+.header-blue .col { flex: 1; }
+
+.dep-row {
+  display: flex;
+  align-items: center;
+  padding: 15px 10px;
+  border-bottom: 1px solid #eee;
+  gap: 15px;
+}
+
+/* Zébrage */
+.dep-row:nth-child(even) { background-color: #f9f9f9; }
+
+.drop-zone {
+  flex: 1;
+  min-height: 50px;
+  background-color: #e0e0e0; /* Gris de ta capture */
+  border: 1px solid #ccc;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 2px;
+}
+
+.arrow { font-size: 24px; font-weight: bold; }
+
+/* Style des ÉTIQUETTES (Tags) */
+.tag {
+  background: white;
+  border: 1px solid #333;
+  padding: 4px 8px;
+  font-weight: bold;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+}
+
+.remove-tag {
+  cursor: pointer;
+  color: #999;
+  font-size: 16px;
+}
+.remove-tag:hover { color: red; }
+
+.add-btn-dashed {
+  width: 95%;
+  margin: 20px auto;
+  display: block;
+  padding: 15px;
+  border: 2px dashed #0061d5;
+  background: #f8fbff;
+  color: #0061d5;
+  font-weight: bold;
+  cursor: pointer;
+}

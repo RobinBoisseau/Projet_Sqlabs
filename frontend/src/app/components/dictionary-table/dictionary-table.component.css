@@ -1,0 +1,84 @@
+.dict-container {
+  width: 100%;
+  background: white;
+}
+
+.dict-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #ddd;
+}
+
+.dict-table th {
+  background-color: #0066cc; /* Le bleu de ta capture */
+  color: white;
+  padding: 12px;
+  text-align: center;
+}
+
+.dict-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.dict-table input, .dict-table select {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+}
+
+/* Menu 3 points (Dropdown) */
+.dots-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: white;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+  z-index: 10;
+  min-width: 120px;
+  border-radius: 4px;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-content a {
+  padding: 8px 12px;
+  display: block;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.dropdown-content a:hover { background-color: #f1f1f1; }
+.delete-text { color: red; }
+
+/* Bouton Ajouter en bas */
+.add-row-btn {
+  width: 100%;
+  margin-top: 15px;
+  padding: 15px;
+  border: 2px dashed #0066cc;
+  background: #f8fbff;
+  color: #0066cc;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.add-row-btn:hover {
+  background: #eef5ff;
+}

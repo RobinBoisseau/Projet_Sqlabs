@@ -9,7 +9,7 @@
     align-items: center;
     gap: 8px; /* Espace entre l'icône et le texte */
     transition: all 0.2s;
-    white-space: nowrap;
+    white-space: nowrap; 
 }
 
 .tool-item:hover {
