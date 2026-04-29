@@ -2,34 +2,21 @@
   <table class="dict-table">
     <thead>
       <tr>
-        <th>Nom Métier</th>
-        <th>Nom technique</th>
+        <th class="col-divider">Nom Métier</th>
+        <th class="col-divider">Nom technique</th>
         <th>Type</th>
-        <th></th>
+        <th class="actions-header"></th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let ligne of lignes; let i = index">
-        <!-- Dans ton <tr> -->
-        <td>
-        <div class="drag-zone">
-            <!-- L'input pour taper -->
-            <input [(ngModel)]="ligne.NomTechnique" placeholder="ex: nom_cli">
-            
-            <!-- L'étiquette qu'on attrape (seulement si le texte est pas vide) -->
-            <div *ngIf="ligne.NomTechnique" 
-                class="tag-source"
-                cdkDrag 
-                [cdkDragData]="ligne.NomTechnique">
-            {{ ligne.NomTechnique }}
-            
-            <!-- C'est ce petit bout qui permet de sortir du cadre ! -->
-            <div *cdkDragPlaceholder></div>
-            </div>
-        </div>
-        </td>>
-
-        <td>
+        <td class="col-divider">
+          <input type="text" [(ngModel)]="ligne.NomMetier" placeholder="">
+        </td>
+        <td class="col-divider">
+          <input type="text" [(ngModel)]="ligne.NomTechnique" placeholder="">
+        </td>
+        <td class="type-cell">
           <select [(ngModel)]="ligne.Type">
             <option value="INT">INT</option>
             <option value="VARCHAR2">VARCHAR2</option>
@@ -38,10 +25,23 @@
           </select>
         </td>
         <td class="actions-cell">
-          <!-- Ton menu burger... -->
+          <div class="dropdown">
+            <button class="dots-btn">⋮</button>
+            <div class="dropdown-content">
+              <a (click)="dupliquerLigne(i)">Dupliquer</a>
+              <a (click)="supprimerLigne(i)" class="delete-text">Supprimer</a>
+            </div>
+          </div>
         </td>
       </tr>
     </tbody>
   </table>
-  <button class="add-row-btn" (click)="ajouterLigne()">+ Ajouter une nouvelle donnée</button>
+
+  <!-- Zone du bas : Ajouter -->
+  <div class="add-section">
+    <button class="dashed-add-btn" (click)="ajouterLigne()">
+      + Ajouter une nouvelle donnée
+    </button>
+  </div>
+  
 </div>
