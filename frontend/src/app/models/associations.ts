@@ -6,6 +6,6 @@ export class Association {
     public id: number = 1,
     public name: string = 'Construire',
     public participations: ParticipationEntite[] = [],
-    public champs: Champs[] = []
+    public fields: Champs[] = []
   ) {}
 }

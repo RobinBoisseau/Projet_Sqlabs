@@ -5,9 +5,9 @@ export class Entities {
         public id:number =1,
         public name: string = "Etudiant",
         public taille : number = 10,
-        public positionX : number = 5,
-        public positionY : number = 15,
-        public feels: Champs[] = []
+        public x : number = 5,
+        public y : number = 15,
+        public fields: Champs[] = []
     ){}
 }
 
