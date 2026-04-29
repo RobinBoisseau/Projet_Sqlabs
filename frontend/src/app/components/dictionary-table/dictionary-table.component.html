@@ -1,5 +1,6 @@
 <div class="dict-container">
-  <div cdkDropList [cdkDropListAutoScrollDisabled]="true">
+  <!-- On désactive l'auto-scroll pour éviter que le tableau saute pendant le drag -->
+  <div cdkDropList id="dictList" [cdkDropListAutoScrollDisabled]="true">
     <table class="dict-table">
       <thead>
         <tr>
@@ -11,23 +12,38 @@
       </thead>
       <tbody>
         <tr *ngFor="let ligne of lignes; let i = index">
-          <td class="col-divider"><input type="text" [(ngModel)]="ligne.NomMetier"></td>
+          <!-- Nom Métier -->
+          <td class="col-divider">
+            <input type="text" [(ngModel)]="ligne.NomMetier" placeholder="">
+          </td>
+
+          <!-- Nom Technique + Étiquette pour le Drag -->
           <td class="col-divider">
             <div class="drag-zone">
               <input type="text" [(ngModel)]="ligne.NomTechnique">
-              <div *ngIf="ligne.NomTechnique" class="tag-pill" cdkDrag [cdkDragData]="ligne.NomTechnique">
+              
+              <!-- L'étiquette bleue qui apparaît quand on écrit -->
+              <div *ngIf="ligne.NomTechnique" 
+                   class="tag-pill" 
+                   cdkDrag 
+                   [cdkDragData]="ligne.NomTechnique">
                 {{ ligne.NomTechnique }}
               </div>
             </div>
           </td>
+
+          <!-- Type avec choix vide par défaut -->
           <td class="type-cell">
             <select [(ngModel)]="ligne.Type">
+              <option value="">-- Choisir --</option>
               <option value="INT">INT</option>
               <option value="VARCHAR2">VARCHAR2</option>
               <option value="NUMBER">NUMBER</option>
               <option value="DATE">DATE</option>
             </select>
           </td>
+
+          <!-- Menu Actions ⋮ -->
           <td class="actions-cell">
             <div class="dropdown">
               <button class="dots-btn">⋮</button>
@@ -41,7 +57,11 @@
       </tbody>
     </table>
   </div>
+
+  <!-- Bouton Ajouter en bas -->
   <div class="add-section">
-    <button class="dashed-add-btn" (click)="ajouterLigne()">+ Ajouter une donnée</button>
+    <button class="dashed-add-btn" (click)="ajouterLigne()">
+      + Ajouter une nouvelle donnée
+    </button>
   </div>
 </div>

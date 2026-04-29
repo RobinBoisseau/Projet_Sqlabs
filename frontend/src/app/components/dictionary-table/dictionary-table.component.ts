@@ -12,21 +12,32 @@ import { DictionaryLine } from '../../models/dictionary-line.model';
   styleUrls: ['./dictionary-table.component.css']
 })
 export class DictionaryTableComponent {
+  // Permet de prévenir le tableau des dépendances qu'une ligne est supprimée
   @Output() onNomSupprime = new EventEmitter<string>();
 
+  // Initialisation avec le type vide ""
   lignes: DictionaryLine[] = [
-    new DictionaryLine("1", "", "", "VARCHAR2"),
-    new DictionaryLine("2", "", "", "VARCHAR2"),
+    new DictionaryLine("1", "", "", ""),
+    new DictionaryLine("2", "", "", ""),
+    new DictionaryLine("3", "", "", ""),
+    new DictionaryLine("4", "", "", ""),
+    new DictionaryLine("5", "", "", ""),
   ];
 
   ajouterLigne() {
-    this.lignes.push(new DictionaryLine(Date.now().toString(), "", "", "VARCHAR2"));
+    const id = Date.now().toString();
+    // Nouvelle ligne avec type vide par défaut
+    this.lignes.push(new DictionaryLine(id, "", "", ""));
   }
 
   supprimerLigne(index: number) {
-    const nom = this.lignes[index].NomTechnique;
+    const nomASupprimer = this.lignes[index].NomTechnique;
     this.lignes.splice(index, 1);
-    if (nom) this.onNomSupprime.emit(nom);
+    
+    // Si le nom technique existait, on demande aux dépendances de nettoyer
+    if (nomASupprimer) {
+      this.onNomSupprime.emit(nomASupprimer);
+    }
   }
 
   dupliquerLigne(index: number) {
