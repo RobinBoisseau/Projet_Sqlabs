@@ -1,38 +1,36 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
-import { DependenceLine } from '../../models/dependence-line.model';
+import { FormsModule } from '@angular/forms';
+import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-dependence-table',
   standalone: true,
-  imports: [CommonModule, DragDropModule],
+  imports: [CommonModule, FormsModule, DragDropModule],
   templateUrl: './dependence-table.component.html',
-  styleUrls: ['./dependence-table.component.css']
+  styleUrls: ['./dependence-table.component.css'] // Utilise le même style que dict
 })
 export class DependenceTableComponent {
-  // Liste des DFs (on commence avec 4 lignes vides)
-  lignes: DependenceLine[] = [
-    new DependenceLine("1", [], []),
-    new DependenceLine("2", [], []),
-  ];
+  dependances: any[] = [{ Entite: '', ChampSource: '', Cible: '' }];
 
-  // Fonction pour supprimer un attribut d'une case (la petite croix)
-  removeAtribut(liste: string[], index: number) {
-    liste.splice(index, 1);
+  ajouterDependance() {
+    this.dependances.push({ Entite: '', ChampSource: '', Cible: '' });
   }
 
+  onDrop(event: CdkDragDrop<string[]>) {
+    // Si ça vient d'une autre liste (le dictionnaire)
+    if (event.previousContainer !== event.container) {
+      const valeurRecue = event.item.data;
 
-  onDrop(event: CdkDragDrop<string[]>, targetList: string[]) {
-    // On récupère la valeur (ex: "PSG")
-    const data = event.item.data;
-    
-    if (data && !targetList.includes(data)) {
-      targetList.push(data);
+      // On remplit la première ligne qui a le champ source vide
+      const ligneLibre = this.dependances.find(d => !d.ChampSource);
+      
+      if (ligneLibre) {
+        ligneLibre.ChampSource = valeurRecue;
+      } else {
+        // Sinon on crée une nouvelle ligne avec la valeur
+        this.dependances.push({ Entite: '', ChampSource: valeurRecue, Cible: '' });
+      }
     }
-  }
-
-  ajouterDependence() {
-    this.lignes.push(new DependenceLine((this.lignes.length + 1).toString(), [], []));
   }
 }

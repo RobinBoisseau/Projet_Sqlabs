@@ -1,84 +1,85 @@
 .dict-container {
-  width: 100%;
-  background: white;
+    margin: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
 }
 
 .dict-table {
-  width: 100%;
-  border-collapse: collapse;
-  border: 1px solid #ddd;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.dict-table thead {
+    background: #1e40af;
+    color: white;
 }
 
 .dict-table th {
-  background-color: #0066cc; /* Le bleu de ta capture */
-  color: white;
-  padding: 12px;
-  text-align: center;
+    padding: 15px;
+    text-align: left;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .dict-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
+    padding: 12px 15px;
+    border-bottom: 1px solid #f1f5f9;
 }
 
-.dict-table input, .dict-table select {
-  width: 100%;
-  border: none;
-  background: transparent;
-  outline: none;
+/* Inputs & Selects */
+input, select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    transition: all 0.2s;
 }
 
-/* Menu 3 points (Dropdown) */
-.dots-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 20px;
+input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
 }
 
-.dropdown {
-  position: relative;
-  display: inline-block;
+/* Zone de Drag & Tag Pill */
+.drag-zone {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.dropdown-content {
-  display: none;
-  position: absolute;
-  right: 0;
-  background-color: white;
-  box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
-  z-index: 10;
-  min-width: 120px;
-  border-radius: 4px;
+.tag-pill {
+    background: #dbeafe;
+    color: #1e40af;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 1px solid #bfdbfe;
+    cursor: grab;
+    white-space: nowrap;
 }
 
-.dropdown:hover .dropdown-content {
-  display: block;
-}
-
-.dropdown-content a {
-  padding: 8px 12px;
-  display: block;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.dropdown-content a:hover { background-color: #f1f1f1; }
-.delete-text { color: red; }
-
-/* Bouton Ajouter en bas */
+/* Bouton Ajouter */
 .add-row-btn {
-  width: 100%;
-  margin-top: 15px;
-  padding: 15px;
-  border: 2px dashed #0066cc;
-  background: #f8fbff;
-  color: #0066cc;
-  font-weight: bold;
-  cursor: pointer;
-  border-radius: 4px;
+    width: calc(100% - 30px);
+    margin: 15px;
+    padding: 12px;
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    color: #64748b;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
 }
 
 .add-row-btn:hover {
-  background: #eef5ff;
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: #eff6ff;
 }
