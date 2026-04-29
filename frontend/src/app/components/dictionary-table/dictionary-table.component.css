@@ -1,83 +1,146 @@
-/* Force la cellule à laisser déborder le menu */
-.actions-cell, .actions {
-  position: relative;
-  overflow: visible !important;
+.dict-container {
+  width: 100%;
+  background-color: white;
 }
 
-.dropdown {
+.dict-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #dcdcdc;
+}
+
+/* --- HEADER BLEU --- */
+.dict-table thead th {
+  background-color: #0066CC;
+  color: white;
+  padding: 12px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border: none;
+}
+
+/* --- SÉPARATEURS VERTICAUX ÉPAIS --- */
+.col-divider {
+  border-right: 2px solid #2C3E50 !important; /* Trait vertical noir comme sur ton image */
+}
+
+/* --- LIGNES ZÉBRÉES --- */
+.dict-table tbody tr:nth-child(odd) { background-color: #ffffff; }
+.dict-table tbody tr:nth-child(even) { background-color: #EAEAEA; } /* Gris comme sur l'image */
+
+.dict-table td {
+  height: 50px;
+  padding: 0;
+  border-bottom: 1px solid #dcdcdc;
+}
+
+/* --- INPUTS INVISIBLES --- */
+input, select {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  padding: 0 10px;
+  outline: none;
+  font-family: inherit;
+}
+
+/* --- MENU ⋮ --- */
+.actions-cell {
+  width: 30px;
+  text-align: center;
   position: relative;
-  display: inline-block;
 }
 
 .dropdown-content {
   display: none;
   position: absolute;
-  right: 0;
-  top: 100%; /* S'affiche juste en dessous du bouton */
-  background-color: white;
-  min-width: 140px;
-  box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
-  z-index: 9999 !important; /* PASSE AU PREMIER PLAN */
-  border: 1px solid #ddd;
+  right: 10px;
+  background: white;
+  min-width: 120px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  z-index: 1000;
   border-radius: 4px;
 }
 
-.dropdown:hover .dropdown-content {
-  display: block; /* S'affiche quand on survole la zone */
-}
+.dropdown:hover .dropdown-content { display: block; }
 
-.dropdown-content button, .dropdown-content a {
-  width: 100%;
-  padding: 10px 15px;
-  text-decoration: none;
+.dropdown-content a {
   display: block;
-  background: none;
-  border: none;
-  text-align: left;
+  padding: 10px;
+  font-size: 0.8rem;
   cursor: pointer;
   color: #333;
-  font-size: 14px;
+  text-decoration: none;
 }
 
-.dropdown-content button:hover {
-  background-color: #f5f5f5;
+.dropdown-content a:hover { background: #f0f0f0; }
+.delete-text { color: red !important; }
+
+/* --- ZONE "AJOUTER UNE NOUVELLE DONNÉE" --- */
+.add-section {
+  padding: 15px;
+  border: 1px solid #dcdcdc;
+  border-top: none;
 }
 
-.input-tag-container {
-  position: relative;
+.dashed-add-btn {
+  width: 100%;
+  padding: 15px;
+  background-color: transparent;
+  color: #0066CC;
+  border: 2px dashed #0066CC; /* Pointillés bleus */
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.dict-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #e0e0e0; /* Bordure extérieure fine */
+}
+
+/* --- SUPPRESSION DES GROS TRAITS NOIRS --- */
+.col-divider {
+  /* On remplace le 2px noir par un 1px gris très léger */
+  border-right: 1px solid #e0e0e0 !important; 
+}
+
+/* --- SUPPRESSION DU TRAIT GRIS SUPPLÉMENTAIRE --- */
+.dict-table td {
+  height: 48px;
+  padding: 0;
+  border-bottom: 1px solid #f0f0f0; /* Trait horizontal très discret */
+  border-top: none;
+}
+
+/* --- NETTOYAGE DU BOUTON BURGER (⋮) --- */
+.dots-btn {
+  background: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #95a5a6; /* Gris pro */
+  padding: 5px;
   display: flex;
   align-items: center;
-  width: 100%;
-  min-height: 35px;
+  justify-content: center;
+  transition: color 0.2s;
 }
 
-.input-tag-container input {
-  width: 100%;
-  padding: 8px;
+.dots-btn:hover {
+  color: #3498db; /* Devient bleu au survol */
+}
+
+/* On s'assure que le select n'a pas de bordure non plus */
+select {
   border: none;
-  outline: none;
+  background: transparent;
+  appearance: none; /* Enlève la flèche par défaut si tu veux un look ultra minimal */
+  padding-right: 20px;
 }
-
-.tag-source {
-  position: absolute; /* L'étiquette se place par dessus l'input */
-  left: 5px;
-  background-color: #3498db;
-  color: white;
-  padding: 4px 10px;
-  border-radius: 3px;
-  cursor: grab;
-  font-weight: bold;
-  white-space: nowrap;
-}
-
-.dict-table { width: 100%; border-collapse: collapse; }
-.dict-table th { background: #0061d5; color: white; padding: 10px; }
-.dict-table td { border: 1px solid #eee; padding: 5px; position: relative; }
-.dict-table tr:nth-child(even) { background: #f9f9f9; }
-
-.drag-cell { display: flex; align-items: center; gap: 5px; min-width: 150px; }
-.tag-pill { 
-    background: #3498db; color: white; padding: 3px 8px; 
-    border-radius: 4px; font-size: 11px; cursor: grab; white-space: nowrap;
-}
-.dots-btn { background: none; border: none; font-size: 20px; cursor: pointer; }

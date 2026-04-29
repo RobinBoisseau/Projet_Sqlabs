@@ -16,7 +16,8 @@ export class DictionaryTableComponent {
     new DictionaryLine("1", "", "", ""),
     new DictionaryLine("2", "", "", ""),
     new DictionaryLine("3", "", "", ""),
-    new DictionaryLine("4", "", "", "")
+    new DictionaryLine("4", "", "", ""),
+    new DictionaryLine("5", "", "", ""),
   ];
 
   ajouterLigne() {

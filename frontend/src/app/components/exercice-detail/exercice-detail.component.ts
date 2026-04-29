@@ -16,8 +16,8 @@ import { Exercice } from '../../models/exercice';
 import { PanelComponent } from '../panel/panel.component';
 import { AddButtonComponent } from '../add-button/add-button.component';
 import { ToolButtonComponent } from '../toll-button/toll-button.component';
-import { DictionaryTableComponent } from '../dictionary-table/dictionary-table.component';
 import { DependenceTableComponent } from '../dependence-table/dependence-table.component';
+import { DictionaryTableComponent } from '../dictionary-table/dictionary-table.component';
 import { Entities } from '../../models/entities';
 import { Champs } from '../../models/champs';
 
