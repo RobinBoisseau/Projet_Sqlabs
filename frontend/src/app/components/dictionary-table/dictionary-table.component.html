@@ -1,47 +1,47 @@
 <div class="dict-container">
-  <table class="dict-table">
-    <thead>
-      <tr>
-        <th class="col-divider">Nom Métier</th>
-        <th class="col-divider">Nom technique</th>
-        <th>Type</th>
-        <th class="actions-header"></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let ligne of lignes; let i = index">
-        <td class="col-divider">
-          <input type="text" [(ngModel)]="ligne.NomMetier" placeholder="">
-        </td>
-        <td class="col-divider">
-          <input type="text" [(ngModel)]="ligne.NomTechnique" placeholder="">
-        </td>
-        <td class="type-cell">
-          <select [(ngModel)]="ligne.Type">
-            <option value="INT">INT</option>
-            <option value="VARCHAR2">VARCHAR2</option>
-            <option value="NUMBER">NUMBER</option>
-            <option value="DATE">DATE</option>
-          </select>
-        </td>
-        <td class="actions-cell">
-          <div class="dropdown">
-            <button class="dots-btn">⋮</button>
-            <div class="dropdown-content">
-              <a (click)="dupliquerLigne(i)">Dupliquer</a>
-              <a (click)="supprimerLigne(i)" class="delete-text">Supprimer</a>
+  <div cdkDropList [cdkDropListAutoScrollDisabled]="true">
+    <table class="dict-table">
+      <thead>
+        <tr>
+          <th class="col-divider">Nom Métier</th>
+          <th class="col-divider">Nom technique</th>
+          <th>Type</th>
+          <th class="actions-header"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let ligne of lignes; let i = index">
+          <td class="col-divider"><input type="text" [(ngModel)]="ligne.NomMetier"></td>
+          <td class="col-divider">
+            <div class="drag-zone">
+              <input type="text" [(ngModel)]="ligne.NomTechnique">
+              <div *ngIf="ligne.NomTechnique" class="tag-pill" cdkDrag [cdkDragData]="ligne.NomTechnique">
+                {{ ligne.NomTechnique }}
+              </div>
             </div>
-          </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-
-  <!-- Zone du bas : Ajouter -->
-  <div class="add-section">
-    <button class="dashed-add-btn" (click)="ajouterLigne()">
-      + Ajouter une nouvelle donnée
-    </button>
+          </td>
+          <td class="type-cell">
+            <select [(ngModel)]="ligne.Type">
+              <option value="INT">INT</option>
+              <option value="VARCHAR2">VARCHAR2</option>
+              <option value="NUMBER">NUMBER</option>
+              <option value="DATE">DATE</option>
+            </select>
+          </td>
+          <td class="actions-cell">
+            <div class="dropdown">
+              <button class="dots-btn">⋮</button>
+              <div class="dropdown-content">
+                <a (click)="dupliquerLigne(i)">Dupliquer</a>
+                <a (click)="supprimerLigne(i)" class="delete-text">Supprimer</a>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
-  
+  <div class="add-section">
+    <button class="dashed-add-btn" (click)="ajouterLigne()">+ Ajouter une donnée</button>
+  </div>
 </div>

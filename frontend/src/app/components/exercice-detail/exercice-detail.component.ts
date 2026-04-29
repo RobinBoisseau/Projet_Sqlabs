@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { AngularSplitModule } from 'angular-split';
+import { DragDropModule } from '@angular/cdk/drag-drop'; // INDISPENSABLE pour le cdkDropListGroup
 
 // Moteur de rendu et Plugin de sélection (v2)
 import { Graph } from '@antv/x6';
@@ -11,6 +12,8 @@ import { Selection } from '@antv/x6-plugin-selection';
 // Services et Modèles
 import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
+import { Entities } from '../../models/entities';
+import { Champs } from '../../models/champs';
 
 // Composants partagés
 import { PanelComponent } from '../panel/panel.component';
@@ -18,8 +21,6 @@ import { AddButtonComponent } from '../add-button/add-button.component';
 import { ToolButtonComponent } from '../toll-button/toll-button.component';
 import { DependenceTableComponent } from '../dependence-table/dependence-table.component';
 import { DictionaryTableComponent } from '../dictionary-table/dictionary-table.component';
-import { Entities } from '../../models/entities';
-import { Champs } from '../../models/champs';
 
 @Component({
   selector: 'app-exercice-detail',
@@ -28,6 +29,7 @@ import { Champs } from '../../models/champs';
     CommonModule, 
     FormsModule, 
     AngularSplitModule, 
+    DragDropModule, // Ajouté pour permettre le drag entre les panneaux du split
     PanelComponent, 
     AddButtonComponent, 
     ToolButtonComponent,
@@ -40,11 +42,7 @@ import { Champs } from '../../models/champs';
 export class ExerciceDetailComponent implements OnInit, OnDestroy {
   exercice: Exercice | undefined;
   
-  // Tableaux pour les formulaires de la colonne 2
-  attributes: any[] = [];
-  dependances: any[] = [];
-
-  // Instance du graphe
+  // Instance du graphe AntV X6
   private graph?: Graph;
 
   constructor(
@@ -52,15 +50,14 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
     private exerciceService: ExerciceService
   ) {}
 
-  // --- LOGIQUE DE SUPPRESSION (TOUCHE CLAVIER) ---
+  // --- LOGIQUE DE SUPPRESSION GRAPHique (TOUCHE CLAVIER) ---
   @HostListener('window:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
-    // Si on appuie sur Suppr ou Backspace et qu'un élément est sélectionné
     if ((event.key === 'Delete' || event.key === 'Backspace') && this.graph) {
       const cells = this.graph.getSelectedCells();
       if (cells.length > 0) {
         this.graph.removeCells(cells);
-        console.log(`${cells.length} élément(s) supprimé(s)`);
+        console.log(`${cells.length} élément(s) supprimé(s) du schéma`);
       }
     }
   }
@@ -71,7 +68,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
       this.exerciceService.getExerciceBySlug(slug).subscribe({
         next: (data) => {
           this.exercice = data;
-          // On attend que le HTML soit rendu pour initialiser le graphe
+          // On attend un micro-délai pour que le DOM soit prêt
           setTimeout(() => {
             this.initGraph();
           }, 100);
@@ -79,18 +76,15 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
         error: (err) => console.error('Erreur lors de la récupération de l\'exercice', err)
       });
     }
+    // Petit test console pour vérifier tes classes
     this.testerExportEntite(); 
   }
 
-  // --- INITIALISATION DU GRAPHE ANTV X6 (VERSION 2) ---
+  // --- INITIALISATION DU GRAPHE ANTV X6 ---
   initGraph() {
     const container = document.getElementById('container');
-    if (!container) {
-      console.error("Le container #container est introuvable");
-      return;
-    }
+    if (!container) return;
 
-    // 1. Création du graphe
     this.graph = new Graph({
       container: container,
       autoResize: true,
@@ -104,26 +98,22 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
       mousewheel: { enabled: true, modifiers: ['ctrl'] },
     });
 
-    // 2. Activation du plugin de SÉLECTION (Nécessaire en v2 pour getSelectedCells)
+    // Activation de la sélection v2
     this.graph.use(
       new Selection({
         enabled: true,
-        multiple: true,      // Permet de sélectionner plusieurs éléments (Maj + clic)
-        rubberband: true,    // Permet de sélectionner par zone (lasso)
-        showNodeSelectionBox: true, // Affiche le cadre bleu de sélection
+        multiple: true,
+        rubberband: true,
+        showNodeSelectionBox: true,
       })
     );
-
-    console.log("AntV X6 v2 initialisé avec succès");
   }
 
-  // --- FONCTIONS DE DESSIN ---
-
+  // --- ACTIONS DU PANEL DE MODÉLISATION ---
   addEntity() {
     this.graph?.addNode({
       shape: 'rect',
-      x: 100, y: 100,
-      width: 120, height: 60,
+      x: 100, y: 100, width: 120, height: 60,
       label: 'ENTITÉ',
       attrs: {
         body: { fill: '#fff', stroke: '#34495e', strokeWidth: 2 },
@@ -135,8 +125,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
   addAttributeToSchema() {
     this.graph?.addNode({
       shape: 'ellipse',
-      x: 150, y: 150,
-      width: 90, height: 45,
+      x: 150, y: 150, width: 90, height: 45,
       label: 'attribut',
       attrs: {
         body: { fill: '#fff', stroke: '#1a73e8', strokeWidth: 1.5 }
@@ -147,10 +136,9 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
   addRelation() {
     this.graph?.addNode({
       shape: 'polygon',
-      x: 200, y: 100,
-      width: 100, height: 50,
+      x: 200, y: 100, width: 100, height: 50,
       label: 'RELATION',
-      points: '0,25 50,0 100,25 50,50', // Forme losange
+      points: '0,25 50,0 100,25 50,50',
       attrs: {
         body: { fill: '#fff', stroke: '#e67e22', strokeWidth: 2 }
       }
@@ -158,37 +146,19 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Nettoyage de la mémoire quand on quitte le composant
     this.graph?.dispose();
   }
 
-  // --- LOGIQUE DICTIONNAIRE ET DÉPENDANCES ---
-  addAttribute() { this.attributes.push({ nom: '', type: 'INT' }); }
-  removeAttribute(index: number) { this.attributes.splice(index, 1); }
-  addDependance() { this.dependances.push({ gauche: '', droite: '' }); }
-  removeDependance(index: number) { this.dependances.splice(index, 1); }
-
+  // --- TEST DE SÉRIALISATION JSON ---
   testerExportEntite() {
-    // 1. On crée d'abord les champs (instances de la classe Champs)
     const champ1 = new Champs(1, "id_client", "INT", true);
     const champ2 = new Champs(2, "nom_client", "VARCHAR", false);
 
-    // 2. On crée l'entité et on lui passe le tableau de champs
-    // Rappel de ton constructeur : id, name, size, x, y, fields
     const nouvelleEntite = new Entities(
-        101,             // id
-        "Client",        // name
-        150,             // size
-        50,              // x
-        50,              // y
-        [champ1, champ2] // fields (le tableau de Champs)
+        101, "Client", 150, 50, 50, [champ1, champ2]
     );
 
-    // 3. Transformation en JSON
-    const jsonEntite = JSON.stringify(nouvelleEntite);
-
-    // 4. Affichage pour vérification
-    console.log("Instance de classe (objet JS) :", nouvelleEntite);
-    console.log("Texte JSON (prêt pour Laravel) :", jsonEntite);
-}
+    console.log("Objet JS métier :", nouvelleEntite);
+    console.log("JSON exportable :", JSON.stringify(nouvelleEntite));
+  }
 }

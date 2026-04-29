@@ -1,0 +1,35 @@
+/* --- LE CASSE-PRISON POUR ANGULAR SPLIT --- */
+as-split, 
+as-split-area, 
+.as-split-area, 
+.as-split-gutter,
+app-panel,
+.dict-container,
+.dep-container,
+.workbench-wrapper {
+  overflow: visible !important; /* Force tout à être visible pour le drag */
+}
+
+/* --- L'ÉTIQUETTE PENDANT LE VOL (PREVIEW) --- */
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: 20px;
+  z-index: 1000000 !important; /* Passe au-dessus de tout l'écran */
+  position: fixed !important; 
+  background: #3b82f6 !important;
+  color: white !important;
+  padding: 6px 15px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  border: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* On cache le fantôme pour éviter de décaler les lignes du tableau pendant le drag */
+.cdk-drag-placeholder {
+  display: none !important;
+}
