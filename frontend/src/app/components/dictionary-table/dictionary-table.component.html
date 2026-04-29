@@ -1,0 +1,47 @@
+<div class="dict-container">
+  <table class="dict-table">
+    <thead>
+      <tr>
+        <th>Nom Métier</th>
+        <th>Nom technique</th>
+        <th>Type</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let ligne of lignes; let i = index">
+        <!-- Dans ton <tr> -->
+        <td>
+        <div class="drag-zone">
+            <!-- L'input pour taper -->
+            <input [(ngModel)]="ligne.NomTechnique" placeholder="ex: nom_cli">
+            
+            <!-- L'étiquette qu'on attrape (seulement si le texte est pas vide) -->
+            <div *ngIf="ligne.NomTechnique" 
+                class="tag-source"
+                cdkDrag 
+                [cdkDragData]="ligne.NomTechnique">
+            {{ ligne.NomTechnique }}
+            
+            <!-- C'est ce petit bout qui permet de sortir du cadre ! -->
+            <div *cdkDragPlaceholder></div>
+            </div>
+        </div>
+        </td>>
+
+        <td>
+          <select [(ngModel)]="ligne.Type">
+            <option value="INT">INT</option>
+            <option value="VARCHAR2">VARCHAR2</option>
+            <option value="NUMBER">NUMBER</option>
+            <option value="DATE">DATE</option>
+          </select>
+        </td>
+        <td class="actions-cell">
+          <!-- Ton menu burger... -->
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <button class="add-row-btn" (click)="ajouterLigne()">+ Ajouter une nouvelle donnée</button>
+</div>
