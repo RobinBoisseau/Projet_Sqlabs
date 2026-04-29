@@ -18,6 +18,8 @@ import { AddButtonComponent } from '../add-button/add-button.component';
 import { ToolButtonComponent } from '../toll-button/toll-button.component';
 import { DictionaryTableComponent } from '../dictionary-table/dictionary-table.component';
 import { DependenceTableComponent } from '../dependence-table/dependence-table.component';
+import { Entities } from '../../models/entities';
+import { Champs } from '../../models/champs';
 
 @Component({
   selector: 'app-exercice-detail',
@@ -77,6 +79,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
         error: (err) => console.error('Erreur lors de la récupération de l\'exercice', err)
       });
     }
+    this.testerExportEntite(); 
   }
 
   // --- INITIALISATION DU GRAPHE ANTV X6 (VERSION 2) ---
@@ -164,4 +167,28 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
   removeAttribute(index: number) { this.attributes.splice(index, 1); }
   addDependance() { this.dependances.push({ gauche: '', droite: '' }); }
   removeDependance(index: number) { this.dependances.splice(index, 1); }
+
+  testerExportEntite() {
+    // 1. On crée d'abord les champs (instances de la classe Champs)
+    const champ1 = new Champs(1, "id_client", "INT", true);
+    const champ2 = new Champs(2, "nom_client", "VARCHAR", false);
+
+    // 2. On crée l'entité et on lui passe le tableau de champs
+    // Rappel de ton constructeur : id, name, size, x, y, fields
+    const nouvelleEntite = new Entities(
+        101,             // id
+        "Client",        // name
+        150,             // size
+        50,              // x
+        50,              // y
+        [champ1, champ2] // fields (le tableau de Champs)
+    );
+
+    // 3. Transformation en JSON
+    const jsonEntite = JSON.stringify(nouvelleEntite);
+
+    // 4. Affichage pour vérification
+    console.log("Instance de classe (objet JS) :", nouvelleEntite);
+    console.log("Texte JSON (prêt pour Laravel) :", jsonEntite);
+}
 }
