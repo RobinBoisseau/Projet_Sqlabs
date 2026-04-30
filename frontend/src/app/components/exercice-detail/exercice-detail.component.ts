@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { AngularSplitModule } from 'angular-split';
-import { DragDropModule } from '@angular/cdk/drag-drop'; // INDISPENSABLE pour le cdkDropListGroup
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
-// Moteur de rendu et Plugin de sélection (v2)
+// Moteur de rendu et Plugins AntV X6
 import { Graph } from '@antv/x6';
 import { Selection } from '@antv/x6-plugin-selection';
+import { Dnd } from '@antv/x6-plugin-dnd';
 
 // Services et Modèles
 import { ExerciceService } from '../../services/exercice.service';
@@ -29,7 +30,7 @@ import { DictionaryTableComponent } from '../dictionary-table/dictionary-table.c
     CommonModule, 
     FormsModule, 
     AngularSplitModule, 
-    DragDropModule, // Ajouté pour permettre le drag entre les panneaux du split
+    DragDropModule,
     PanelComponent, 
     AddButtonComponent, 
     ToolButtonComponent,
@@ -41,9 +42,8 @@ import { DictionaryTableComponent } from '../dictionary-table/dictionary-table.c
 })
 export class ExerciceDetailComponent implements OnInit, OnDestroy {
   exercice: Exercice | undefined;
-  
-  // Instance du graphe AntV X6
   private graph?: Graph;
+  private dnd?: Dnd;
 
   constructor(
     private route: ActivatedRoute,
@@ -68,7 +68,6 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
       this.exerciceService.getExerciceBySlug(slug).subscribe({
         next: (data) => {
           this.exercice = data;
-          // On attend un micro-délai pour que le DOM soit prêt
           setTimeout(() => {
             this.initGraph();
           }, 100);
@@ -76,7 +75,6 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
         error: (err) => console.error('Erreur lors de la récupération de l\'exercice', err)
       });
     }
-    // Petit test console pour vérifier tes classes
     this.testerExportEntite(); 
   }
 
@@ -107,42 +105,46 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
         showNodeSelectionBox: true,
       })
     );
-  }
 
-  // --- ACTIONS DU PANEL DE MODÉLISATION ---
-  addEntity() {
-    this.graph?.addNode({
-      shape: 'rect',
-      x: 100, y: 100, width: 120, height: 60,
-      label: 'ENTITÉ',
-      attrs: {
-        body: { fill: '#fff', stroke: '#34495e', strokeWidth: 2 },
-        label: { text: 'ENTITÉ', fill: '#333', fontWeight: 'bold' }
-      }
+    // --- INITIALISATION DU PLUGIN DND ---
+    // La propriété 'animation' a été supprimée car elle n'existe pas dans ce type
+    this.dnd = new Dnd({
+      target: this.graph,
+      scaled: false
     });
   }
 
-  addAttributeToSchema() {
-    this.graph?.addNode({
-      shape: 'ellipse',
-      x: 150, y: 150, width: 90, height: 45,
-      label: 'attribut',
-      attrs: {
-        body: { fill: '#fff', stroke: '#1a73e8', strokeWidth: 1.5 }
-      }
-    });
-  }
+  // --- LOGIQUE DE DRAG & DROP VERS LE CANEVAS ---
+  startDrag(event: MouseEvent, type: 'entity' | 'association') {
+    if (!this.graph || !this.dnd) return;
 
-  addRelation() {
-    this.graph?.addNode({
-      shape: 'polygon',
-      x: 200, y: 100, width: 100, height: 50,
-      label: 'RELATION',
-      points: '0,25 50,0 100,25 50,50',
-      attrs: {
-        body: { fill: '#fff', stroke: '#e67e22', strokeWidth: 2 }
-      }
-    });
+    let node;
+
+    if (type === 'entity') {
+      node = this.graph.createNode({
+        shape: 'rect',
+        width: 120, height: 60,
+        label: 'ENTITÉ',
+        attrs: {
+          body: { fill: '#fff', stroke: '#34495e', strokeWidth: 2, rx: 4, ry: 4 },
+          label: { text: 'ENTITÉ', fill: '#333', fontWeight: 'bold' }
+        }
+      });
+    } else {
+      node = this.graph.createNode({
+        shape: 'ellipse',
+        width: 120, height: 60,
+        label: 'ASSOCIATION',
+        attrs: {
+          body: { fill: '#fff', stroke: '#34495e', strokeWidth: 2 },
+          label: { text: 'ASSOCIATION', fill: '#333', fontWeight: 'bold' }
+        }
+      });
+    }
+
+    if (node) {
+      this.dnd.start(node, event);
+    }
   }
 
   ngOnDestroy(): void {
