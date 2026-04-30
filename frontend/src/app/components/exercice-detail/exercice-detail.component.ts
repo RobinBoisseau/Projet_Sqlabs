@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -10,11 +10,13 @@ import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
 import { Mcd } from '../../models/mcd';
 
-// Composants partagés
+// Composants enfants
 import { PanelComponent } from '../panel/panel.component';
+import { AddButtonComponent } from '../add-button/add-button.component';
+import { ToolButtonComponent } from '../toll-button/toll-button.component';
 import { DictionaryTableComponent } from '../dictionary-table/dictionary-table.component';
 import { DependenceTableComponent } from '../dependence-table/dependence-table.component';
-import { McdEditorComponent } from '../mcd-editor/mcd-editor.component';
+import { McdEditorComponent } from '../mcd-editor/mcd-editor.component'; // <--- Ton nouveau bébé
 
 @Component({
   selector: 'app-exercice-detail',
@@ -42,8 +44,11 @@ export class ExerciceDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // 1. Récupération du slug dans l'URL
     const slug = this.route.snapshot.paramMap.get('slug');
+    
     if (slug) {
+      // 2. Appel à l'API Laravel pour avoir les infos de l'exo
       this.exerciceService.getExerciceBySlug(slug).subscribe({
         next: (response: any) => {
           // On déballe les données selon le format Laravel
