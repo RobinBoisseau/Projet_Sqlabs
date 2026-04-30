@@ -8,4 +8,16 @@ export class ParticipationEntite {
         public associationAnchorX: number = 0.5,
         public associationAnchorY: number = 0.5
     ) {}
+
+    static fromJSON(data: any): ParticipationEntite {
+        return new ParticipationEntite(
+            data.entityId,
+            data.minCardinality,
+            data.maxCardinality,
+            data.entityAnchorX,
+            data.entityAnchorY,
+            data.associationAnchorX,
+            data.associationAnchorY
+        );
+    }
 }

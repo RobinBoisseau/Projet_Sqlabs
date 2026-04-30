@@ -8,6 +8,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 // Services et Modèles
 import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
+import { Mcd } from '../../models/mcd';
 
 // Composants enfants
 import { PanelComponent } from '../panel/panel.component';
@@ -26,23 +27,19 @@ import { McdEditorComponent } from '../mcd-editor/mcd-editor.component'; // <---
     AngularSplitModule, 
     DragDropModule,
     PanelComponent, 
-    AddButtonComponent, 
-    ToolButtonComponent,
     DictionaryTableComponent,
     DependenceTableComponent,
-    McdEditorComponent // <--- On l'ajoute ici pour qu'Angular le reconnaisse
+    McdEditorComponent
   ],
   templateUrl: './exercice-detail.component.html',
   styleUrls: ['./exercice-detail.component.css']
 })
 export class ExerciceDetailComponent implements OnInit {
   exercice: Exercice | undefined;
-
-  // On crée une référence pour piloter l'éditeur MCD (l'enfant) depuis le parent
-  @ViewChild(McdEditorComponent) mcdEditor!: McdEditorComponent;
+  mcd: Mcd | undefined; 
 
   constructor(
-    private route: ActivatedRoute,
+    private route: ActivatedRoute, 
     private exerciceService: ExerciceService
   ) {}
 
@@ -53,32 +50,31 @@ export class ExerciceDetailComponent implements OnInit {
     if (slug) {
       // 2. Appel à l'API Laravel pour avoir les infos de l'exo
       this.exerciceService.getExerciceBySlug(slug).subscribe({
-        next: (data) => {
-          this.exercice = data;
-          console.log("Exercice chargé :", this.exercice.titre);
+        next: (response: any) => {
+          // On déballe les données selon le format Laravel
+          this.exercice = response.data ? response.data : response;
+
+          // Traitement sécurisé du MCD
+          let rawMcd = (this.exercice as any).mcd_json;
+          if (typeof rawMcd === 'string' && rawMcd !== "") {
+            try { rawMcd = JSON.parse(rawMcd); } catch (e) { rawMcd = null; }
+          }
+          
+          // Initialisation du MCD intelligent
+          this.mcd = Mcd.fromJSON(rawMcd || { Entities: [], Association: [] });
         },
-        error: (err) => console.error('Erreur API Laravel :', err)
+        error: (err) => console.error('Erreur chargement exercice', err)
       });
     }
   }
 
-  // --- ACTIONS DE LA TOOLBAR (Pilotage de l'enfant) ---
-  // Ces fonctions sont appelées par les (toolClick) dans ton HTML
-
-  addEntity() {
-    // On dit à l'éditeur MCD d'ajouter une entité
-    this.mcdEditor.addEntity();
-  }
-
-
-  addAssociation() {
-    // On dit à l'éditeur MCD d'ajouter une association Merise
-    this.mcdEditor.addAssociation();
-  }
-
-  // --- LOGIQUE DE SAUVEGARDE IA (À venir) ---
-  saveWork() {
-    console.log("On récupérera ici le JSON du dictionnaire + du MCD pour l'IA");
-    // Toi et moi on codera ça plus tard mon gaté !
+  sauvegarder() {
+    if (this.exercice && this.mcd) {
+      const dataAEnvoyer = JSON.stringify(this.mcd);
+      this.exerciceService.saveExerciceProgress(this.exercice.slug, dataAEnvoyer).subscribe({
+        next: () => alert("Sauvegardé avec succès !"),
+        error: (err) => console.error("Erreur sauvegarde", err)
+      });
+    }
   }
 }

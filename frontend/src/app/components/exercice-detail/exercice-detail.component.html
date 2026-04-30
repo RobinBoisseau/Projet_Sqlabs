@@ -1,24 +1,31 @@
-<div class="workbench-wrapper" *ngIf="exercice" cdkDropListGroup>
+<div class="workbench-wrapper" *ngIf="exercice">
   <as-split direction="horizontal" unit="percent" gutterSize="8">
 
+    <!-- COLONNE 1 : ÉNONCÉ -->
     <as-split-area [size]="25">
       <app-panel title="Énoncé">
-        <h3>{{ exercice.titre }}</h3>
-        <p>{{ exercice.enonce }}</p>
+        <h3 class="ex-title">{{ exercice.titre }}</h3>
+        <div class="ex-enonce">{{ exercice.enonce }}</div>
       </app-panel>
     </as-split-area>
 
-    <as-split-area [size]="30" *ngIf="exercice.type === 'SQL'">
+    <!-- COLONNE 2 : TABLEAUX -->
+    <as-split-area [size]="30" *ngIf="exercice.type === 'SQL' && mcd" cdkDropListGroup>
       <as-split direction="vertical" gutterSize="8">
         
+        <!-- DICTIONNAIRE (Gère les Entités) -->
         <as-split-area [size]="50">
-          <app-panel title="Dictionnaire des données">
-            <app-dictionary-table (onNomSupprime)="depTable.nettoyerChampSupprime($event)"></app-dictionary-table>
+          <app-panel title="Dictionnaire">
+            <app-dictionary-table  
+              (onNomSupprime)="depTable.nettoyerChampSupprime($event)">
+            </app-dictionary-table>
           </app-panel>
         </as-split-area>
 
+        <!-- DÉPENDANCES (Gère les Dépendances Fonctionnelles) -->
         <as-split-area [size]="50">
-          <app-panel title="Dépendances fonctionnelles">
+          <app-panel title="Dépendances Fonctionnelles">
+            <!-- ON CHANGE ICI : On envoie 'mcd.Dependences' et non plus 'Association' -->
             <app-dependence-table #depTable></app-dependence-table>
           </app-panel>
         </as-split-area>
@@ -26,15 +33,14 @@
       </as-split>
     </as-split-area>
 
+    <!-- COLONNE 3 : MODÉLISATION (Gère le dessin des Entités + Associations) -->
     <as-split-area [size]="45">
       <app-panel title="Zone de modélisation" [scrollable]="false">
-        <div class="canvas-wrapper">
-          <div class="canvas-toolbar">
-            <app-toll-button icon="⬜" label="Entité" (toolClick)="addEntity()"></app-toll-button>
-            <app-toll-button icon="⬭" label="Association" (toolClick)="addAssociation()"></app-toll-button>
-          </div>
-          <app-mcd-editor></app-mcd-editor>
-        </div>
+        <app-mcd-editor 
+          *ngIf="mcd" 
+          [mcd]="mcd" 
+          (saveRequested)="sauvegarder()">
+        </app-mcd-editor>
       </app-panel>
     </as-split-area>
 

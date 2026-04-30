@@ -1,14 +1,13 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
-import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { ExerciceCardComponent } from '../exercice-card/exercice-card.component';
 
 @Component({
   selector: 'app-exercice-list',
   standalone: true,
-  imports: [CommonModule, RouterLink,ExerciceCardComponent],
+  imports: [CommonModule, RouterModule], 
   templateUrl: './exercice-list.component.html',
   styleUrls: ['./exercice-list.component.css']
 })
@@ -19,11 +18,15 @@ export class ExerciceListComponent implements OnInit {
   constructor(private exerciceService: ExerciceService) {}
 
   ngOnInit(): void {
-    this.exerciceService.getExercices().subscribe(data => {
-      console.log('Données brutes reçues :', data); 
-      // On sépare les exos selon leur type
-      this.sqlExercises = data.filter(e => e.type === 'SQL');
-      this.bpmnExercises = data.filter(e => e.type === 'BPMN');
+    this.exerciceService.getExercices().subscribe({
+      next: (response: any) => {
+        const allExercices = response.data ? response.data : response;
+        if (Array.isArray(allExercices)) {
+          this.sqlExercises = allExercices.filter((ex: any) => ex.type === 'SQL');
+          this.bpmnExercises = allExercices.filter((ex: any) => ex.type === 'BPMN');
+        }
+      },
+      error: (err) => console.error(err)
     });
   }
 }

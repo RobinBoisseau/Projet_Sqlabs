@@ -1,84 +1,36 @@
-/* --- MISE EN PAGE GÉNÉRALE --- */
 .workbench-wrapper {
-    width: 100%;
-    height: calc(100vh - 70px); /* Ajuste selon ton header */
-    background-color: #f4f4f7;
+  height: calc(100vh - 64px); /* Ajuste selon la hauteur de ton header */
+  width: 100%;
+  background-color: #f8fafc;
+  overflow: hidden;
 }
 
-as-split {
-    height: 100% !important;
+.ex-title {
+  color: #1e293b;
+  font-size: 1.25rem;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #3b82f6;
+  display: inline-block;
 }
 
-/* --- ZONE DE MODÉLISATION (COLONNE 3) --- */
-.canvas-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100%; /* Obligatoire pour AntV X6 */
-    width: 100%;
+.ex-enonce {
+  color: #475569;
+  line-height: 1.6;
+  white-space: pre-wrap;
 }
 
-.canvas-toolbar {
-    display: flex;
-    gap: 8px;
-    padding: 10px;
-    background: #fff;
-    border-bottom: 1px solid #eee;
+/* Style pour les barres de séparation d'Angular Split */
+::ng-deep .as-split-gutter {
+  background-color: #e2e8f0 !important;
+  transition: background-color 0.2s;
 }
 
-/* LE CONTAINER ANTV X6 */
-#container {
-    flex: 1; /* Il remplit tout l'espace sous la toolbar */
-    width: 100%;
-    background-color: #ffffff;
-    cursor: crosshair;
+::ng-deep .as-split-gutter:hover {
+  background-color: #3b82f6 !important;
 }
 
-/* --- DICTIONNAIRE ET DÉPENDANCES (COLONNE 2) --- */
-.dictionnaire-container, .dependances-container {
-    padding: 10px;
+/* On s'assure que le contenu des panels prend toute la hauteur */
+app-panel {
+  height: 100%;
+  display: block;
 }
-
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.data-table td { padding: 5px 0; }
-
-.data-table input, .data-table select, .dep-row input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #dcdfe6;
-    border-radius: 4px;
-    font-size: 0.85rem;
-}
-
-.btn-remove {
-    background: none;
-    border: none;
-    color: #f56c6c;
-    font-size: 1.2rem;
-    cursor: pointer;
-}
-
-.dep-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.arrow { font-weight: bold; color: #1a73e8; }
-
-.placeholder {
-    color: #909399;
-    font-style: italic;
-    font-size: 0.85rem;
-    text-align: center;
-    padding: 20px;
-}
-
-/* --- ÉNONCÉ (COLONNE 1) --- */
-.enonce-container { padding: 10px; }
-.exercice-title { margin-top: 0; color: #2c3e50; }
-.enonce-text { font-size: 0.95rem; line-height: 1.6; white-space: pre-line; color: #444; }
