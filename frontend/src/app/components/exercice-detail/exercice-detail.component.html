@@ -1,54 +1,31 @@
-<div class="workbench-wrapper" *ngIf="exercice" cdkDropListGroup>
+<div class="workbench-wrapper" *ngIf="exercice">
   <as-split direction="horizontal" unit="percent" gutterSize="8">
 
-    <!-- COLONNE 1 : Énoncé -->
     <as-split-area [size]="25">
       <app-panel title="Énoncé">
         <h3>{{ exercice.titre }}</h3>
-        <p>{{ exercice.enonce }}</p>
+        <div class="ex-enonce">{{ exercice.enonce }}</div>
       </app-panel>
     </as-split-area>
 
-    <!-- COLONNE 2 : Dictionnaire & Dépendances -->
-    <as-split-area [size]="30" *ngIf="exercice.type === 'SQL'">
+    <as-split-area [size]="30" *ngIf="exercice.type === 'SQL' && mcd" cdkDropListGroup>
       <as-split direction="vertical" gutterSize="8">
-        
-        <!-- ZONE DICTIONNAIRE -->
         <as-split-area [size]="50">
-          <app-panel title="Dictionnaire des données">
-            <app-dictionary-table (onNomSupprime)="depTable.nettoyerChampSupprime($event)"></app-dictionary-table>
+          <app-panel title="Dictionnaire">
+            <app-dictionary-table [lignes]="mcd.Entities" (onNomSupprime)="depTable.nettoyerChampSupprime($event)"></app-dictionary-table>
           </app-panel>
         </as-split-area>
-
-        <!-- ZONE DÉPENDANCES -->
         <as-split-area [size]="50">
-          <app-panel title="Dépendances fonctionnelles">
-            <app-dependence-table #depTable></app-dependence-table>
-          </app-panel> <!-- C'EST CETTE FERMETURE QUI MANQUAIT -->
+          <app-panel title="Associations">
+            <app-dependence-table #depTable [lignes]="mcd.Association"></app-dependence-table>
+          </app-panel>
         </as-split-area>
-
       </as-split>
     </as-split-area>
 
-    <!-- COLONNE 3 : Zone AntV X6 -->
     <as-split-area [size]="45">
-      <app-panel title="Zone de modélisation" [scrollable]="false">
-        <div class="canvas-wrapper">
-          <div class="canvas-toolbar">
-            
-            <div class="tool-drag-item" (mousedown)="startDrag($event, 'entity')">
-              <app-toll-button icon="▭" label="Entité"></app-toll-button>
-            </div>
-
-            <div class="tool-drag-item" (mousedown)="startDrag($event, 'association')">
-              <app-toll-button icon="⬭" label="Association"></app-toll-button>
-            </div>
-            <!-- Dans exercice-detail.component.html (par exemple dans la toolbar) -->
-            <button (click)="sauvegarder()" class="save-btn">💾 Enregistrer mon travail</button>
-
-          </div>
-          <div id="container" style="flex: 1; width: 100%; background: #fff;"></div>
-        </div>
+      <app-panel title="Modélisation" [scrollable]="false">
+        <app-mcd-editor *ngIf="mcd" [mcd]="mcd" (saveRequested)="sauvegarder()"></app-mcd-editor>
       </app-panel>
     </as-split-area>
 

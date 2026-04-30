@@ -1,0 +1,39 @@
+.canvas-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100% !important;
+  width: 100% !important;
+  background-color: #ffffff;
+}
+
+.canvas-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 15px;
+  background-color: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.spacer { flex: 1; }
+.tool-drag-item { cursor: grab; }
+
+.x6-graph-container {
+  flex-grow: 1;
+  width: 100%;
+  height: 100% !important;
+  min-height: 500px;
+  outline: none;
+  background-color: #fafafa;
+}
+
+.save-btn {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}

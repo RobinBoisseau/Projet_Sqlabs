@@ -2,25 +2,30 @@ import { Champs } from './champs';
 
 export class Entities {
     constructor(
-        public id:number =1,
+        public id: number = 1,
         public name: string = "Etudiant",
-        public  largeur: number = 10,
-        public hauteur: number = 10,
-        public x : number = 5,
-        public y : number = 15,
-        public fields: Champs[] = []
+        public largeur: number = 140,
+        public hauteur: number = 100,
+        public x: number = 5,
+        public y: number = 15,
+        public fields: Champs[] = [],
+        public type: string = "" // Propriété ajoutée
     ){}
 
     static fromJSON(data: any): Entities {
-        return new Entities(
+        const entite = new Entities(
             data.id,
             data.name,
             data.largeur,
             data.hauteur,
             data.x,
             data.y,
-            data.fields
+            [],
+            data.type || ""
         );
+        if (data.fields && Array.isArray(data.fields)) {
+            entite.fields = data.fields.map((f: any) => Champs.fromJSON(f));
+        }
+        return entite;
     }
 }
-

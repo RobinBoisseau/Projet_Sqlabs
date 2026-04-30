@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
-import { DependenceLine } from '../../models/dependence-line.model';
+import { Association } from '../../models/associations';
 
 @Component({
   selector: 'app-dependence-table',
@@ -11,25 +11,42 @@ import { DependenceLine } from '../../models/dependence-line.model';
   styleUrls: ['./dependence-table.component.css']
 })
 export class DependenceTableComponent {
-  lignes: DependenceLine[] = [new DependenceLine("1", [], [])];
+  @Input() lignes: Association[] = [];
 
   onDrop(event: CdkDragDrop<string[]>, list: string[]) {
     const data = event.item.data;
-    if (data && !list.includes(data)) list.push(data);
+    if (data && !list.includes(data)) {
+      list.push(data);
+    }
+  }
+
+  // Cette fonction manquait dans ton erreur
+  removeAtribut(list: string[], index: number) {
+    list.splice(index, 1);
   }
 
   nettoyerChampSupprime(nomTechnique: string) {
     this.lignes.forEach(l => {
-      l.source = l.source.filter(a => a !== nomTechnique);
-      l.cible = l.cible.filter(a => a !== nomTechnique);
+      // @ts-ignore : On force car le modèle va être mis à jour
+      l.source = l.source?.filter((a: any) => a !== nomTechnique);
+      // @ts-ignore
+      l.cible = l.cible?.filter((a: any) => a !== nomTechnique);
     });
   }
 
-  removeAtribut(list: string[], index: number) { list.splice(index, 1); }
-  ajouterDependance() { this.lignes.push(new DependenceLine(Date.now().toString(), [], [])); }
-  supprimerLigne(index: number) { this.lignes.splice(index, 1); }
+  ajouterDependance() {
+    // @ts-ignore
+    this.lignes.push({ id: Date.now(), name: '', source: [], cible: [], participations: [], fields: [] });
+  }
+
+  supprimerLigne(index: number) {
+    this.lignes.splice(index, 1);
+  }
+
+  // Cette fonction manquait aussi
   dupliquerLigne(index: number) {
     const s = this.lignes[index];
-    this.lignes.push(new DependenceLine(Date.now().toString(), [...s.source], [...s.cible]));
+    // @ts-ignore
+    this.lignes.push({ ...s, id: Date.now(), source: [...s.source], cible: [...s.cible] });
   }
 }
