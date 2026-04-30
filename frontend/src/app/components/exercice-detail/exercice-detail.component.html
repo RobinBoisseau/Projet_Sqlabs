@@ -31,10 +31,9 @@
         <div class="canvas-wrapper">
           <div class="canvas-toolbar">
             <app-toll-button icon="⬜" label="Entité" (toolClick)="addEntity()"></app-toll-button>
-            <app-toll-button icon="◯" label="Attribut" (toolClick)="addAttributeToSchema()"></app-toll-button>
-            <app-toll-button icon="→" label="Relation" (toolClick)="addRelation()"></app-toll-button>
+            <app-toll-button icon="⬭" label="Association" (toolClick)="addAssociation()"></app-toll-button>
           </div>
-          <div id="container" style="flex: 1; width: 100%; background: #fff;"></div>
+          <app-mcd-editor></app-mcd-editor>
         </div>
       </app-panel>
     </as-split-area>
