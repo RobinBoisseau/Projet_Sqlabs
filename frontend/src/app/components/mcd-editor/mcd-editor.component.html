@@ -1,0 +1,15 @@
+<div class="mcd-wrapper">
+  <!-- La toolbar directement intégrée au dessus de la feuille -->
+  <div class="canvas-toolbar">
+    <!-- Remarque bien le (mousedown) à la place du (click) -->
+    <button (mousedown)="startDrag($event, 'entity')" class="tool-btn">
+      ⬜ Entité
+    </button>
+    <button (mousedown)="startDrag($event, 'association')" class="tool-btn">
+      ◯ Association
+    </button>
+  </div>
+
+  <!-- Le conteneur du graphe -->
+  <div #container class="mcd-container"></div>
+</div>

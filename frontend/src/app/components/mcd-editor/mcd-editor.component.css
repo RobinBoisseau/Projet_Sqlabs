@@ -1,0 +1,35 @@
+.mcd-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-toolbar {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.tool-btn {
+  background: white;
+  border: 1px solid #ced4da;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: grab; /* Curseur en forme de main ouverte */
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tool-btn:active {
+  cursor: grabbing; /* Curseur main fermée quand on clique */
+}
+
+.mcd-container {
+  flex: 1;
+  width: 100%;
+}
