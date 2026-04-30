@@ -43,6 +43,8 @@
             <div class="tool-drag-item" (mousedown)="startDrag($event, 'association')">
               <app-toll-button icon="⬭" label="Association"></app-toll-button>
             </div>
+            <!-- Dans exercice-detail.component.html (par exemple dans la toolbar) -->
+            <button (click)="sauvegarder()" class="save-btn">💾 Enregistrer mon travail</button>
 
           </div>
           <div id="container" style="flex: 1; width: 100%; background: #fff;"></div>
