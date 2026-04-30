@@ -85,7 +85,7 @@ export class McdEditorComponent implements AfterViewInit, OnDestroy {
 
     let node;
     if (type === 'entity') {
-      const data = new Entities(Date.now(), "ENTITÉ", 150, 0, 0, []);
+      const data = new Entities(Date.now(), "ENTITÉ", 150, 0, 0);
       node = this.graph.createNode({
         shape: 'rect', width: 120, height: 50,
         data: data,

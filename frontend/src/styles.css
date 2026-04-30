@@ -1,38 +1,30 @@
-/* --- COMPATIBILITÉ FINALE SPLIT + DRAG + MENU --- */
-
-/* 1. On remet le split en 'hidden' pour que le redimensionnement fonctionne */
-as-split-area, .as-split-area {
-  overflow: hidden !important; 
-  position: relative;
+/* 1. On casse toutes les cages du Split pour laisser passer le drag */
+as-split, as-split-area, .as-split-area, app-panel, .workbench-wrapper, .canvas-wrapper {
+  overflow: visible !important;
+  height: 100% !important; /* Force la hauteur pour le drop */
 }
 
-/* 2. On booste la barre de séparation pour qu'elle reste attrapable */
-.as-split-gutter {
-  z-index: 5000 !important;
-  background-color: #f1f5f9 !important;
+/* 2. Le Fantôme AntV (pendant le vol) */
+.x6-widget-dnd-dragging {
+  background: #ffffff;
+  border: 2px solid #3b82f6;
+  border-radius: 8px;
+  opacity: 0.8;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  z-index: 1000000 !important;
+  pointer-events: none !important; /* CRUCIAL : Le clic doit traverser pour toucher le graphe */
 }
 
-/* 3. L'ÉTIQUETTE QUI VOLE (PREVIEW) */
-/* Angular la déplace dans le <body>, donc elle passe au-dessus du split ! */
+/* 3. L'étiquette CDK (Tableaux) */
 .cdk-drag-preview {
   box-sizing: border-box;
   border-radius: 20px;
-  z-index: 1000000 !important; /* Priorité absolue */
+  z-index: 1000000 !important;
   position: fixed !important; 
   background: #3b82f6 !important;
   color: white !important;
   padding: 6px 15px;
-  font-size: 0.8rem;
-  font-weight: bold;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-  border: 2px solid #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
+  pointer-events: none !important;
 }
-
-/* On cache le fantôme pour ne pas décaler les lignes du tableau */
-.cdk-drag-placeholder {
-  display: none !important;
-}
+.cdk-drag-placeholder { display: none !important; }
