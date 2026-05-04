@@ -85,7 +85,7 @@ export class McdEditorComponent implements OnInit, OnDestroy {
     if (!this.graph || !this.mcd) return;
     this.graph.clearCells();
     this.mcd.Entities.forEach(entite => {
-      this.graph?.addNode({ id: entite.id.toString(), shape: 'merise-entity', x: entite.x, y: entite.y, width: entite.largeur, height: entite.hauteur, label: entite.name, data: entite });
+      this.graph?.addNode({ id: entite.id.toString(), shape: 'merise-entity', member_x: entite.member_x, y: entite.member_y, width: entite.width, height: entite.height, label: entite.name, data: entite });
     });
   }
 
@@ -105,8 +105,8 @@ export class McdEditorComponent implements OnInit, OnDestroy {
         if (entity) {
           const pos = node.getPosition();
           const size = node.getSize();
-          entity.x = pos.x; entity.y = pos.y;
-          entity.largeur = size.width; entity.hauteur = size.height;
+          entity.member_x = pos.x; entity.member_y = pos.y;
+          entity.width = size.width; entity.height = size.height;
         }
       });
       this.saveRequested.emit();

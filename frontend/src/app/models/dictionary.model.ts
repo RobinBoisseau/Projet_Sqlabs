@@ -1,8 +1,7 @@
 import { DictionaryLine } from './dictionary-line.model';
 
 export class Dictionary {
-  // On stocke les lignes dans une liste classique pour Angular (plus facile pour les boucles)
-  public lignes: DictionaryLine[] = [];
+  public lines: DictionaryLine[] = [];
 
   constructor() {}
 
@@ -11,13 +10,13 @@ export class Dictionary {
   genererJSON(): string {
     const exportData: any = {};
     
-    this.lignes.forEach((ligne, index) => {
-      const key = `ligne${index + 1}`; // Crée "ligne1", "ligne2"...
+    this.lines.forEach((lines, index) => {
+      const key = `lignes${index + 1}`; // Crée "ligne1", "ligne2"...
       exportData[key] = {
-        id: ligne.id,
-        NomMetier: ligne.NomMetier,
-        NomTechnique: ligne.NomTechnique,
-        Type: ligne.Type
+        id: lines.id,
+        name: lines.name,
+        TechnicalName: lines.TechnicalName,
+        Type: lines.Type
       };
     });
 

@@ -1,8 +1,8 @@
 export interface Exercice {
   id: number;
-  titre: string;
+  title: string;
   slug:string;
-  enonce: string;
+  statement: string;
   type: 'SQL' | 'BPMN';
-  statut: 'Terminé' | 'En cours' | 'A faire';
+  status: 'Terminé' | 'En cours' | 'A faire';
 }

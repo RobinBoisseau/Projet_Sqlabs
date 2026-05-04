@@ -1,29 +1,80 @@
 <div class="dep-container">
- <div class="header-blue"><div class="col">Sources</div><div class="col">Cibles</div></div>
- <div class="rows-container">
-   <div class="dep-row" *ngFor="let ligne of lignes; let i = index">
-     <div class="drop-zone" cdkDropList (cdkDropListDropped)="onDrop($event, ligne.source)">
-       <div class="tag" *ngFor="let attr of ligne.source; let j = index">
-         {{ attr }} <span class="remove" (click)="removeAtribut(ligne.source, j)">☒</span>
-       </div>
-       <span class="placeholder" *ngIf="ligne.source.length === 0">Déposez ici</span>
-     </div>
-     <div class="arrow">➔</div>
-     <div class="drop-zone" cdkDropList (cdkDropListDropped)="onDrop($event, ligne.cible)">
-       <div class="tag" *ngFor="let attr of ligne.cible; let j = index">
-         {{ attr }} <span class="remove" (click)="removeAtribut(ligne.cible, j)">☒</span>
-       </div>
-       <span class="placeholder" *ngIf="ligne.cible.length === 0">Déposez ici</span>
-     </div>
-     <div class="actions-cell">
-       <div class="dropdown"><button class="dots-btn">⋮</button>
-         <div class="dropdown-content">
-           <a (click)="dupliquerLigne(i)">Dupliquer</a>
-           <a (click)="supprimerLigne(i)" class="delete-text">Supprimer</a>
-         </div>
-       </div>
-     </div>
-   </div>
- </div>
- <button class="add-btn-dashed" (click)="ajouterDependance()">+ Ajouter une dépendance</button>
+  <!-- En-tête fixe -->
+  <div class="header-blue">
+    <div class="col">Sources</div>
+    <div class="col">Cibles</div>
+  </div>
+
+  <!-- Zone de scroll (L'ascenseur est ici) -->
+  <div class="rows-scroll-area">
+    <div class="dep-row" *ngFor="let line of lignes; let i = index">
+
+      <!-- ZONE SOURCES -->
+      <div class="select-box">
+        <div class="tags-wrapper">
+          <div class="tag" *ngFor="let attr of line.source; let j = index">
+            {{ attr }} <span class="remove" (click)="removeAtribut(line.source, j)">×</span>
+          </div>
+        </div>
+        <div class="search-input-wrapper">
+          <input type="text"
+                 [(ngModel)]="searchSource[line.id]"
+                 (focus)="showDropdownSource[line.id] = true"
+                 (blur)="hideDropdownAfterDelay('source', line.id)"
+                 placeholder="Ajouter...">
+          
+          <div class="choice-dialog" *ngIf="showDropdownSource[line.id]">
+            <div class="choice-item"
+                 *ngFor="let nom of filteredNoms(searchSource[line.id])"
+                 (mousedown)="selectNom(line.source, nom, line.id, 'source')">
+              {{ nom }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-icon">➔</div>
+
+      <!-- ZONE CIBLES -->
+      <div class="select-box">
+        <div class="tags-wrapper">
+          <div class="tag" *ngFor="let attr of line.cible; let j = index">
+            {{ attr }} <span class="remove" (click)="removeAtribut(line.cible, j)">×</span>
+          </div>
+        </div>
+        <div class="search-input-wrapper">
+          <input type="text"
+                 [(ngModel)]="searchCible[line.id]"
+                 (focus)="showDropdownCible[line.id] = true"
+                 (blur)="hideDropdownAfterDelay('cible', line.id)"
+                 placeholder="Ajouter...">
+
+          <div class="choice-dialog" *ngIf="showDropdownCible[line.id]">
+            <div class="choice-item"
+                 *ngFor="let nom of filteredNoms(searchCible[line.id])"
+                 (mousedown)="selectNom(line.cible, nom, line.id, 'cible')">
+              {{ nom }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIONS ⋮ -->
+      <div class="actions-cell">
+        <div class="dropdown">
+          <button class="dots-btn">⋮</button>
+          <div class="dropdown-content">
+            <a (click)="dupliquerLigne(i)">Dupliquer</a>
+            <a (click)="supprimerLigne(i)" class="delete-text">Supprimer</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Pied de tableau fixe -->
+  <div class="footer-add">
+    <app-add-button (click)="ajouterDependance()" label="Ajouter une dépendance"></app-add-button>
+  </div>
 </div>

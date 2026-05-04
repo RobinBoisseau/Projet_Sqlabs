@@ -68,6 +68,8 @@ export class ExerciceDetailComponent implements OnInit {
     }
   }
 
+  nomsTechniques: string[] = [];
+
   sauvegarder() {
     if (this.exercice && this.mcd) {
       const dataAEnvoyer = JSON.stringify(this.mcd);

@@ -1,4 +1,4 @@
-export class ParticipationEntite {
+export class ElementSchema{
     constructor(
         public entityId: number = 0,
         public minCardinality: string = '0',
@@ -9,8 +9,8 @@ export class ParticipationEntite {
         public associationAnchorY: number = 0.5
     ) {}
 
-    static fromJSON(data: any): ParticipationEntite {
-        return new ParticipationEntite(
+    static fromJSON(data: any): ElementSchema {
+        return new ElementSchema(
             data.entityId,
             data.minCardinality,
             data.maxCardinality,

@@ -1,5 +1,5 @@
 import { Champs } from './champs';
-import { ParticipationEntite } from './participation-entite';
+import { ElementSchema } from './element-schema';
 
 export class Association {
   constructor(
@@ -7,7 +7,7 @@ export class Association {
     public name: string = '',
     public source: string[] = [], // Ajouté pour le HTML
     public cible: string[] = [],  // Ajouté pour le HTML
-    public participations: ParticipationEntite[] = [],
+    public participations: ElementSchema[] = [],
     public fields: Champs[] = []
   ) {}
 
@@ -17,7 +17,7 @@ export class Association {
       data.name,
       data.source || [],
       data.cible || [],
-      data.participations ? data.participations.map((p: any) => ParticipationEntite.fromJSON(p)) : [],
+      data.participations ? data.participations.map((p: any) => ElementSchema.fromJSON(p)) : [],
       data.fields ? data.fields.map((f: any) => Champs.fromJSON(f)) : []
     );
   }

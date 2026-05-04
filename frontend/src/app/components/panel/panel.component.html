@@ -1,6 +1,7 @@
-<div class="panel">
+<div class="panel-container">
   <div class="panel-header">{{ title }}</div>
-  <div class="panel-content" [class.scrollable]="scrollable">
-    <ng-content></ng-content> <!-- C'est ici que ton code spécifique sera "injecté" -->
+  <!-- Le panel-body est le conteneur qui va obliger les tableaux à scroller -->
+  <div class="panel-body" [class.scrollable]="scrollable">
+    <ng-content></ng-content>
   </div>
 </div>

@@ -1,36 +1,59 @@
-.workbench-wrapper {
-  height: calc(100vh - 64px); /* Ajuste selon la hauteur de ton header */
+/* --- STRUCTURE GLOBALE --- */
+:host {
+  display: block;
+  height: calc(100vh - 64px); /* Hauteur écran moins header */
   width: 100%;
-  background-color: #f8fafc;
   overflow: hidden;
 }
 
+.workbench-wrapper {
+  height: 100% !important;
+  width: 100% !important;
+  display: flex;
+  flex-direction: column;
+}
+
+as-split {
+  height: 100% !important;
+}
+
+/* FORCE LES ZONES DU SPLIT A ETRE DES BOITES FLEXIBLES */
+::ng-deep .as-split-area {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  min-height: 0 !important; /* CRUCIAL POUR LE SCROLL */
+  overflow: hidden !important; 
+}
+
+/* FORCE LE COMPOSANT PANEL A REMPLIR SA ZONE */
+app-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100% !important;
+  min-height: 0;
+}
+
+/* --- STYLE ÉNONCÉ --- */
 .ex-title {
   color: #1e293b;
-  font-size: 1.25rem;
-  margin-bottom: 15px;
+  font-size: 1.2rem;
+  margin-bottom: 12px;
   border-bottom: 2px solid #3b82f6;
   display: inline-block;
+  padding-bottom: 4px;
 }
 
 .ex-enonce {
   color: #475569;
   line-height: 1.6;
   white-space: pre-wrap;
+  font-size: 0.95rem;
 }
 
-/* Style pour les barres de séparation d'Angular Split */
+/* Gouttières du split */
 ::ng-deep .as-split-gutter {
   background-color: #e2e8f0 !important;
-  transition: background-color 0.2s;
-}
-
-::ng-deep .as-split-gutter:hover {
-  background-color: #3b82f6 !important;
-}
-
-/* On s'assure que le contenu des panels prend toute la hauteur */
-app-panel {
-  height: 100%;
-  display: block;
+  flex-basis: 8px !important;
 }

@@ -1,72 +1,44 @@
 <div class="dict-container">
- <!-- On désactive l'auto-scroll pour éviter que le tableau saute pendant le drag -->
- <div cdkDropList id="dictList" [cdkDropListAutoScrollDisabled]="true">
-   <table class="dict-table">
-     <thead>
-       <tr>
-         <th class="col-divider">Nom Métier</th>
-         <th class="col-divider">Nom technique</th>
-         <th>Type</th>
-         <th class="actions-header"></th>
-       </tr>
-     </thead>
-     <tbody>
-       <tr *ngFor="let ligne of lignes; let i = index">
-         <!-- Nom Métier -->
-         <td class="col-divider">
-           <input type="text" [(ngModel)]="ligne.NomMetier" placeholder="">
-         </td>
+  <!-- Zone de scroll interne -->
+  <div class="table-scroll-area">
+    <table class="dict-table">
+      <thead>
+        <tr>
+          <th>Nom Métier</th>
+          <th>Nom technique</th>
+          <th style="width: 100px;">Type</th>
+          <th style="width: 40px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let line of lines; let i = index">
+          <td><input type="text" [(ngModel)]="line.name" placeholder="ex: Nom du client"></td>
+          <td><input type="text" [(ngModel)]="line.TechnicalName" (ngModelChange)="emitNoms()" placeholder="ex: nom_cli"></td>
+          <td>
+            <select [(ngModel)]="line.Type">
+              <option value=""></option>
+              <option value="INT">INT</option>
+              <option value="VARCHAR2">VARCHAR2</option>
+              <option value="NUMBER">NUMBER</option>
+              <option value="DATE">DATE</option>
+            </select>
+          </td>
+          <td class="actions-cell">
+            <div class="dropdown">
+              <button class="dots-btn">⋮</button>
+              <div class="dropdown-content">
+                <a (click)="dupliquerLigne(i)">Dupliquer</a>
+                <a (click)="supprimerLigne(i)" class="delete-text">Supprimer</a>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-
-         <!-- Nom Technique + Étiquette pour le Drag -->
-         <td class="col-divider">
-           <div class="drag-zone">
-             <input type="text" [(ngModel)]="ligne.NomTechnique">
-            
-             <!-- L'étiquette bleue qui apparaît quand on écrit -->
-             <div *ngIf="ligne.NomTechnique"
-                  class="tag-pill"
-                  cdkDrag
-                  [cdkDragData]="ligne.NomTechnique">
-               {{ ligne.NomTechnique }}
-             </div>
-           </div>
-         </td>
-
-
-         <!-- Type avec choix vide par défaut -->
-         <td class="type-cell">
-           <select [(ngModel)]="ligne.Type">
-             <option value=""></option>
-             <option value="INT">INT</option>
-             <option value="VARCHAR2">VARCHAR2</option>
-             <option value="NUMBER">NUMBER</option>
-             <option value="DATE">DATE</option>
-           </select>
-         </td>
-
-
-         <!-- Menu Actions ⋮ -->
-         <td class="actions-cell">
-           <div class="dropdown">
-             <button class="dots-btn">⋮</button>
-             <div class="dropdown-content">
-               <a (click)="dupliquerLigne(i)">Dupliquer</a>
-               <a (click)="supprimerLigne(i)" class="delete-text">Supprimer</a>
-             </div>
-           </div>
-         </td>
-       </tr>
-     </tbody>
-   </table>
- </div>
-
-
- <!-- Bouton Ajouter en bas -->
- <div class="add-section">
-   <button class="dashed-add-btn" (click)="ajouterLigne()">
-     + Ajouter une nouvelle donnée
-   </button>
- </div>
+  <div class="add-section">
+    <!-- ON UTILISE TON COMPOSANT ICI -->
+    <app-add-button (click)="ajouterLigne()" label="Ajouter une nouvelle donnée"></app-add-button>
+  </div>
 </div>
-
