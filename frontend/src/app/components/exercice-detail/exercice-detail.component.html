@@ -17,7 +17,8 @@
         <as-split-area [size]="50">
           <app-panel title="Dictionnaire">
             <app-dictionary-table  
-              (onNomSupprime)="depTable.nettoyerChampSupprime($event)">
+              (onNomSupprime)="dependenceTable.nettoyerChampSupprime($event)"
+              (nomsChanged)="nomsTechniques = $event">
             </app-dictionary-table>
           </app-panel>
         </as-split-area>
@@ -26,7 +27,10 @@
         <as-split-area [size]="50">
           <app-panel title="Dépendances Fonctionnelles">
             <!-- ON CHANGE ICI : On envoie 'mcd.Dependences' et non plus 'Association' -->
-            <app-dependence-table #depTable></app-dependence-table>
+            <app-dependence-table 
+             #dependenceTable
+             [nomsTechniques]="nomsTechniques">
+            </app-dependence-table>
           </app-panel>
         </as-split-area>
 

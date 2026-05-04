@@ -1,36 +1,59 @@
+/* TRÈS IMPORTANT : Le composant lui-même doit être un bloc qui prend toute la place */
+:host {
+    display: block;
+    height: calc(100vh - 70px); /* Ajuste le 70px selon la hauteur de ton header */
+    width: 100%;
+    overflow: hidden;
+}
+
 .workbench-wrapper {
-  height: calc(100vh - 64px); /* Ajuste selon la hauteur de ton header */
-  width: 100%;
-  background-color: #f8fafc;
-  overflow: hidden;
+    height: 100% !important;
+    width: 100% !important;
+    background-color: #f8fafc;
+}
+
+/* On force le Split horizontal à prendre 100% */
+as-split.as-horizontal {
+    height: 100% !important;
+}
+
+/* On force le Split vertical (Dico/Dep) à prendre 100% de sa colonne */
+as-split.as-vertical {
+    height: 100% !important;
+}
+
+/* On force CHAQUE zone de split à être un conteneur flex complet */
+::ng-deep .as-split-area {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    overflow: hidden !important; /* Évite les doubles scrollbars */
+}
+
+/* On force ton composant panel à s'étirer */
+app-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .ex-title {
-  color: #1e293b;
-  font-size: 1.25rem;
-  margin-bottom: 15px;
-  border-bottom: 2px solid #3b82f6;
-  display: inline-block;
+    color: #1e293b;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #3b82f6;
+    display: inline-block;
 }
 
 .ex-enonce {
-  color: #475569;
-  line-height: 1.6;
-  white-space: pre-wrap;
+    color: #475569;
+    line-height: 1.5;
+    font-size: 0.9rem;
 }
 
-/* Style pour les barres de séparation d'Angular Split */
+/* Gouttières du split */
 ::ng-deep .as-split-gutter {
-  background-color: #e2e8f0 !important;
-  transition: background-color 0.2s;
-}
-
-::ng-deep .as-split-gutter:hover {
-  background-color: #3b82f6 !important;
-}
-
-/* On s'assure que le contenu des panels prend toute la hauteur */
-app-panel {
-  height: 100%;
-  display: block;
+    background-color: #e2e8f0 !important;
+    flex-basis: 8px !important;
 }

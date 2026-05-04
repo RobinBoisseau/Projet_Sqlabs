@@ -49,4 +49,17 @@ export class DictionaryTableComponent {
    const s = this.lignes[index];
    this.lignes.push(new DictionaryLine(Date.now().toString(), s.NomMetier, s.NomTechnique, s.Type));
  }
+
+ @Output() nomsChanged = new EventEmitter<string[]>();
+
+get nomsTechniques(): string[] {
+  return this.lignes
+    .map(l => l.NomTechnique)
+    .filter(n => n && n.trim() !== '');
+}
+
+// Appelle cette méthode après chaque modification
+emitNoms() {
+  this.nomsChanged.emit(this.nomsTechniques);
+}
 }

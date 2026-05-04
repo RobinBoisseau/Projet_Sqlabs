@@ -18,19 +18,9 @@
          </td>
 
 
-         <!-- Nom Technique + Étiquette pour le Drag -->
+         <!-- Nom Technique -->
          <td class="col-divider">
-           <div class="drag-zone">
-             <input type="text" [(ngModel)]="ligne.NomTechnique">
-            
-             <!-- L'étiquette bleue qui apparaît quand on écrit -->
-             <div *ngIf="ligne.NomTechnique"
-                  class="tag-pill"
-                  cdkDrag
-                  [cdkDragData]="ligne.NomTechnique">
-               {{ ligne.NomTechnique }}
-             </div>
-           </div>
+             <input type="text" [(ngModel)]="ligne.NomTechnique" (ngModelChange)="emitNoms()">
          </td>
 
 
