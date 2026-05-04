@@ -1,29 +1,31 @@
 <div class="dep-container">
-  <!-- En-tête fixe -->
+  <!-- En-tête bleu (Même style que dictionnaire) -->
   <div class="header-blue">
     <div class="col">Sources</div>
+    <div class="col-arrow"></div> <!-- Espace pour la flèche -->
     <div class="col">Cibles</div>
+    <div class="col-actions"></div> <!-- Espace pour ⋮ -->
   </div>
 
-  <!-- Zone de scroll (L'ascenseur est ici) -->
+  <!-- Zone de scroll -->
   <div class="rows-scroll-area">
     <div class="dep-row" *ngFor="let line of lignes; let i = index">
 
       <!-- ZONE SOURCES -->
-      <div class="select-box">
-        <div class="tags-wrapper">
+      <div class="select-column">
+        <div class="tags-list" *ngIf="line.source.length > 0">
           <div class="tag" *ngFor="let attr of line.source; let j = index">
             {{ attr }} <span class="remove" (click)="removeAtribut(line.source, j)">×</span>
           </div>
         </div>
-        <div class="search-input-wrapper">
+        <div class="search-input-container">
           <input type="text"
                  [(ngModel)]="searchSource[line.id]"
                  (focus)="showDropdownSource[line.id] = true"
                  (blur)="hideDropdownAfterDelay('source', line.id)"
-                 placeholder="Ajouter...">
+                 placeholder="Ajouter source...">
           
-          <div class="choice-dialog" *ngIf="showDropdownSource[line.id]">
+          <div class="choice-box" *ngIf="showDropdownSource[line.id]">
             <div class="choice-item"
                  *ngFor="let nom of filteredNoms(searchSource[line.id])"
                  (mousedown)="selectNom(line.source, nom, line.id, 'source')">
@@ -33,23 +35,24 @@
         </div>
       </div>
 
+      <!-- FLÈCHE -->
       <div class="arrow-icon">➔</div>
 
       <!-- ZONE CIBLES -->
-      <div class="select-box">
-        <div class="tags-wrapper">
+      <div class="select-column">
+        <div class="tags-list" *ngIf="line.cible.length > 0">
           <div class="tag" *ngFor="let attr of line.cible; let j = index">
             {{ attr }} <span class="remove" (click)="removeAtribut(line.cible, j)">×</span>
           </div>
         </div>
-        <div class="search-input-wrapper">
+        <div class="search-input-container">
           <input type="text"
                  [(ngModel)]="searchCible[line.id]"
                  (focus)="showDropdownCible[line.id] = true"
                  (blur)="hideDropdownAfterDelay('cible', line.id)"
-                 placeholder="Ajouter...">
+                 placeholder="Ajouter cible...">
 
-          <div class="choice-dialog" *ngIf="showDropdownCible[line.id]">
+          <div class="choice-box" *ngIf="showDropdownCible[line.id]">
             <div class="choice-item"
                  *ngFor="let nom of filteredNoms(searchCible[line.id])"
                  (mousedown)="selectNom(line.cible, nom, line.id, 'cible')">
@@ -60,7 +63,7 @@
       </div>
 
       <!-- ACTIONS ⋮ -->
-      <div class="actions-cell">
+      <div class="actions-column">
         <div class="dropdown">
           <button class="dots-btn">⋮</button>
           <div class="dropdown-content">
@@ -73,8 +76,7 @@
     </div>
   </div>
 
-  <!-- Pied de tableau fixe -->
-  <div class="footer-add">
+  <div class="footer-btn">
     <app-add-button (click)="ajouterDependance()" label="Ajouter une dépendance"></app-add-button>
   </div>
 </div>
