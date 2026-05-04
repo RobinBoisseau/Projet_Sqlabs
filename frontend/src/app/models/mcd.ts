@@ -1,26 +1,31 @@
-import { Entities } from './entities';
-import { Association } from './associations';
+import { Entity } from './entity';
+import { Association } from './association';
+import { Link } from './link';
 
 export class Mcd {
-    constructor(
-        public Entities: Entities[] = [],
-        public Association: Association[] = []
-    ){}
+  constructor(
+    public Entities: Entity[] = [],
+    public Associations: Association[] = [],
+    public Links: Link[] = []
+  ) {}
 
-    static fromJSON(data: any): Mcd {
-        // On transforme chaque entité brute en vraie classe Entities
-        const entitiesList = data.Entities 
-            ? data.Entities.map((e: any) => Entities.fromJSON(e)) 
-            : [];
+  save(): string {
+    return JSON.stringify(this);
+  }
 
-        // On transforme chaque association brute en vraie classe Association
-        const associationsList = data.Association 
-            ? data.Association.map((a: any) => Association.fromJSON(a)) 
-            : [];
+  static fromJSON(data: any): Mcd {
+    const entitiesList: Entity[] = data.Entities
+      ? data.Entities.map((e: any) => Entity.fromJSON(e))
+      : [];
 
-        return new Mcd(
-            entitiesList,
-            associationsList
-        );
-    }
+    const associationsList: Association[] = data.Associations
+      ? data.Associations.map((a: any) => Association.fromJSON(a))
+      : [];
+
+    const linksList: Link[] = data.Links
+      ? data.Links.map((l: any) => Link.fromJSON(l))
+      : [];
+
+    return new Mcd(entitiesList, associationsList, linksList);
+  }
 }

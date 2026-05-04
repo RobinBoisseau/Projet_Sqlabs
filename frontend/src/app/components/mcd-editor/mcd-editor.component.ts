@@ -4,7 +4,7 @@ import { Graph, Node } from '@antv/x6';
 import { Selection } from '@antv/x6-plugin-selection';
 import { Dnd } from '@antv/x6-plugin-dnd';
 import { Mcd } from '../../models/mcd';
-import { Champs } from '../../models/champs';
+import { Champs } from '../../models/field';
 import { ToolButtonComponent } from '../toll-button/toll-button.component';
 
 @Component({

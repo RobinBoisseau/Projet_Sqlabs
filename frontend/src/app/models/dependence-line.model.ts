@@ -1,11 +1,15 @@
 export class DependenceLine {
-  id: string;
-  source: string[]; 
-  cible: string[]; // <--- Change 'string' en 'string[]' ici !
-
-  constructor(id: string, source: string[] = [], cible: string[] = []) { // <--- [] ici aussi
-    this.id = id;
-    this.source = source;
-    this.cible = cible;
+  constructor(
+    public id: string = '',
+    public source: string = '',
+    public cible: string[] = []
+  ) {}
+ 
+  static fromJSON(data: any): DependenceLine {
+    return new DependenceLine(
+      data.id,
+      data.source,
+      data.cible ?? []
+    );
   }
 }

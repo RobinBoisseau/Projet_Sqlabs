@@ -1,23 +1,22 @@
-export class ElementSchema{
-    constructor(
-        public entityId: number = 0,
-        public minCardinality: string = '0',
-        public maxCardinality: string = 'N',
-        public entityAnchorX: number = 0.5,
-        public entityAnchorY: number = 0.5,
-        public associationAnchorX: number = 0.5,
-        public associationAnchorY: number = 0.5
-    ) {}
-
-    static fromJSON(data: any): ElementSchema {
-        return new ElementSchema(
-            data.entityId,
-            data.minCardinality,
-            data.maxCardinality,
-            data.entityAnchorX,
-            data.entityAnchorY,
-            data.associationAnchorX,
-            data.associationAnchorY
-        );
-    }
+export abstract class ElementSchema {
+  constructor(
+    public posX: number = 0,
+    public posY: number = 0,
+    public width: number = 100,
+    public height: number = 100
+  ) {}
+ 
+  move(x: number, y: number): void {
+    this.posX = x;
+    this.posY = y;
+  }
+ 
+  resize(width: number, height: number): void {
+    this.width = width;
+    this.height = height;
+  }
+ 
+  abstract ElementSchema(): this;
+  abstract cloneElementSchema(): this;
 }
+ 

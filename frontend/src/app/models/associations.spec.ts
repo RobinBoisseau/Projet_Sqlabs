@@ -1,7 +1,7 @@
-import { Associations } from './associations';
+import { Association } from './association';
 
 describe('Associations', () => {
   it('should create an instance', () => {
-    expect(new Associations()).toBeTruthy();
+    expect(new Association()).toBeTruthy();
   });
 });
