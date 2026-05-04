@@ -2,18 +2,19 @@ import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DependenceLine } from '../../models/dependence-line.model';
+import { AddButtonComponent } from '../add-button/add-button.component'; // INDISPENSABLE
 
 @Component({
   selector: 'app-dependence-table',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AddButtonComponent], // ON L'AJOUTE ICI
   templateUrl: './dependence-table.component.html',
   styleUrls: ['./dependence-table.component.css']
 })
 export class DependenceTableComponent implements OnInit {
   private _lignes: DependenceLine[] = [];
 
-  // Le SETTER pour les dépendances
+  // Setter pour forcer le remplissage si vide (pour le scroll)
   @Input() set lignes(value: DependenceLine[]) {
     this._lignes = value;
     this.remplirSiVide();
@@ -25,6 +26,7 @@ export class DependenceTableComponent implements OnInit {
 
   @Input() nomsTechniques: string[] = [];
 
+  // États pour les boîtes de choix
   searchSource: { [key: string]: string } = {};
   searchCible: { [key: string]: string } = {};
   showDropdownSource: { [key: string]: boolean } = {};
@@ -35,7 +37,6 @@ export class DependenceTableComponent implements OnInit {
   }
 
   private remplirSiVide() {
-    // Si le tableau est vide (nouvel exercice), on force 3 lignes
     if (this._lignes && this._lignes.length === 0) {
       for (let i = 1; i <= 3; i++) {
         this._lignes.push(new DependenceLine(Date.now().toString() + i, [], []));

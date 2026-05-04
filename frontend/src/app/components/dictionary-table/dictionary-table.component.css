@@ -1,87 +1,101 @@
-/* --- STRUCTURE : Force le remplissage et le scroll --- */
 :host {
   display: flex;
   flex-direction: column;
   height: 100%;
   width: 100%;
-}
-
-.dict-container { 
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  width: 100%; 
-  background: white; 
-  height: 100%;
-  border: 1px solid #dcdcdc;
-  overflow: hidden; /* Empêche le scroll sur le cadre externe */
-}
-
-/* --- L'ASCENSEUR (ZONE DE SCROLL) --- */
-.table-wrapper {
-  flex: 1;
-  overflow-y: auto !important; /* L'ascenseur est ici */
   min-height: 0;
 }
 
-.dict-table { 
-  width: 100%; 
-  border-collapse: collapse; 
-  table-layout: fixed; 
+.dict-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
 }
 
-/* --- HEADER FIXE --- */
-.dict-table thead th { 
-  background: #0066CC; 
-  color: white; 
-  padding: 12px; 
-  font-size: 0.9rem; 
-  font-weight: bold; 
+.table-scroll-area {
+  flex: 1;
+  overflow-y: auto !important;
+  min-height: 0;
+}
+
+.dict-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+/* --- HEADER BLEU (Écriture standard bold) --- */
+.dict-table thead th {
+  background-color: #0061d5; /* Unifié avec les dépendances */
+  color: white;
+  padding: 12px;
+  font-size: 0.9rem;
+  font-weight: bold; /* Style d'écriture comme demandé */
+  text-align: left;
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+.dict-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  position: relative;
+  overflow: visible !important;
+}
+
+.dict-table tbody tr:nth-child(even) { background-color: #f9f9f9; }
+
+input, select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+}
+
+/* --- MENU ⋮ ACTIONS --- */
+.dropdown { position: relative; display: inline-block; }
+.dots-btn { background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 1.2rem; }
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: white;
+  min-width: 130px;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
+  z-index: 10000;
+  border-radius: 4px;
+  border: 1px solid #eee;
+  overflow: hidden;
+}
+
+.dropdown:hover .dropdown-content { display: block; }
+
+.dropdown-content a {
+  padding: 10px 15px;
+  display: block;
+  color: #333;
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
   text-align: left;
 }
 
-.col-divider { border-right: 1px solid #e0e0e0 !important; }
-.dict-table tbody tr:nth-child(even) { background-color: #EAEAEA; }
+.dropdown-content a:hover { background-color: #f5f5f5; }
 
-.dict-table td {
- height: 50px;
- padding: 0;
- border-bottom: 1px solid #dcdcdc;
- overflow: visible !important; /* Laisse passer le menu burger */
+/* --- SUPPRIMER EN ROUGE --- */
+.delete-text {
+  color: #e74c3c !important;
+  border-top: 1px solid #f9f9f9;
 }
 
-/* --- INPUTS --- */
-input, select { width: 100%; height: 100%; border: none; background: transparent; padding: 0 10px; outline: none; }
-
-/* --- MENU ⋮ --- */
-.dropdown { position: relative; display: inline-block; z-index: 10; }
-.dropdown:hover { z-index: 9999; }
-.dots-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; color: #95a5a6; padding: 5px 10px; }
-
-.dropdown-content {
- display: none;
- position: absolute;
- right: 5px;
- top: 35px;
- background: white;
- min-width: 120px;
- box-shadow: 0 8px 16px rgba(0,0,0,0.2);
- z-index: 99999 !important;
- border-radius: 4px;
- border: 1px solid #ddd;
-}
-.dropdown:hover .dropdown-content { display: block; }
-.dropdown-content a { display: block; padding: 10px; font-size: 0.8rem; cursor: pointer; color: #333; text-decoration: none; text-align: left; }
-.dropdown-content a:hover { background: #f5f5f5; }
-.delete-text { color: red !important; border-top: 1px solid #eee; }
-
-/* --- BAS DE TABLEAU --- */
-.dashed-add-btn { width: 96%; margin: 10px auto; display: block; padding: 12px; border: 2px dashed #0061d5; background: #f8fbff; color: #0061d5; font-weight: bold; cursor: pointer; }
-
-/* Tailles de colonnes */
-.dict-table th:nth-child(1), .dict-table td:nth-child(1),
-.dict-table th:nth-child(2), .dict-table td:nth-child(2) { width: 30%; }
-.dict-table th:nth-child(3), .dict-table td:nth-child(3) { width: 15%; text-align: center; }
+.add-section { padding: 12px; border-top: 1px solid #f1f5f9; flex-shrink: 0; }

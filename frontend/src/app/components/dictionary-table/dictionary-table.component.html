@@ -1,43 +1,20 @@
 <div class="dict-container">
-  <!-- Désactive l'auto-scroll pour éviter les sauts visuels -->
-  <div cdkDropList [cdkDropListAutoScrollDisabled]="true">
+  <!-- Zone de scroll interne -->
+  <div class="table-scroll-area">
     <table class="dict-table">
       <thead>
         <tr>
-          <th class="col-divider">Nom Métier</th>
-          <th class="col-divider">Nom technique</th>
-          <th>Type</th>
-          <th class="actions-header"></th>
+          <th>Nom Métier</th>
+          <th>Nom technique</th>
+          <th style="width: 100px;">Type</th>
+          <th style="width: 40px;"></th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let line of lines; let i = index">
-          
-          <!-- Nom Métier -> line.name -->
-          <td class="col-divider">
-            <input type="text" [(ngModel)]="line.name" placeholder="ex: Nom du client">
-          </td>
-
-          <!-- Nom Technique -> line.TechnicalName -->
-          <td class="col-divider">
-            <div class="drag-zone">
-              <input type="text" 
-                     [(ngModel)]="line.TechnicalName" 
-                     (ngModelChange)="emitNoms()" 
-                     placeholder="ex: nom_cli">
-              
-              <!-- L'étiquette bleue déplaçable -->
-              <div *ngIf="line.TechnicalName" 
-                   class="tag-pill" 
-                   cdkDrag 
-                   [cdkDragData]="line.TechnicalName">
-                {{ line.TechnicalName }}
-              </div>
-            </div>
-          </td>
-
-          <!-- Type -> line.Type -->
-          <td class="type-cell">
+          <td><input type="text" [(ngModel)]="line.name" placeholder="ex: Nom du client"></td>
+          <td><input type="text" [(ngModel)]="line.TechnicalName" (ngModelChange)="emitNoms()" placeholder="ex: nom_cli"></td>
+          <td>
             <select [(ngModel)]="line.Type">
               <option value=""></option>
               <option value="INT">INT</option>
@@ -46,8 +23,6 @@
               <option value="DATE">DATE</option>
             </select>
           </td>
-
-          <!-- Menu Actions ⋮ -->
           <td class="actions-cell">
             <div class="dropdown">
               <button class="dots-btn">⋮</button>
@@ -62,10 +37,8 @@
     </table>
   </div>
 
-  <!-- Bouton Ajouter -->
   <div class="add-section">
-    <button class="dashed-add-btn" (click)="ajouterLigne()">
-      + Ajouter une nouvelle donnée
-    </button>
+    <!-- ON UTILISE TON COMPOSANT ICI -->
+    <app-add-button (click)="ajouterLigne()" label="Ajouter une nouvelle donnée"></app-add-button>
   </div>
 </div>
