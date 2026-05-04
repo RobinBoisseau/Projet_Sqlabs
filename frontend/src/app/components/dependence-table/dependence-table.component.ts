@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DependenceLine } from '../../models/dependence-line.model';
@@ -10,15 +10,38 @@ import { DependenceLine } from '../../models/dependence-line.model';
   templateUrl: './dependence-table.component.html',
   styleUrls: ['./dependence-table.component.css']
 })
-export class DependenceTableComponent {
-  @Input() lignes: DependenceLine[] = [];
+export class DependenceTableComponent implements OnInit {
+  private _lignes: DependenceLine[] = [];
+
+  // Le SETTER pour les dépendances
+  @Input() set lignes(value: DependenceLine[]) {
+    this._lignes = value;
+    this.remplirSiVide();
+  }
+
+  get lignes(): DependenceLine[] {
+    return this._lignes;
+  }
+
   @Input() nomsTechniques: string[] = [];
 
-  // Recherche pour chaque ligne (source et cible)
   searchSource: { [key: string]: string } = {};
   searchCible: { [key: string]: string } = {};
   showDropdownSource: { [key: string]: boolean } = {};
   showDropdownCible: { [key: string]: boolean } = {};
+
+  ngOnInit() {
+    this.remplirSiVide();
+  }
+
+  private remplirSiVide() {
+    // Si le tableau est vide (nouvel exercice), on force 3 lignes
+    if (this._lignes && this._lignes.length === 0) {
+      for (let i = 1; i <= 3; i++) {
+        this._lignes.push(new DependenceLine(Date.now().toString() + i, [], []));
+      }
+    }
+  }
 
   filteredNoms(search: string): string[] {
     if (!search) return this.nomsTechniques;
@@ -27,23 +50,15 @@ export class DependenceTableComponent {
     );
   }
 
-  // --- LA FONCTION QUI MANQUAIT ---
-  // On attend 200ms avant de fermer pour laisser le temps au clic (mousedown) d'être pris en compte
   hideDropdownAfterDelay(side: 'source' | 'cible', ligneId: string) {
     setTimeout(() => {
-      if (side === 'source') {
-        this.showDropdownSource[ligneId] = false;
-      } else {
-        this.showDropdownCible[ligneId] = false;
-      }
+      if (side === 'source') this.showDropdownSource[ligneId] = false;
+      else this.showDropdownCible[ligneId] = false;
     }, 200);
   }
 
   selectNom(list: string[], nom: string, ligneId: string, side: 'source' | 'cible') {
-    if (!list.includes(nom)) {
-      list.push(nom);
-    }
-    // On réinitialise après la sélection
+    if (!list.includes(nom)) list.push(nom);
     if (side === 'source') {
       this.searchSource[ligneId] = '';
       this.showDropdownSource[ligneId] = false;
@@ -54,7 +69,7 @@ export class DependenceTableComponent {
   }
 
   nettoyerChampSupprime(nomTechnique: string) {
-    this.lignes.forEach(l => {
+    this._lignes.forEach(l => {
       l.source = l.source.filter(a => a !== nomTechnique);
       l.cible = l.cible.filter(a => a !== nomTechnique);
     });
@@ -65,19 +80,16 @@ export class DependenceTableComponent {
   }
 
   ajouterDependance() {
-    this.lignes.push(new DependenceLine(Date.now().toString(), [], []));
+    this._lignes.push(new DependenceLine(Date.now().toString(), [], []));
   }
 
   supprimerLigne(index: number) {
-    this.lignes.splice(index, 1);
+    this._lignes.splice(index, 1);
+    this.remplirSiVide();
   }
 
   dupliquerLigne(index: number) {
-    const s = this.lignes[index];
-    this.lignes.push(new DependenceLine(
-      Date.now().toString(), 
-      [...s.source], 
-      [...s.cible]
-    ));
+    const s = this._lignes[index];
+    this._lignes.push(new DependenceLine(Date.now().toString(), [...s.source], [...s.cible]));
   }
 }

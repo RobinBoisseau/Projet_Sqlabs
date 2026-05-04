@@ -4,22 +4,22 @@ export class Entities {
     constructor(
         public id: number = 1,
         public name: string = "Etudiant",
-        public largeur: number = 140,
-        public hauteur: number = 100,
-        public x: number = 5,
-        public y: number = 15,
+        public width: number = 140,
+        public height: number = 100,
+        public member_x: number = 5,
+        public member_y: number = 15,
         public fields: Champs[] = [],
-        public type: string = "" // Propriété ajoutée
+        public type: string = ""
     ){}
 
     static fromJSON(data: any): Entities {
         const entite = new Entities(
             data.id,
             data.name,
-            data.largeur,
-            data.hauteur,
-            data.x,
-            data.y,
+            data.width,
+            data.height,
+            data.member_x,
+            data.member_y,
             [],
             data.type || ""
         );

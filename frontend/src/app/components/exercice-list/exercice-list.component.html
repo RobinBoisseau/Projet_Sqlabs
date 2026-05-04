@@ -8,17 +8,17 @@
       <div class="exercise-row" *ngFor="let exo of sqlExercises; let i = index">
         <a [routerLink]="['/exercice', exo.slug]" class="exercise-info">
           <span class="exo-number">Exercice {{ i + 1 }} :</span>
-          <span class="exo-title">{{ exo.titre }}</span>
+          <span class="exo-title">{{ exo.title }}</span>
         </a>
         
         <!-- L'état sur la même ligne, à droite -->
         <div class="status-zone">
           <span [ngClass]="{
-            'status-done': exo.statut === 'Terminé',
-            'status-progress': exo.statut === 'En cours',
-            'status-todo': exo.statut === 'A faire'
+            'status-done': exo.status === 'Terminé',
+            'status-progress': exo.status === 'En cours',
+            'status-todo': exo.status === 'A faire'
           }">
-            <ng-container [ngSwitch]="exo.statut">
+            <ng-container [ngSwitch]="exo.status">
               <span *ngSwitchCase="'Terminé'">✅ Terminé</span>
               <span *ngSwitchCase="'En cours'">🟠 En cours</span>
               <span *ngSwitchCase="'A faire'">□ À faire</span>
@@ -36,15 +36,15 @@
       <div class="exercise-row" *ngFor="let exo of bpmnExercises; let i = index">
         <a [routerLink]="['/exercice', exo.slug]" class="exercise-info">
           <span class="exo-number">Exercice {{ i + 1 }} :</span>
-          <span class="exo-title">{{ exo.titre }}</span>
+          <span class="exo-title">{{ exo.title }}</span>
         </a>
         <div class="status-zone">
           <span [ngClass]="{
-            'status-done': exo.statut === 'Terminé',
-            'status-progress': exo.statut === 'En cours',
-            'status-todo': exo.statut === 'A faire'
+            'status-done': exo.status === 'Terminé',
+            'status-progress': exo.status === 'En cours',
+            'status-todo': exo.status === 'A faire'
           }">
-            <ng-container [ngSwitch]="exo.statut">
+            <ng-container [ngSwitch]="exo.status">
               <span *ngSwitchCase="'Terminé'">✅ Terminé</span>
               <span *ngSwitchCase="'En cours'">🟠 En cours</span>
               <span *ngSwitchCase="'A faire'">□ À faire</span>

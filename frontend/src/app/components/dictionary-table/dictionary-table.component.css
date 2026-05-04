@@ -1,43 +1,75 @@
-.dict-container { width: 100%; background: white; overflow: visible; }
-.dict-table { width: 100%; border-collapse: collapse; border: 1px solid #dcdcdc; table-layout: fixed; }
+/* --- STRUCTURE : Force le remplissage et le scroll --- */
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
 
+.dict-container { 
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%; 
+  background: white; 
+  height: 100%;
+  border: 1px solid #dcdcdc;
+  overflow: hidden; /* Empêche le scroll sur le cadre externe */
+}
 
-.dict-table thead th { background: #0066CC; color: white; padding: 12px; font-size: 0.9rem; font-weight: bold; }
+/* --- L'ASCENSEUR (ZONE DE SCROLL) --- */
+.table-wrapper {
+  flex: 1;
+  overflow-y: auto !important; /* L'ascenseur est ici */
+  min-height: 0;
+}
+
+.dict-table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  table-layout: fixed; 
+}
+
+/* --- HEADER FIXE --- */
+.dict-table thead th { 
+  background: #0066CC; 
+  color: white; 
+  padding: 12px; 
+  font-size: 0.9rem; 
+  font-weight: bold; 
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  text-align: left;
+}
+
 .col-divider { border-right: 1px solid #e0e0e0 !important; }
 .dict-table tbody tr:nth-child(even) { background-color: #EAEAEA; }
-
 
 .dict-table td {
  height: 50px;
  padding: 0;
  border-bottom: 1px solid #dcdcdc;
- overflow: visible !important; /* CHANGÉ : Permet au menu de sortir de la cellule */
+ overflow: visible !important; /* Laisse passer le menu burger */
 }
 
-
-/* --- INPUTS & TAGS --- */
+/* --- INPUTS --- */
 input, select { width: 100%; height: 100%; border: none; background: transparent; padding: 0 10px; outline: none; }
-.drag-zone { display: flex; align-items: center; gap: 8px; }
-.tag-pill { background: #dbeafe; color: #1e40af; padding: 2px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; border: 1px solid #bfdbfe; cursor: grab; }
-
 
 /* --- MENU ⋮ --- */
 .dropdown { position: relative; display: inline-block; z-index: 10; }
-.dropdown:hover { z-index: 9999; } /* Passe au-dessus des autres lignes au survol */
-
-
+.dropdown:hover { z-index: 9999; }
 .dots-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; color: #95a5a6; padding: 5px 10px; }
-
 
 .dropdown-content {
  display: none;
  position: absolute;
  right: 5px;
- top: 35px; /* Ajusté */
+ top: 35px;
  background: white;
  min-width: 120px;
  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
- z-index: 99999 !important; /* Premier plan */
+ z-index: 99999 !important;
  border-radius: 4px;
  border: 1px solid #ddd;
 }
@@ -46,24 +78,10 @@ input, select { width: 100%; height: 100%; border: none; background: transparent
 .dropdown-content a:hover { background: #f5f5f5; }
 .delete-text { color: red !important; border-top: 1px solid #eee; }
 
+/* --- BAS DE TABLEAU --- */
+.dashed-add-btn { width: 96%; margin: 10px auto; display: block; padding: 12px; border: 2px dashed #0061d5; background: #f8fbff; color: #0061d5; font-weight: bold; cursor: pointer; }
 
-.dashed-add-btn {  width: 96%; margin: 10px auto; display: block; padding: 12px; border: 2px dashed #0061d5; background: #f8fbff; color: #0061d5; font-weight: bold; cursor: pointer;  }
-
-
+/* Tailles de colonnes */
 .dict-table th:nth-child(1), .dict-table td:nth-child(1),
-.dict-table th:nth-child(2), .dict-table td:nth-child(2) {
- width: 30%;
- text-align: left;
-}
-
-
-.dict-table th:nth-child(3), .dict-table td:nth-child(3) {
- width: 15%;
- text-align: center;
-}
-
-
-.dict-container {
-  max-height: 300px;
-  overflow-y: auto;
-}
+.dict-table th:nth-child(2), .dict-table td:nth-child(2) { width: 30%; }
+.dict-table th:nth-child(3), .dict-table td:nth-child(3) { width: 15%; text-align: center; }

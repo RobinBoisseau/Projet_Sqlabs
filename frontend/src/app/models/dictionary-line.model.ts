@@ -1,13 +1,13 @@
 export class DictionaryLine {
   id: string;
-  NomMetier: string;
-  NomTechnique: string;
+  name: string;
+  TechnicalName: string;
   Type: string;
 
-  constructor(id: string, NomMetier: string, NomTechnique: string, Type: string) {
+  constructor(id: string, name: string, NomTechnique: string, Type: string) {
     this.id = id;
-    this.NomMetier = NomMetier;
-    this.NomTechnique = NomTechnique;
+    this.name = name;
+    this.TechnicalName = NomTechnique;
     this.Type = Type;
   }
 }

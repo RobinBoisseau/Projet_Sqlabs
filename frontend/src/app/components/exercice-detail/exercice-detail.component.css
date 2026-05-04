@@ -1,59 +1,59 @@
-/* TRÈS IMPORTANT : Le composant lui-même doit être un bloc qui prend toute la place */
+/* --- STRUCTURE GLOBALE --- */
 :host {
-    display: block;
-    height: calc(100vh - 70px); /* Ajuste le 70px selon la hauteur de ton header */
-    width: 100%;
-    overflow: hidden;
+  display: block;
+  height: calc(100vh - 64px); /* Hauteur écran moins header */
+  width: 100%;
+  overflow: hidden;
 }
 
 .workbench-wrapper {
-    height: 100% !important;
-    width: 100% !important;
-    background-color: #f8fafc;
+  height: 100% !important;
+  width: 100% !important;
+  display: flex;
+  flex-direction: column;
 }
 
-/* On force le Split horizontal à prendre 100% */
-as-split.as-horizontal {
-    height: 100% !important;
+as-split {
+  height: 100% !important;
 }
 
-/* On force le Split vertical (Dico/Dep) à prendre 100% de sa colonne */
-as-split.as-vertical {
-    height: 100% !important;
-}
-
-/* On force CHAQUE zone de split à être un conteneur flex complet */
+/* FORCE LES ZONES DU SPLIT A ETRE DES BOITES FLEXIBLES */
 ::ng-deep .as-split-area {
-    display: flex !important;
-    flex-direction: column !important;
-    height: 100% !important;
-    overflow: hidden !important; /* Évite les doubles scrollbars */
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  min-height: 0 !important; /* CRUCIAL POUR LE SCROLL */
+  overflow: hidden !important; 
 }
 
-/* On force ton composant panel à s'étirer */
+/* FORCE LE COMPOSANT PANEL A REMPLIR SA ZONE */
 app-panel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100% !important;
+  min-height: 0;
 }
 
+/* --- STYLE ÉNONCÉ --- */
 .ex-title {
-    color: #1e293b;
-    font-size: 1.1rem;
-    margin-bottom: 10px;
-    border-bottom: 2px solid #3b82f6;
-    display: inline-block;
+  color: #1e293b;
+  font-size: 1.2rem;
+  margin-bottom: 12px;
+  border-bottom: 2px solid #3b82f6;
+  display: inline-block;
+  padding-bottom: 4px;
 }
 
 .ex-enonce {
-    color: #475569;
-    line-height: 1.5;
-    font-size: 0.9rem;
+  color: #475569;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  font-size: 0.95rem;
 }
 
 /* Gouttières du split */
 ::ng-deep .as-split-gutter {
-    background-color: #e2e8f0 !important;
-    flex-basis: 8px !important;
+  background-color: #e2e8f0 !important;
+  flex-basis: 8px !important;
 }
