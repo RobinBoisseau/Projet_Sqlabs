@@ -1,52 +1,53 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DictionaryLine } from '../../models/dictionary-line.model';
-import { AddButtonComponent } from '../add-button/add-button.component'; // Ton composant bouton
+import { Field } from '../../models/field';
+import { DictionaryService } from '../../services/dictionary.service';
 
 @Component({
   selector: 'app-dictionary-table',
   standalone: true,
-  imports: [CommonModule, FormsModule, AddButtonComponent], // Ajouté ici
+  imports: [CommonModule, FormsModule], // Ajoute tes autres imports ici
   templateUrl: './dictionary-table.component.html',
   styleUrls: ['./dictionary-table.component.css']
 })
 export class DictionaryTableComponent implements OnInit {
-  private _lines: DictionaryLine[] = [];
-  @Input() set lines(val: DictionaryLine[]) { this._lines = val; this.remplirSiVide(); }
-  get lines() { return this._lines; }
+  lines: Field[] = [];
 
-  @Output() onNomSupprime = new EventEmitter<string>();
-  @Output() nomsChanged = new EventEmitter<string[]>();
+  constructor(private dictService: DictionaryService) {}
 
-  ngOnInit() { this.remplirSiVide(); }
-
-  private remplirSiVide() {
-    if (this._lines && this._lines.length === 0) {
-      for (let i = 1; i <= 5; i++) {
-        this._lines.push(new DictionaryLine(Date.now().toString()+i, "", "", ""));
-      }
+  ngOnInit() {
+    // 1. On charge l'historique au démarrage
+    const backup = this.dictService.load();
+    if (backup.length > 0) {
+      this.lines = backup;
+    } else {
+      this.remplirSiVide();
     }
   }
 
-  emitNoms() {
-    const noms = this._lines.map(l => l.TechnicalName).filter(n => n && n.trim() !== "");
-    this.nomsChanged.emit(noms);
+  // Dès qu'une modif est faite dans le HTML via (ngModelChange)
+  onDataChange() {
+    this.dictService.save(this.lines);
   }
 
-  ajouterLigne() { this._lines.push(new DictionaryLine(Date.now().toString(), "", "", "")); this.emitNoms(); }
-  
+  ajouterLigne() {
+    const nouvelleLigne = new Field(Date.now().toString(), "", "", "");
+    this.lines = [...this.lines, nouvelleLigne]; // Immuabilité : on recrée le tableau
+    this.onDataChange();
+  }
+
   supprimerLigne(index: number) {
-    const nom = this._lines[index].TechnicalName;
-    this._lines.splice(index, 1);
-    if (nom) this.onNomSupprime.emit(nom);
-    this.emitNoms();
+    this.lines = this.lines.filter((_, i) => i !== index);
+    this.onDataChange();
     this.remplirSiVide();
   }
 
-  dupliquerLigne(index: number) {
-    const s = this._lines[index];
-    this._lines.push(new DictionaryLine(Date.now().toString(), s.name, s.TechnicalName, s.Type));
-    this.emitNoms();
+  private remplirSiVide() {
+    if (this.lines.length === 0) {
+      for (let i = 1; i <= 5; i++) {
+        this.lines.push(new Field(Date.now().toString() + i, "", "", ""));
+      }
+    }
   }
 }

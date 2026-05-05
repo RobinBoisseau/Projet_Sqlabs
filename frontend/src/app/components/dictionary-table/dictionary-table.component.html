@@ -1,44 +1,36 @@
 <div class="dict-container">
-  <!-- Zone de scroll interne -->
   <div class="table-scroll-area">
     <table class="dict-table">
       <thead>
         <tr>
           <th>Nom Métier</th>
-          <th>Nom technique</th>
-          <th style="width: 100px;">Type</th>
-          <th style="width: 40px;"></th>
+          <th>Nom Technique</th>
+          <th>Type</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let line of lines; let i = index">
-          <td><input type="text" [(ngModel)]="line.name" placeholder="ex: Nom du client"></td>
-          <td><input type="text" [(ngModel)]="line.TechnicalName" (ngModelChange)="emitNoms()" placeholder="ex: nom_cli"></td>
           <td>
-            <select [(ngModel)]="line.Type">
-              <option value=""></option>
+            <input type="text" [(ngModel)]="line.name" (ngModelChange)="onDataChange()" placeholder="ex: Nom du client">
+          </td>
+          <td>
+            <input type="text" [(ngModel)]="line.TechnicalName" (ngModelChange)="onDataChange()" placeholder="ex: nom_cli">
+          </td>
+          <td>
+            <select [(ngModel)]="line.Type" (ngModelChange)="onDataChange()">
               <option value="INT">INT</option>
               <option value="VARCHAR2">VARCHAR2</option>
               <option value="NUMBER">NUMBER</option>
               <option value="DATE">DATE</option>
             </select>
           </td>
-          <td class="actions-cell">
-            <div class="dropdown">
-              <button class="dots-btn">⋮</button>
-              <div class="dropdown-content">
-                <a (click)="dupliquerLigne(i)">Dupliquer</a>
-                <a (click)="supprimerLigne(i)" class="delete-text">Supprimer</a>
-              </div>
-            </div>
+          <td>
+            <button (click)="supprimerLigne(i)">Supprimer</button>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
-
-  <div class="add-section">
-    <!-- ON UTILISE TON COMPOSANT ICI -->
-    <app-add-button (click)="ajouterLigne()" label="Ajouter une nouvelle donnée"></app-add-button>
-  </div>
+  <button (click)="ajouterLigne()">Ajouter une ligne</button>
 </div>
