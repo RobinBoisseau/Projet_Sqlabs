@@ -149,3 +149,19 @@
   top: 0;
   z-index: 100;
 }
+
+.dropdown-menu {
+  display: block;
+  position: absolute;
+  z-index: 9999 !important; /* Force l'affichage au premier plan */
+  background: white;
+  border: 1px solid #ccc;
+  max-height: 200px;
+  overflow-y: auto;
+  width: 100%;
+}
+
+/* Assure-toi que le parent ne coupe pas le menu */
+.source-container, .cible-container {
+  position: relative; /* Nécessaire pour le position: absolute du fils */
+}

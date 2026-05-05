@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -6,6 +6,7 @@ import { AngularSplitModule } from 'angular-split';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 
 import { ExerciceService } from '../../services/exercice.service';
+import { DictionaryService } from '../../services/dictionary.service';
 import { Exercice } from '../../models/exercice';
 import { Mcd } from '../../models/mcd';
 import { Field } from '../../models/field';
@@ -30,14 +31,22 @@ export class ExerciceDetailComponent implements OnInit {
   exercice: Exercice | undefined;
   mcd: Mcd | undefined; 
   allFields: Field[] = [];
-  nomsTechniques: string[] = [];
+
+  @ViewChild('dependenceTable') dependenceTable!: DependenceTableComponent;
 
   constructor(
     private route: ActivatedRoute, 
-    private exerciceService: ExerciceService
+    private exerciceService: ExerciceService,
+    private dictService: DictionaryService 
   ) {}
 
   ngOnInit(): void {
+    // 1. CHARGEMENT DE L'HISTORIQUE DU DICTIONNAIRE
+    const backup = this.dictService.load();
+    if (backup && backup.length > 0) {
+      this.allFields = backup;
+    }
+
     const slug = this.route.snapshot.paramMap.get('slug');
     if (slug) {
       this.exerciceService.getExerciceBySlug(slug).subscribe({
@@ -49,9 +58,19 @@ export class ExerciceDetailComponent implements OnInit {
             try { rawMcd = JSON.parse(rawMcd); } catch (e) { rawMcd = null; }
           }
           
-          this.mcd = Mcd.fromJSON(rawMcd || { Entities: [], Association: [] });
+          this.mcd = Mcd.fromJSON(rawMcd || { Entities: [], Associations: [], dependence: { lines: [] } });
+
+          // 2. CHARGEMENT DE L'HISTORIQUE DES DÉPENDANCES (DFs)
+          // On utilise le slug pour ne pas mélanger les DFs d'un autre exercice
+          const dfBackup = localStorage.getItem(`dfs_${slug}`);
+          if (dfBackup && this.mcd) {
+            try {
+              this.mcd.dependence.lines = JSON.parse(dfBackup);
+            } catch (e) {
+              console.error("Erreur de parsing des DFs stockées", e);
+            }
+          }
           
-          // On synchronise les champs pour le tableau
           this.refreshAllFields();
         },
         error: (err) => console.error('Erreur chargement exercice', err)
@@ -59,30 +78,55 @@ export class ExerciceDetailComponent implements OnInit {
     }
   }
 
-  // Extrait tous les Fields de toutes les Entities (Respect UML)
+  get nomsPourDependances(): string[] {
+    return this.allFields
+      .map(f => f.TechnicalName)
+      .filter(name => !!name && name.trim() !== '');
+  }
+
+  /**
+   * Appelé à chaque modification dans le DICTIONNAIRE
+   */
   refreshAllFields() {
-    if (!this.mcd) return;
+    this.allFields = [...this.allFields]; 
+    this.dictService.save(this.allFields); // Sauvegarde dict
+    console.log("Sync Dictionnaire - Noms dispos :", this.nomsPourDependances.length);
+  }
 
-    // On récupère les champs actuels du MCD
-    const nouveauxChamps = this.mcd.Entities.flatMap(entity => entity.fields || []);
+  refreshDependences() {
+    if (this.mcd && this.exercice) {
+      // FORCE la synchronisation : on s'assure que le mcd contient 
+      // les dernières modifs de l'enfant avant de mettre en localStorage
+      if (this.dependenceTable) {
+        this.mcd.dependence.lines = this.dependenceTable.lignes;
+      }
 
-    // TECHNIQUE DE LA RÉFÉRENCE : 
-    // On ne change nomsTechniques que pour les dépendances
-    this.nomsTechniques = nouveauxChamps.map(f => f.TechnicalName).filter(n => !!n);
-
-    // SURTOUT : On ne réassigne JAMAIS this.allFields ici si elle existe déjà.
-    // Puisque DictionaryTable travaille déjà sur cette liste par référence, 
-    // elle est déjà à jour !
-    if (this.allFields.length === 0) {
-      this.allFields = nouveauxChamps;
+      const key = `dfs_${this.exercice.slug}`;
+      const data = JSON.stringify(this.mcd.dependence.lines);
+      
+      localStorage.setItem(key, data);
+      
+      // Petit log pour confirmer que ça écrit bien quelque chose
+      console.log(`Sauvegarde locale (${key}) : ${this.mcd.dependence.lines.length} lignes.`);
     }
   }
 
-  sauvegarder() {
+  onFieldDeleted(nomTechnique: string) {
+    if (this.dependenceTable) {
+      this.dependenceTable.nettoyerChampSupprime(nomTechnique);
+      this.refreshDependences(); // On sauvegarde après nettoyage
+    }
+    this.refreshAllFields();
+  }
+
+  save() {
     if (this.exercice && this.mcd) {
       const dataAEnvoyer = JSON.stringify(this.mcd);
       this.exerciceService.saveExerciceProgress(this.exercice.slug, dataAEnvoyer).subscribe({
-        next: () => alert("Sauvegardé sur le serveur !"),
+        next: () => {
+          alert("Sauvegardé en base de données !");
+          // Optionnel : nettoyer le localStorage après une sauvegarde réussie
+        },
         error: (err) => console.error("Erreur sauvegarde", err)
       });
     }

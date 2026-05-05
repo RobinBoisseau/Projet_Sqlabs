@@ -1,16 +1,18 @@
 <div class="dict-container">
+  <!-- Zone de scroll interne -->
   <div class="table-scroll-area">
     <table class="dict-table">
       <thead>
         <tr>
           <th>Nom Métier</th>
           <th>Nom technique</th>
-          <th>Type</th>
-          <th></th>
+          <th style="width: 100px;">Type</th>
+          <th style="width: 40px;"></th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let line of lines; let i = index; trackBy: trackByFn">
+          <!-- ON UTILISE 'line' ICI -->
           <td>
             <input type="text" [(ngModel)]="line.name" (ngModelChange)="onDataChange()" placeholder="ex: Nom du client">
           </td>
@@ -26,17 +28,22 @@
               <option value="DATE">DATE</option>
             </select>
           </td>
-          <td>
-            <button class="delete-btn" (click)="supprimerLigne(i)">×</button>
+          <td class="actions-cell">
+            <div class="dropdown">
+              <button class="dots-btn">⋮</button>
+              <div class="dropdown-content">
+                <a (click)="dupliquerLigne(i)">Dupliquer</a>
+                <a (click)="supprimerLigne(i)" class="delete-text">Supprimer</a>
+              </div>
+            </div>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
-  
+
   <div class="add-section">
-    <button class="add-data-btn" (click)="ajouterLigne()">
-      Ajouter une nouvelle donnée
-    </button>
+    <!-- ON UTILISE TON COMPOSANT ICI -->
+    <app-add-button (click)="ajouterLigne()" label="Ajouter une nouvelle donnée"></app-add-button>
   </div>
 </div>
