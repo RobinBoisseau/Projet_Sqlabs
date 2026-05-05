@@ -1,12 +1,14 @@
 import { Entity } from './entity';
 import { Association } from './association';
 import { Link } from './link';
+import { Dependence } from './dependence.model';
 
 export class Mcd {
   constructor(
     public Entities: Entity[] = [],
     public Associations: Association[] = [],
-    public Links: Link[] = []
+    public Links: Link[] = [],
+    public dependence: Dependence = new Dependence()
   ) {}
 
   save(): string {
@@ -26,6 +28,15 @@ export class Mcd {
       ? data.Links.map((l: any) => Link.fromJSON(l))
       : [];
 
-    return new Mcd(entitiesList, associationsList, linksList);
+    const dep = data.dependence 
+      ? Dependence.fromJSON(data.dependence) 
+      : new Dependence();
+
+    return new Mcd(
+      data.Entities?.map((e: any) => Entity.fromJSON(e)),
+      data.Associations?.map((a: any) => Association.fromJSON(a)),
+      data.Links?.map((l: any) => Link.fromJSON(l)),
+      dep
+    );
   }
 }

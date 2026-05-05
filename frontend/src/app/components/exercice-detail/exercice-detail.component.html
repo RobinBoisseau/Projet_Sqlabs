@@ -17,8 +17,8 @@
         <as-split-area [size]="50">
           <app-panel title="Dictionnaire des données">
             <app-dictionary-table  
-              (onNomSupprime)="dependenceTable.nettoyerChampSupprime($event)"
-              (nomsChanged)="nomsTechniques = $event">
+              [lines]="allFields"
+              (onFieldChange)="refreshAllFields()">
             </app-dictionary-table>
           </app-panel>
         </as-split-area>
@@ -29,7 +29,9 @@
             <!-- ON CHANGE ICI : On envoie 'mcd.Dependences' et non plus 'Association' -->
             <app-dependence-table 
              #dependenceTable
-             [nomsTechniques]="nomsTechniques">
+             [lignes]="mcd.dependence.lines"
+             [nomsTechniques]="nomsPourDependances"
+             (onDependenceChange)="refreshDependences()">
             </app-dependence-table>
           </app-panel>
         </as-split-area>
@@ -40,10 +42,9 @@
     <!-- COLONNE 3 : MODÉLISATION (Gère le dessin des Entités + Associations) -->
     <as-split-area [size]="45">
       <app-panel title="Zone de modélisation" [scrollable]="false">
-        <app-mcd-editor 
-          *ngIf="mcd" 
+        <app-mcd-editor  
           [mcd]="mcd" 
-          (saveRequested)="sauvegarder()">
+          (saveRequested)="save()">
         </app-mcd-editor>
       </app-panel>
     </as-split-area>

@@ -11,11 +11,16 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let line of lines; let i = index">
-          <td><input type="text" [(ngModel)]="line.name" placeholder="ex: Nom du client"></td>
-          <td><input type="text" [(ngModel)]="line.TechnicalName" (ngModelChange)="emitNoms()" placeholder="ex: nom_cli"></td>
+        <tr *ngFor="let line of lines; let i = index; trackBy: trackByFn">
+          <!-- ON UTILISE 'line' ICI -->
           <td>
-            <select [(ngModel)]="line.Type">
+            <input type="text" [(ngModel)]="line.name" (ngModelChange)="onDataChange()" placeholder="ex: Nom du client">
+          </td>
+          <td>
+            <input type="text" [(ngModel)]="line.TechnicalName" (ngModelChange)="onDataChange()" placeholder="ex: nom_cli">
+          </td>
+          <td>
+            <select [(ngModel)]="line.Type" (ngModelChange)="onDataChange()">
               <option value=""></option>
               <option value="INT">INT</option>
               <option value="VARCHAR2">VARCHAR2</option>

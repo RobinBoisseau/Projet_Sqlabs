@@ -80,7 +80,7 @@ input, select {
 
 .dropdown:hover .dropdown-content { display: block; }
 
-.dropdown-content a {
+.add-data-btn a {
   padding: 10px 15px;
   display: block;
   color: #333;
