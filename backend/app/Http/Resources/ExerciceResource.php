@@ -43,11 +43,11 @@ class ExerciceResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'titre' => $this->titre,
+            'title' => $this->titre,
             'slug' => $this->slug,
             'type' => $this->type,
-            'statut' => $statut,
-            'enonce' => $this->enonce,
+            'status' => $statut,
+            'statement' => $this->enonce,
         ];
     }
 

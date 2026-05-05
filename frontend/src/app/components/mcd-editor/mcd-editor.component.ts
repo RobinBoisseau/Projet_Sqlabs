@@ -4,7 +4,7 @@ import { Graph, Node } from '@antv/x6';
 import { Selection } from '@antv/x6-plugin-selection';
 import { Dnd } from '@antv/x6-plugin-dnd';
 import { Mcd } from '../../models/mcd';
-import { Champs } from '../../models/field';
+import { Field } from '../../models/field';
 import { ToolButtonComponent } from '../toll-button/toll-button.component';
 
 @Component({
@@ -65,7 +65,7 @@ export class McdEditorComponent implements OnInit, OnDestroy {
     this.graph.on('node:add-field', ({ node }: { node: Node }) => {
       const data = node.getData() as any;
       if (data && data.fields) {
-        data.fields.push(new Champs(Date.now(), "Nouveau_Champ", "VARCHAR2", false));
+        data.fields.push(new Field(Date.now().toString(), "Nouveau_Champ","", "VARCHAR2", false));
         const size = node.getSize();
         node.resize(size.width, size.height + 25);
       }
@@ -85,7 +85,16 @@ export class McdEditorComponent implements OnInit, OnDestroy {
     if (!this.graph || !this.mcd) return;
     this.graph.clearCells();
     this.mcd.Entities.forEach(entite => {
-      this.graph?.addNode({ id: entite.id.toString(), shape: 'merise-entity', member_x: entite.member_x, y: entite.member_y, width: entite.width, height: entite.height, label: entite.name, data: entite });
+      this.graph?.addNode({
+        id: entite.name,           // ✅ name au lieu de id (inexistant)
+        shape: 'merise-entity',
+        x: entite.posX,            // ✅ posX au lieu de member_x
+        y: entite.posY,            // ✅ posY au lieu de member_y
+        width: entite.width,
+        height: entite.height,
+        label: entite.name,
+        data: entite
+      });
     });
   }
 
@@ -101,12 +110,14 @@ export class McdEditorComponent implements OnInit, OnDestroy {
   triggerSave() {
     if (this.graph && this.mcd) {
       this.graph.getNodes().forEach(node => {
-        const entity = this.mcd?.Entities.find(e => e.id.toString() === node.id);
+        const entity = this.mcd?.Entities.find(e => e.name === node.id); // ✅ e.name au lieu de e.id
         if (entity) {
           const pos = node.getPosition();
           const size = node.getSize();
-          entity.member_x = pos.x; entity.member_y = pos.y;
-          entity.width = size.width; entity.height = size.height;
+          entity.posX = pos.x;   // ✅ posX au lieu de member_x
+          entity.posY = pos.y;   // ✅ posY au lieu de member_y
+          entity.width = size.width;
+          entity.height = size.height;
         }
       });
       this.saveRequested.emit();
