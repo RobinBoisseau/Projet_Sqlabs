@@ -1,4 +1,3 @@
-
 import { ElementSchema } from './element-schema';
 import { Point } from './point';
 import { Entity } from './entity';

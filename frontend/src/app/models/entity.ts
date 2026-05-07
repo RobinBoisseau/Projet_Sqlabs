@@ -1,4 +1,3 @@
-
 import { ElementSchema } from './element-schema';
 import { Field } from './field';
  

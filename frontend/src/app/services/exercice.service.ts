@@ -1,36 +1,52 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { Exercice } from '../models/exercice';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class ExerciceService {
-  // Remplace par l'URL réelle de ton API Laravel
   private apiUrl = 'http://localhost:8000/api/exercices';
+  private tentativesUrl = 'http://localhost:8000/api/tentatives';
 
   constructor(private http: HttpClient) { }
 
-  // Récupère tous les exercices pour la liste
   getExercices(): Observable<Exercice[]> {
-    return this.http.get<Exercice[]>(this.apiUrl);
+    return this.http.get<any>(this.apiUrl).pipe(map(res => res.data || res));
   }
 
-  // Récupère un exercice précis via son slug (pour la page de détail)
   getExerciceBySlug(slug: string): Observable<Exercice> {
-    return this.http.get<Exercice>(`${this.apiUrl}/${slug}`);
+    return this.http.get<any>(`${this.apiUrl}/${slug}`).pipe(map(res => res.data || res));
   }
 
-  // Optionnel : Sauvegarder le travail de l'étudiant
-  saveExerciceProgress(slug: string, mcdData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/${slug}/save`, { mcd_json: mcdData });
+  // Sauvegarde — on envoie les noms anglais, le controller fait le mapping vers FR
+  saveAttempt(exerciceId: number, data: any): Observable<any> {
+    const payload = {
+      exercice_id: exerciceId,
+      dictionary: data.dictionary,
+      dependencies: data.dependencies,
+      model: data.model
+    };
+    return this.http.post(this.tentativesUrl, payload);
   }
-  // Dans ton exercice.service.ts
-saveMcd(slug: string, mcdData: any): Observable<any> {
-  // On envoie l'objet à une route Laravel (ex: /api/exercices/{slug}/save)
-  return this.http.post(`${this.apiUrl}/${slug}/save`, { 
-    mcd_json: JSON.stringify(mcdData) 
-  });
-}
+
+  // Sauvegarde d'urgence (keepalive) pour la fermeture du navigateur
+  async emergencySave(exerciceId: number, data: any) {
+    const payload = JSON.stringify({
+      exercice_id: exerciceId,
+      dictionary: data.dictionary,
+      dependencies: data.dependencies,
+      model: data.model
+    });
+    return fetch(this.tentativesUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload,
+      keepalive: true
+    });
+  }
+
+  getLastAttempt(exerciceId: number): Observable<any> {
+    console.log('🔍 URL appelée :', `${this.tentativesUrl}/exercice/${exerciceId}`);
+    return this.http.get(`${this.tentativesUrl}/exercice/${exerciceId}`);
+  }
 }
