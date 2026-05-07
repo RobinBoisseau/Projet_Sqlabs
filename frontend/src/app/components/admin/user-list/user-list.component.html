@@ -28,7 +28,13 @@
           </td>
           <td class="col-actions">
             <a [routerLink]="['/admin/users', user.id, 'edit']" class="btn-edit">Éditer</a>
-            <button class="btn-delete" (click)="openDeleteModal(user)">Supprimer</button>
+            <button
+              class="btn-delete"
+              [disabled]="!canDelete(user)"
+              [title]="deleteTooltip(user)"
+              [class.btn-delete-disabled]="!canDelete(user)"
+              (click)="canDelete(user) && openDeleteModal(user)"
+            >Supprimer</button>
           </td>
         </tr>
         <tr *ngIf="users.length === 0">
@@ -47,6 +53,7 @@
       Voulez-vous vraiment supprimer le compte de <strong>{{ userToDelete.name }}</strong> ?
       Cette action est irréversible.
     </p>
+    <div class="error-banner modal-error" *ngIf="deleteError">{{ deleteError }}</div>
     <div class="modal-actions">
       <button class="btn-cancel" (click)="closeDeleteModal()" [disabled]="deleteLoading">
         Annuler

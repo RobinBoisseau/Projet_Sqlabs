@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { UserService } from '../../../services/user.service';
+import { AuthService } from '../../../services/auth.service';
 import { User } from '../../../models/user';
 
 @Component({
@@ -18,8 +19,9 @@ export class UserListComponent implements OnInit {
 
   userToDelete: User | null = null;
   deleteLoading = false;
+  deleteError = '';
 
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService, private auth: AuthService) {}
 
   ngOnInit(): void {
     this.loadUsers();
@@ -33,28 +35,54 @@ export class UserListComponent implements OnInit {
     });
   }
 
+  get adminCount(): number {
+    return this.users.filter(u => u.role === 'admin').length;
+  }
+
+  isSelf(user: User): boolean {
+    return user.id === this.auth.currentUser?.id;
+  }
+
+  canDelete(user: User): boolean {
+    if (this.isSelf(user)) return false;
+    if (user.role === 'admin' && this.adminCount <= 1) return false;
+    return true;
+  }
+
+  deleteTooltip(user: User): string {
+    if (this.isSelf(user)) return 'Vous ne pouvez pas supprimer votre propre compte';
+    if (user.role === 'admin' && this.adminCount <= 1) return 'Impossible de supprimer le dernier administrateur';
+    return 'Supprimer';
+  }
+
   openDeleteModal(user: User): void {
     this.userToDelete = user;
+    this.deleteError = '';
   }
 
   closeDeleteModal(): void {
     this.userToDelete = null;
+    this.deleteError = '';
   }
 
   confirmDelete(): void {
     if (!this.userToDelete) return;
     this.deleteLoading = true;
+    this.deleteError = '';
     this.userService.deleteUser(this.userToDelete.id).subscribe({
       next: () => {
         this.users = this.users.filter(u => u.id !== this.userToDelete!.id);
         this.userToDelete = null;
         this.deleteLoading = false;
       },
-      error: () => { this.deleteLoading = false; }
+      error: err => {
+        this.deleteError = err.error?.message ?? 'Une erreur est survenue.';
+        this.deleteLoading = false;
+      }
     });
   }
 
   roleLabel(role: string): string {
-    return { etudiant: 'Étudiant', professeur: 'Professeur', admin: 'Admin' }[role] ?? role;
+    return ({ etudiant: 'Étudiant', professeur: 'Professeur', admin: 'Admin' } as Record<string, string>)[role] ?? role;
   }
 }

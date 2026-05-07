@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../../../services/user.service';
+import { AuthService } from '../../../services/auth.service';
 import { User } from '../../../models/user';
 
 @Component({
@@ -19,12 +20,14 @@ export class UserEditComponent implements OnInit {
   saving = false;
   error = '';
   success = false;
+  isSelf = false;
 
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private userService: UserService
+    private userService: UserService,
+    private auth: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -32,10 +35,12 @@ export class UserEditComponent implements OnInit {
     this.userService.getUser(id).subscribe({
       next: user => {
         this.user = user;
+        this.isSelf = user.id === this.auth.currentUser?.id;
+
         this.form = this.fb.group({
           name:  [user.name,  Validators.required],
           email: [user.email, [Validators.required, Validators.email]],
-          role:  [user.role,  Validators.required]
+          role:  [{ value: user.role, disabled: this.isSelf }, Validators.required]
         });
         this.loading = false;
       },
@@ -52,7 +57,7 @@ export class UserEditComponent implements OnInit {
     this.error = '';
     this.success = false;
 
-    this.userService.updateUser(this.user.id, this.form.value).subscribe({
+    this.userService.updateUser(this.user.id, this.form.getRawValue()).subscribe({
       next: () => {
         this.success = true;
         this.saving = false;

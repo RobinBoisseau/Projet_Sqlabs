@@ -27,8 +27,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('tentatives', TentativeController::class);
 
     Route::apiResource('reponse-ia', ReponseIAController::class);
-    Route::apiResource('users', UserController::class);
     Route::apiResource('classe', ClasseController::class);
+
+    // Routes réservées aux admins
+    Route::middleware('admin')->group(function () {
+        Route::apiResource('users', UserController::class);
+    });
     Route::apiResource('fichiers', FichierController::class);
 });
 

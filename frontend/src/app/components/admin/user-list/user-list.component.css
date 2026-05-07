@@ -118,7 +118,16 @@ tr:hover td { background: #fafbff; }
   transition: background 0.15s, color 0.15s;
 }
 
-.btn-delete:hover { background: #e53e3e; color: white; }
+.btn-delete:hover:not(:disabled) { background: #e53e3e; color: white; }
+
+.btn-delete-disabled,
+.btn-delete:disabled {
+  border-color: #dde1e7;
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+.modal-error { margin-bottom: 16px; }
 
 .empty {
   text-align: center;

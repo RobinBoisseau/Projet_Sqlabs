@@ -42,6 +42,9 @@
           <option value="professeur">Professeur</option>
           <option value="admin">Administrateur</option>
         </select>
+        <span class="field-hint" *ngIf="isSelf">
+          Vous ne pouvez pas modifier votre propre rôle.
+        </span>
       </div>
 
       <div class="success-banner" *ngIf="success">
