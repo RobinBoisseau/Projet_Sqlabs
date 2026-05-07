@@ -9,34 +9,18 @@ export class Mcd {
     public Associations: Association[] = [],
     public Links: Link[] = [],
     public dependence: Dependence = new Dependence()
-  ) {}
+  ) { }
 
   save(): string {
     return JSON.stringify(this);
   }
 
   static fromJSON(data: any): Mcd {
-    const entitiesList: Entity[] = data.Entities
-      ? data.Entities.map((e: any) => Entity.fromJSON(e))
-      : [];
+    const entities = data.Entities?.map((e: any) => Entity.fromJSON(e)) ?? [];
+    const associations = data.Associations?.map((a: any) => Association.fromJSON(a)) ?? [];
+    const links = data.Links?.map((l: any) => Link.fromJSON(l)) ?? [];
+    const dep = data.dependence ? Dependence.fromJSON(data.dependence) : new Dependence();
 
-    const associationsList: Association[] = data.Associations
-      ? data.Associations.map((a: any) => Association.fromJSON(a))
-      : [];
-
-    const linksList: Link[] = data.Links
-      ? data.Links.map((l: any) => Link.fromJSON(l))
-      : [];
-
-    const dep = data.dependence 
-      ? Dependence.fromJSON(data.dependence) 
-      : new Dependence();
-
-    return new Mcd(
-      data.Entities?.map((e: any) => Entity.fromJSON(e)),
-      data.Associations?.map((a: any) => Association.fromJSON(a)),
-      data.Links?.map((l: any) => Link.fromJSON(l)),
-      dep
-    );
+    return new Mcd(entities, associations, links, dep);
   }
 }
