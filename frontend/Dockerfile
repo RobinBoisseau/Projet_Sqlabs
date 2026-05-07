@@ -1,4 +1,4 @@
-FROM node:18
+witch maiFROM node:18
 
 # Installation de l'interface en ligne de commande Angular mondialement
 RUN npm install -g @angular/cli
