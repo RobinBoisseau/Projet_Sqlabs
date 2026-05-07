@@ -1,68 +1,35 @@
-import { ElementSchema } from './element-schema';
-import { Point } from './point';
-import { Entity } from './entity';
+export const MERISE_CARDINALITIES = ['1,1', '1,N', '0,N', '0,1'] as const;
+
+export class Link {
+  /** Identifiant unique du lien */
+  public id: string;
  
-export class Link extends ElementSchema {
   constructor(
+    /** La cardinalité du lien (ex: "1,N", "0,1") */
     public cardinality: string = '',
-    public anchoringEntity: Point = new Point(),
-    public anchoringAssoc: Point = new Point(),
-    public posCardinalityX: number = 0,
-    public posCardinalityY: number = 0,
-    public pointsIntermediate: Point[] = [],
-    /** Référence vers l'entité pointée */
-    public pointsTo: Entity | null = null,
-    posX: number = 0,
-    posY: number = 0,
-    width: number = 0,
-    height: number = 0
+    /** ID de l'Association source */
+    public assocId: string = '',
+    /** ID de l'Entité cible */
+    public entityId: string = '',
+    id?: string
   ) {
-    super(posX, posY, width, height);
+    this.id = id ?? Link.generateId();
+  }
+ 
+  private static generateId(): string {
+    return 'lnk_' + Math.random().toString(36).substring(2, 10);
   }
  
   modifyCardinality(cardinality: string): void {
     this.cardinality = cardinality;
   }
  
-  moveCardinality(x: number, y: number): void {
-    this.posCardinalityX = x;
-    this.posCardinalityY = y;
-  }
- 
-  ElementSchema(): this {
-    return this;
-  }
- 
-  cloneElementSchema(): this {
-    const clone = new Link(
-      this.cardinality,
-      Point.fromJSON(this.anchoringEntity),
-      Point.fromJSON(this.anchoringAssoc),
-      this.posCardinalityX,
-      this.posCardinalityY,
-      this.pointsIntermediate.map(p => Point.fromJSON(p)),
-      this.pointsTo,
-      this.posX,
-      this.posY,
-      this.width,
-      this.height
-    );
-    return clone as this;
-  }
- 
   static fromJSON(data: any): Link {
     return new Link(
-      data.cardinality,
-      data.anchoringEntity ? Point.fromJSON(data.anchoringEntity) : new Point(),
-      data.anchoringAssoc ? Point.fromJSON(data.anchoringAssoc) : new Point(),
-      data.posCardinalityX,
-      data.posCardinalityY,
-      data.pointsIntermediate ? data.pointsIntermediate.map((p: any) => Point.fromJSON(p)) : [],
-      null, // pointsTo est résolu après désérialisation
-      data.posX,
-      data.posY,
-      data.width,
-      data.height
+      data.cardinality ?? '',
+      data.assocId ?? '',
+      data.entityId ?? '',
+      data.id
     );
   }
 }
