@@ -20,6 +20,7 @@
     "@angular/router": "^19.2.0",
     "@antv/x6": "^2.19.2",
     "@antv/x6-plugin-dnd": "^2.1.1",
+    "@antv/x6-plugin-keyboard": "^2.2.3",
     "@antv/x6-plugin-selection": "^2.2.2",
     "@antv/x6-plugin-transform": "^2.1.8",
     "angular-split": "^20.0.0",
