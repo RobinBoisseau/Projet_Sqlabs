@@ -3,19 +3,18 @@
     <span class="exo-number">Exercice {{ index + 1 }} :</span>
     <span class="exo-title">{{ exo.title }}</span>
   </a>
-  
+
   <div class="status-zone">
-    <!-- ON UTILISE LES VALEURS ANGLAISES DU MODÈLE ICI -->
     <span [ngClass]="{
-      'status-done': exo.status === 'Completed',
-      'status-progress': exo.status === 'In Progress',
-      'status-todo': exo.status === 'To Do'
+      'status-done': exo.status === 'Terminé',
+      'status-progress': exo.status === 'En cours',
+      'status-todo': exo.status === 'A faire'
     }">
       <ng-container [ngSwitch]="exo.status">
-        <span *ngSwitchCase="'Completed'">✅ Completed</span>
-        <span *ngSwitchCase="'In Progress'">🟠 In Progress</span>
-        <span *ngSwitchCase="'To Do'">□ To Do</span>
-        <span *ngSwitchDefault>□ To Do</span>
+        <span *ngSwitchCase="'Terminé'">✅ Terminé</span>
+        <span *ngSwitchCase="'En cours'">🟠 En cours</span>
+        <span *ngSwitchCase="'A faire'">□ À faire</span>
+        <span *ngSwitchDefault>□ À faire</span>
       </ng-container>
     </span>
   </div>

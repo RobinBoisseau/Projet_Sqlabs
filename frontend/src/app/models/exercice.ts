@@ -4,5 +4,5 @@ export interface Exercice {
   slug: string;
   statement: string;
   type: 'SQL' | 'BPMN';
-  status: 'Completed' | 'In Progress' | 'To Do'; // <--- CES 3 MOTS EXACTS
+  status: 'Terminé' | 'En cours' | 'A faire';
 }
