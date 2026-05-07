@@ -1,22 +1,21 @@
 <div class="exercise-row">
   <a [routerLink]="['/exercice', exo.slug]" class="exercise-info">
     <span class="exo-number">Exercice {{ index + 1 }} :</span>
-    <span class="exo-title">{{ exo.titre }}</span>
+    <span class="exo-title">{{ exo.title }}</span>
   </a>
   
   <div class="status-zone">
-    <!-- On utilise [ngClass] et [ngSwitch] sur exo.statut -->
+    <!-- ON UTILISE LES VALEURS ANGLAISES DU MODÈLE ICI -->
     <span [ngClass]="{
-      'status-done': exo.statut === 'Terminé',
-      'status-progress': exo.statut === 'En cours',
-      'status-todo': exo.statut === 'A faire'
+      'status-done': exo.status === 'Completed',
+      'status-progress': exo.status === 'In Progress',
+      'status-todo': exo.status === 'To Do'
     }">
-      <ng-container [ngSwitch]="exo.statut">
-        <span *ngSwitchCase="'Terminé'">✅ Terminé</span>
-        <span *ngSwitchCase="'En cours'">🟠 En cours</span>
-        <span *ngSwitchCase="'A faire'">□ À faire</span>
-        <!-- Sécurité au cas où -->
-        <span *ngSwitchDefault>□ À faire</span>
+      <ng-container [ngSwitch]="exo.status">
+        <span *ngSwitchCase="'Completed'">✅ Completed</span>
+        <span *ngSwitchCase="'In Progress'">🟠 In Progress</span>
+        <span *ngSwitchCase="'To Do'">□ To Do</span>
+        <span *ngSwitchDefault>□ To Do</span>
       </ng-container>
     </span>
   </div>

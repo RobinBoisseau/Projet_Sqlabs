@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, HostListener, Input, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Graph, Node } from '@antv/x6';
+import { Graph, Node } from '@antv/x6'; // Import de Node indispensable
 import { Selection } from '@antv/x6-plugin-selection';
 import { Dnd } from '@antv/x6-plugin-dnd';
 import { Mcd } from '../../models/mcd';
@@ -48,24 +48,26 @@ export class McdEditorComponent implements OnInit, OnDestroy {
       interacting: { nodeMovable: true, edgeMovable: true },
     });
 
-    // Enregistrement Merise
-    Graph.registerNode('merise-entity', {
-      inherit: 'rect',
-      markup: [{ tagName: 'rect', selector: 'body' }, { tagName: 'rect', selector: 'header' }, { tagName: 'text', selector: 'label' }, { tagName: 'line', selector: 'divider' }, { tagName: 'circle', selector: 'addButton' }, { tagName: 'text', selector: 'plusSign' }],
-      attrs: {
-        body: { fill: '#ffffff', stroke: '#334155', strokeWidth: 2, rx: 8, ry: 8 },
-        header: { fill: '#334155', height: 30, refWidth: '100%', rx: 8, ry: 8 },
-        label: { textAnchor: 'middle', refX: '50%', refY: 15, fill: '#ffffff', fontSize: 14, fontWeight: 'bold' },
-        divider: { stroke: '#334155', strokeWidth: 1, x1: 0, refY: 30, refX2: '100%' },
-        addButton: { r: 10, refX: '100%', refX2: -15, refY: '100%', refY2: -15, fill: '#3b82f6', cursor: 'pointer', event: 'node:add-field' },
-        plusSign: { text: '+', refX: '100%', refX2: -15, refY: '100%', refY2: -15, fill: '#ffffff', fontSize: 16, fontWeight: 'bold', textAnchor: 'middle', textVerticalAnchor: 'middle', pointerEvents: 'none' }
-      }
-    });
+    // --- FIX WARNING : On vérifie l'existence avant d'enregistrer ---
+    if (!Node.registry.exist('merise-entity')) {
+      Graph.registerNode('merise-entity', {
+        inherit: 'rect',
+        markup: [{ tagName: 'rect', selector: 'body' }, { tagName: 'rect', selector: 'header' }, { tagName: 'text', selector: 'label' }, { tagName: 'line', selector: 'divider' }, { tagName: 'circle', selector: 'addButton' }, { tagName: 'text', selector: 'plusSign' }],
+        attrs: {
+          body: { fill: '#ffffff', stroke: '#334155', strokeWidth: 2, rx: 8, ry: 8 },
+          header: { fill: '#334155', height: 30, refWidth: '100%', rx: 8, ry: 8 },
+          label: { textAnchor: 'middle', refX: '50%', refY: 15, fill: '#ffffff', fontSize: 14, fontWeight: 'bold' },
+          divider: { stroke: '#334155', strokeWidth: 1, x1: 0, refY: 30, refX2: '100%' },
+          addButton: { r: 10, refX: '100%', refX2: -15, refY: '100%', refY2: -15, fill: '#3b82f6', cursor: 'pointer', event: 'node:add-field' },
+          plusSign: { text: '+', refX: '100%', refX2: -15, refY: '100%', refY2: -15, fill: '#ffffff', fontSize: 16, fontWeight: 'bold', textAnchor: 'middle', textVerticalAnchor: 'middle', pointerEvents: 'none' }
+        }
+      });
+    }
 
     this.graph.on('node:add-field', ({ node }: { node: Node }) => {
       const data = node.getData() as any;
       if (data && data.fields) {
-        data.fields.push(new Field(Date.now().toString(), "Nouveau_Champ","", "VARCHAR2", false));
+        data.fields.push(new Field(Date.now().toString(), "New_Field","", "VARCHAR2", false));
         const size = node.getSize();
         node.resize(size.width, size.height + 25);
       }
@@ -73,7 +75,6 @@ export class McdEditorComponent implements OnInit, OnDestroy {
 
     this.graph.use(new Selection({ enabled: true, multiple: true, rubberband: true, showNodeSelectionBox: true }));
     
-    // CONFIGURATION DND ULTIME
     this.dnd = new Dnd({ 
       target: this.graph, 
       scaled: false,
@@ -86,10 +87,10 @@ export class McdEditorComponent implements OnInit, OnDestroy {
     this.graph.clearCells();
     this.mcd.Entities.forEach(entite => {
       this.graph?.addNode({
-        id: entite.name,           // ✅ name au lieu de id (inexistant)
+        id: entite.name,           
         shape: 'merise-entity',
-        x: entite.posX,            // ✅ posX au lieu de member_x
-        y: entite.posY,            // ✅ posY au lieu de member_y
+        x: entite.posX,            
+        y: entite.posY,            
         width: entite.width,
         height: entite.height,
         label: entite.name,
@@ -101,7 +102,7 @@ export class McdEditorComponent implements OnInit, OnDestroy {
   startDrag(event: MouseEvent, type: 'entity' | 'association') {
     if (!this.graph || !this.dnd) return;
     const node = type === 'entity' 
-      ? this.graph.createNode({ shape: 'merise-entity', width: 140, height: 100, label: 'ENTITÉ' })
+      ? this.graph.createNode({ shape: 'merise-entity', width: 140, height: 100, label: 'ENTITY' })
       : this.graph.createNode({ shape: 'ellipse', width: 120, height: 60, label: 'ASSOCIATION', attrs: { body: { fill: '#fff', stroke: '#e67e22', strokeWidth: 2 }, label: { text: 'ASSOCIATION', fontWeight: 'bold' } } });
     
     this.dnd.start(node, event);
@@ -110,12 +111,12 @@ export class McdEditorComponent implements OnInit, OnDestroy {
   triggerSave() {
     if (this.graph && this.mcd) {
       this.graph.getNodes().forEach(node => {
-        const entity = this.mcd?.Entities.find(e => e.name === node.id); // ✅ e.name au lieu de e.id
+        const entity = this.mcd?.Entities.find(e => e.name === node.id); 
         if (entity) {
           const pos = node.getPosition();
           const size = node.getSize();
-          entity.posX = pos.x;   // ✅ posX au lieu de member_x
-          entity.posY = pos.y;   // ✅ posY au lieu de member_y
+          entity.posX = pos.x;   
+          entity.posY = pos.y;
           entity.width = size.width;
           entity.height = size.height;
         }
