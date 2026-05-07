@@ -1,8 +1,8 @@
 <div class="container">
-  <h1 class="main-title">List of Exercises</h1>
+  <h1 class="main-title">Liste des exercices</h1>
 
   <section class="type-section" *ngIf="sqlExercises.length > 0">
-    <h2 class="category-title">📁 SQL Exercises</h2>
+    <h2 class="category-title">📁 SQL Exercices</h2>
     <div class="exercise-list">
       <app-exercice-card 
         *ngFor="let exo of sqlExercises; let i = index" 
@@ -13,7 +13,7 @@
   </section>
 
   <section class="type-section" *ngIf="bpmnExercises.length > 0">
-    <h2 class="category-title">📊 BPMN Exercises</h2>
+    <h2 class="category-title">📊 BPMN Exercices</h2>
     <div class="exercise-list">
       <app-exercice-card 
         *ngFor="let exo of bpmnExercises; let i = index" 
