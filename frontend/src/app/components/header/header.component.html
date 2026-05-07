@@ -1,18 +1,19 @@
 <header class="header-container">
-  <!-- Groupe Gauche : Aligné horizontalement -->
   <div class="left-group">
     <a routerLink="/" class="logo">Sqlabs</a>
-      
-    
-    <!-- Le lien "plus beau" -->
     <a *ngIf="isOnDetail()" routerLink="/exercices" class="back-link">
-       <span class="arrow">←</span> Liste des exercices
+      <span class="arrow">←</span> Liste des exercices
     </a>
   </div>
 
-  <!-- Groupe Droite -->
-  <div class="user-profile" (click)="onProfileClick()">
-    <span class="user-name">{{ firstName }} {{ lastName }}</span>
-    <span class="avatar-icon">👤</span>
+  <div class="right-group">
+    <ng-container *ngIf="auth.currentUser$ | async as user; else guestTpl">
+      <span class="user-name">{{ user.name }}</span>
+      <span class="user-role">{{ user.role }}</span>
+      <button class="btn-logout" (click)="logout()">Déconnexion</button>
+    </ng-container>
+    <ng-template #guestTpl>
+      <a routerLink="/login" class="btn-login">Se connecter</a>
+    </ng-template>
   </div>
 </header>
