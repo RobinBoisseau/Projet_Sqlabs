@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ExerciceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ClasseController;
@@ -17,6 +18,7 @@ Route::post('/login',    [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me',      [AuthController::class, 'me']);
+    Route::put('/profile', [ProfileController::class, 'update']);
 
     // On met /s/ pour ne pas confondre avec l'ID
     Route::get('/exercices/s/{slug}', [ExerciceController::class, 'showBySlug']);

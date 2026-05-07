@@ -4,6 +4,7 @@ import { ExerciceListComponent } from './components/exercice-list/exercice-list.
 import { ExerciceDetailComponent } from './components/exercice-detail/exercice-detail.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
+import { ProfileComponent } from './components/profile/profile.component';
 import { AdminDashboardComponent } from './components/admin/admin-dashboard/admin-dashboard.component';
 import { UserListComponent } from './components/admin/user-list/user-list.component';
 import { UserEditComponent } from './components/admin/user-edit/user-edit.component';
@@ -19,6 +20,7 @@ export const routes: Routes = [
   { path: '',               component: HomeComponent,           canActivate: [authGuard] },
   { path: 'exercices',      component: ExerciceListComponent,   canActivate: [authGuard] },
   { path: 'exercice/:slug', component: ExerciceDetailComponent, canActivate: [authGuard] },
+  { path: 'profile',        component: ProfileComponent,        canActivate: [authGuard] },
 
   // Routes admin
   { path: 'admin',                component: AdminDashboardComponent, canActivate: [adminGuard] },

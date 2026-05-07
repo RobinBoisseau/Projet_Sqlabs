@@ -1,0 +1,60 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Mon profil</h1>
+  </div>
+
+  <div class="card" *ngIf="form">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+      <div class="field">
+        <label for="name">Nom complet</label>
+        <input id="name" type="text" formControlName="name"
+          [class.invalid]="form.get('name')?.invalid && form.get('name')?.touched" />
+        <span class="field-error" *ngIf="form.get('name')?.invalid && form.get('name')?.touched">
+          Nom requis
+        </span>
+      </div>
+
+      <div class="field">
+        <label for="email">Adresse e-mail</label>
+        <input id="email" type="email" formControlName="email"
+          [class.invalid]="form.get('email')?.invalid && form.get('email')?.touched" />
+        <span class="field-error" *ngIf="form.get('email')?.invalid && form.get('email')?.touched">
+          E-mail invalide
+        </span>
+      </div>
+
+      <div class="divider"></div>
+
+      <p class="section-label">Changer le mot de passe <span class="optional">(optionnel)</span></p>
+
+      <div class="field">
+        <label for="password">Nouveau mot de passe</label>
+        <input id="password" type="password" formControlName="password" placeholder="8 caractères minimum"
+          [class.invalid]="form.get('password')?.invalid && form.get('password')?.touched" />
+        <span class="field-error" *ngIf="form.get('password')?.invalid && form.get('password')?.touched">
+          Minimum 8 caractères
+        </span>
+      </div>
+
+      <div class="field">
+        <label for="password_confirmation">Confirmer le mot de passe</label>
+        <input id="password_confirmation" type="password" formControlName="password_confirmation"
+          [class.invalid]="form.errors?.['passwordMismatch'] && form.get('password_confirmation')?.touched" />
+        <span class="field-error" *ngIf="form.errors?.['passwordMismatch'] && form.get('password_confirmation')?.touched">
+          Les mots de passe ne correspondent pas
+        </span>
+      </div>
+
+      <div class="error-banner"  *ngIf="error">{{ error }}</div>
+      <div class="success-banner" *ngIf="success">Profil mis à jour avec succès.</div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" [disabled]="form.invalid || saving">
+          {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

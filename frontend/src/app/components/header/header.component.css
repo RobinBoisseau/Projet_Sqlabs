@@ -1,98 +1,65 @@
-/* Conteneur principal : tout sur une seule ligne */
 .header-container {
-    display: flex;
-    justify-content: space-between; /* Espace entre la gauche et la droite */
-    align-items: center;            /* Alignement vertical parfait */
-    padding: 0 25px;
-    height: 70px;
-    background: white;
-    border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 25px;
+  height: 70px;
+  background: white;
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+  z-index: 100;
 }
 
-/* Groupe Logo + Lien : alignés côte à côte */
 .left-group {
-    display: flex;
-    align-items: center;
-    gap: 20px; /* Espace fixe entre le logo et le bouton */
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 .logo {
-    font-size: 1.4rem;
-    font-weight: 800;
-    color: #333;
-    text-decoration: none;
-    letter-spacing: -0.5px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #333;
+  text-decoration: none;
+  letter-spacing: -0.5px;
 }
 
-/* --- LE LIEN "PLUS BEAU" (STYLE BOUTON MODERNE) --- */
 .back-link {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: #1a73e8;           /* Bleu Google */
-    font-size: 0.85rem;
-    font-weight: 500;
-    padding: 6px 14px;
-    border: 1px solid #e8f0fe; /* Bordure très claire */
-    border-radius: 20px;       /* Forme pilule */
-    background-color: #f8faff;
-    transition: all 0.2s ease-in-out;
-    white-space: nowrap;       /* Empêche le texte de revenir à la ligne */
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #1a73e8;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 6px 14px;
+  border: 1px solid #e8f0fe;
+  border-radius: 20px;
+  background-color: #f8faff;
+  transition: all 0.2s ease-in-out;
+  white-space: nowrap;
 }
 
 .back-link .arrow {
-    margin-right: 6px;
-    transition: transform 0.2s;
+  margin-right: 6px;
+  transition: transform 0.2s;
 }
 
 .back-link:hover {
-    background-color: #1a73e8; /* Le fond devient bleu au survol */
-    color: white;              /* Le texte devient blanc */
-    border-color: #1a73e8;
-    box-shadow: 0 2px 6px rgba(26, 115, 232, 0.2);
+  background-color: #1a73e8;
+  color: white;
+  border-color: #1a73e8;
+  box-shadow: 0 2px 6px rgba(26, 115, 232, 0.2);
 }
 
 .back-link:hover .arrow {
-    transform: translateX(-3px); /* La flèche bouge un peu vers la gauche */
+  transform: translateX(-3px);
 }
 
-/* Section droite */
+/* Groupe droite */
 .right-group {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.user-name {
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 0.95rem;
-}
-
-.user-role {
-  font-size: 0.75rem;
-  color: #888;
-  background: #f0f4ff;
-  padding: 2px 8px;
-  border-radius: 12px;
-  text-transform: capitalize;
-}
-
-.btn-logout {
-  padding: 6px 14px;
-  border: 1px solid #dde1e7;
-  border-radius: 8px;
-  background: white;
-  color: #555;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-
-.btn-logout:hover {
-  background: #fff5f5;
-  color: #c53030;
-  border-color: #fed7d7;
 }
 
 .btn-admin {
@@ -123,41 +90,127 @@
   transition: background 0.2s;
 }
 
-.btn-login:hover {
-  background: #1557b0;
+.btn-login:hover { background: #1557b0; }
+
+/* Menu profil */
+.profile-menu {
+  position: relative;
 }
 
-/* L'icône cliquable */
-.avatar-clickable {
+.profile-trigger {
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer; /* Change le curseur en main */
-  transition: transform 0.2s, opacity 0.2s;
-  padding: 5px;
-  border-radius: 50%;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid #e8eaed;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
   color: #2c3e50;
 }
 
-.avatar-clickable:hover {
-  background-color: #f0f5f5; /* Petit effet au survol */
-  transform: scale(1.1); /* L'icône grossit un tout petit peu */
+.profile-trigger:hover {
+  background: #f8f9fa;
+  border-color: #ccc;
 }
 
-.logo-link {
-  text-decoration: none; 
-  color: inherit;      
-  cursor: pointer;       
+.avatar {
+  width: 30px;
+  height: 30px;
+  background: #1a73e8;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
-
-.logo-link:hover .logo-text {
-  color: #3498db;      
-  transition: color 0.2s ease-in-out;
-    font-size: 0.9rem;
-    color: #666;
+.user-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2c3e50;
 }
 
-.avatar-icon {
-    font-size: 1.4rem;
+.chevron {
+  width: 18px;
+  height: 18px;
+  color: #888;
+  transition: transform 0.2s;
 }
+
+.chevron.rotated { transform: rotate(180deg); }
+
+/* Dropdown */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 220px;
+  background: white;
+  border: 1px solid #e8eaed;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  overflow: hidden;
+  z-index: 200;
+}
+
+.dropdown-header {
+  padding: 14px 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dropdown-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.dropdown-role {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: capitalize;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 16px;
+  font-size: 0.875rem;
+  color: #333;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+  box-sizing: border-box;
+}
+
+.dropdown-item svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: #666;
+}
+
+.dropdown-item:hover {
+  background: #f5f7ff;
+}
+
+.dropdown-item-danger { color: #c53030; }
+.dropdown-item-danger svg { color: #c53030; }
+.dropdown-item-danger:hover { background: #fff5f5; }

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
@@ -11,13 +11,27 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./header.component.css']
 })
 export class HeaderComponent {
+  dropdownOpen = false;
+
   constructor(public router: Router, public auth: AuthService) {}
 
   isOnDetail(): boolean {
     return this.router.url.includes('/exercice/');
   }
 
+  toggleDropdown(): void {
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!(event.target as Element).closest('.profile-menu')) {
+      this.dropdownOpen = false;
+    }
+  }
+
   logout(): void {
+    this.dropdownOpen = false;
     this.auth.logout();
   }
 }

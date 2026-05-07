@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, map, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { User } from '../models/user';
 
@@ -45,6 +45,13 @@ export class AuthService {
       complete: () => this.clearSession(),
       error: () => this.clearSession()
     });
+  }
+
+  updateProfile(data: Record<string, string>): Observable<User> {
+    return this.http.put<{ data: User }>(`${this.API}/profile`, data).pipe(
+      tap(res => this.currentUserSubject.next(res.data)),
+      map(res => res.data)
+    );
   }
 
   loadCurrentUser(): void {
