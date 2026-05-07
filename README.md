@@ -32,7 +32,19 @@ docker compose exec backend php artisan migrate
 
 # Insérer les données exemples
 docker compose exec backend php artisan db:seed
+
+# Créer le compte administrateur
+docker compose exec backend php artisan db:seed --class=AdminSeeder
 ```
+
+> Le seeder admin est séparé du seeder principal car il ne doit pas être réexécuté lors d'un `db:seed` global (il utilise `firstOrCreate` et ne crée pas de doublon si relancé).
+
+**Identifiants du compte administrateur :**
+
+| Champ | Valeur |
+|---|---|
+| E-mail | `admin@sqlabs.fr` |
+| Mot de passe | `admin1234` |
 
 ## Arrêter le projet
 
