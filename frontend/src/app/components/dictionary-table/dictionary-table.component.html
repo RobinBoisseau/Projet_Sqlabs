@@ -1,26 +1,24 @@
 <div class="dict-container">
-  <!-- Zone de scroll interne -->
   <div class="table-scroll-area">
     <table class="dict-table">
       <thead>
         <tr>
-          <th>Nom Métier</th>
-          <th>Nom technique</th>
+          <th>Business Name</th>
+          <th>Technical Name</th>
           <th style="width: 100px;">Type</th>
           <th style="width: 40px;"></th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let line of lines; let i = index; trackBy: trackByFn">
-          <!-- ON UTILISE 'line' ICI -->
           <td>
-            <input type="text" [(ngModel)]="line.name" (ngModelChange)="onDataChange()" placeholder="ex: Nom du client">
+            <input type="text" [(ngModel)]="line.name" (ngModelChange)="emitChanges()" placeholder="ex: Customer Name">
           </td>
           <td>
-            <input type="text" [(ngModel)]="line.TechnicalName" (ngModelChange)="onDataChange()" placeholder="ex: nom_cli">
+            <input type="text" [(ngModel)]="line.TechnicalName" (ngModelChange)="emitChanges()" placeholder="ex: customer_name">
           </td>
           <td>
-            <select [(ngModel)]="line.Type" (ngModelChange)="onDataChange()">
+            <select [(ngModel)]="line.Type" (ngModelChange)="emitChanges()">
               <option value=""></option>
               <option value="INT">INT</option>
               <option value="VARCHAR2">VARCHAR2</option>
@@ -28,22 +26,20 @@
               <option value="DATE">DATE</option>
             </select>
           </td>
-          <td class="actions-cell">
+           <div class="actions-column">
             <div class="dropdown">
               <button class="dots-btn">⋮</button>
               <div class="dropdown-content">
-                <a (click)="dupliquerLigne(i)">Dupliquer</a>
-                <a (click)="supprimerLigne(i)" class="delete-text">Supprimer</a>
+                <a (click)="duplicateLine(i)">Dupliquer</a>
+                <a (click)="removeLine(i)" class="delete-text">Supprimer</a>
               </div>
-            </div>
-          </td>
+           </div>
+      </div>
         </tr>
       </tbody>
     </table>
   </div>
-
   <div class="add-section">
-    <!-- ON UTILISE TON COMPOSANT ICI -->
-    <app-add-button (click)="ajouterLigne()" label="Ajouter une nouvelle donnée"></app-add-button>
+    <app-add-button (btnClick)="addLine()" label="Add new data"></app-add-button>
   </div>
 </div>

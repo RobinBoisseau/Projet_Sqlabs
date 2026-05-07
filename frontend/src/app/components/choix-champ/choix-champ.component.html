@@ -1,0 +1,24 @@
+<div class="select-column">
+  <!-- Tags des champs sélectionnés -->
+  <div class="tags-list" *ngIf="champsSelectionnes.length > 0">
+    <div class="tag" *ngFor="let attr of champsSelectionnes; let j = index">
+      {{ attr }} <span class="remove" (click)="removeAttribute(j)">×</span>
+    </div>
+  </div>
+
+  <!-- Input de recherche + dropdown -->
+  <div class="search-input-container">
+    <input type="text"
+      [(ngModel)]="searchText"
+      (focus)="showDropdown = true"
+      (blur)="hideDropdownAfterDelay()"
+      [placeholder]="placeholder">
+    <div class="choice-box" *ngIf="showDropdown">
+      <div class="choice-item"
+        *ngFor="let nom of filteredNames()"
+        (mousedown)="selectName(nom)">
+        {{ nom }}
+      </div>
+    </div>
+  </div>
+</div>

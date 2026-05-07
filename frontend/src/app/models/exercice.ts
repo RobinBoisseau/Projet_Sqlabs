@@ -1,8 +1,8 @@
 export interface Exercice {
   id: number;
   title: string;
-  slug:string;
+  slug: string;
   statement: string;
   type: 'SQL' | 'BPMN';
-  status: 'Terminé' | 'En cours' | 'A faire';
+  status: 'Completed' | 'In Progress' | 'To Do'; // <--- CES 3 MOTS EXACTS
 }

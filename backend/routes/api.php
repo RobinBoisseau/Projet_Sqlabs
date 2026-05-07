@@ -10,12 +10,14 @@ use App\Http\Controllers\ReponseIAController;
 
 // On met /s/ pour ne pas confondre avec l'ID
 Route::get('/exercices/s/{slug}', [ExerciceController::class, 'showBySlug']);
-
 Route::get('exercices/{slug}', [ExerciceController::class, 'show']);
 Route::apiResource('exercices', ExerciceController::class)->except(['show']);
+
+Route::get('/tentatives/exercice/{exercice_id}', [TentativeController::class, 'getByExercice']);
+Route::apiResource('tentatives', TentativeController::class);
+
 Route::apiResource('reponse-ia', ReponseIAController::class);
 Route::apiResource('users', UserController::class);
 Route::apiResource('classe', ClasseController::class);
-Route::apiResource('tentatives', TentativeController::class);
 Route::apiResource('fichiers', FichierController::class);
 
