@@ -1,57 +1,25 @@
 <div class="container">
-  <h1 class="main-title">Liste des Exercices</h1>
+  <h1 class="main-title">List of Exercises</h1>
 
-  <!-- SECTION SQL -->
-  <div class="section-container" *ngIf="sqlExercises.length > 0">
-    <h2 class="section-header">📁 Exercices SQL</h2>
+  <section class="type-section" *ngIf="sqlExercises.length > 0">
+    <h2 class="category-title">📁 SQL Exercises</h2>
     <div class="exercise-list">
-      <div class="exercise-row" *ngFor="let exo of sqlExercises; let i = index">
-        <a [routerLink]="['/exercice', exo.slug]" class="exercise-info">
-          <span class="exo-number">Exercice {{ i + 1 }} :</span>
-          <span class="exo-title">{{ exo.title }}</span>
-        </a>
-        
-        <!-- L'état sur la même ligne, à droite -->
-        <div class="status-zone">
-          <span [ngClass]="{
-            'status-done': exo.status === 'Terminé',
-            'status-progress': exo.status === 'En cours',
-            'status-todo': exo.status === 'A faire'
-          }">
-            <ng-container [ngSwitch]="exo.status">
-              <span *ngSwitchCase="'Terminé'">✅ Terminé</span>
-              <span *ngSwitchCase="'En cours'">🟠 En cours</span>
-              <span *ngSwitchCase="'A faire'">□ À faire</span>
-            </ng-container>
-          </span>
-        </div>
-      </div>
+      <app-exercice-card 
+        *ngFor="let exo of sqlExercises; let i = index" 
+        [exo]="exo" 
+        [index]="i">
+      </app-exercice-card>
     </div>
-  </div>
+  </section>
 
-  <!-- SECTION BPMN (Pareil ici) -->
-  <div class="section-container" *ngIf="bpmnExercises.length > 0">
-    <h2 class="section-header">📊 Exercices BPMN</h2>
+  <section class="type-section" *ngIf="bpmnExercises.length > 0">
+    <h2 class="category-title">📊 BPMN Exercises</h2>
     <div class="exercise-list">
-      <div class="exercise-row" *ngFor="let exo of bpmnExercises; let i = index">
-        <a [routerLink]="['/exercice', exo.slug]" class="exercise-info">
-          <span class="exo-number">Exercice {{ i + 1 }} :</span>
-          <span class="exo-title">{{ exo.title }}</span>
-        </a>
-        <div class="status-zone">
-          <span [ngClass]="{
-            'status-done': exo.status === 'Terminé',
-            'status-progress': exo.status === 'En cours',
-            'status-todo': exo.status === 'A faire'
-          }">
-            <ng-container [ngSwitch]="exo.status">
-              <span *ngSwitchCase="'Terminé'">✅ Terminé</span>
-              <span *ngSwitchCase="'En cours'">🟠 En cours</span>
-              <span *ngSwitchCase="'A faire'">□ À faire</span>
-            </ng-container>
-          </span>
-        </div>
-      </div>
+      <app-exercice-card 
+        *ngFor="let exo of bpmnExercises; let i = index" 
+        [exo]="exo" 
+        [index]="i">
+      </app-exercice-card>
     </div>
-  </div>
+  </section>
 </div>

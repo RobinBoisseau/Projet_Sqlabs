@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
+import { ExerciceCardComponent } from '../exercice-card/exercice-card.component';
 
 @Component({
   selector: 'app-exercice-list',
   standalone: true,
-  imports: [CommonModule, RouterModule], 
+  imports: [CommonModule, RouterModule, ExerciceCardComponent],
   templateUrl: './exercice-list.component.html',
   styleUrls: ['./exercice-list.component.css']
 })
@@ -19,14 +20,11 @@ export class ExerciceListComponent implements OnInit {
 
   ngOnInit(): void {
     this.exerciceService.getExercices().subscribe({
-      next: (response: any) => {
-        const allExercices = response.data ? response.data : response;
-        if (Array.isArray(allExercices)) {
-          this.sqlExercises = allExercices.filter((ex: any) => ex.type === 'SQL');
-          this.bpmnExercises = allExercices.filter((ex: any) => ex.type === 'BPMN');
-        }
+      next: (data) => {
+        this.sqlExercises = data.filter(ex => ex.type === 'SQL');
+        this.bpmnExercises = data.filter(ex => ex.type === 'BPMN');
       },
-      error: (err) => console.error(err)
+      error: (err) => console.error("Erreur liste", err)
     });
   }
 }

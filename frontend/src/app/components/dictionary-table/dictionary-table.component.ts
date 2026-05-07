@@ -1,87 +1,69 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Field } from '../../models/field';
-import { DictionaryService } from '../../services/dictionary.service';
 import { AddButtonComponent } from '../add-button/add-button.component';
 
 @Component({
   selector: 'app-dictionary-table',
   standalone: true,
-  imports: [CommonModule, FormsModule, AddButtonComponent], 
+  imports: [CommonModule, FormsModule, AddButtonComponent],
   templateUrl: './dictionary-table.component.html',
   styleUrls: ['./dictionary-table.component.css']
 })
-export class DictionaryTableComponent implements OnInit {
-  // @Input permet de recevoir "mcd.Entities" du parent
-  @Input() lines: Field[] = []; 
-  @Output() onFieldChange = new EventEmitter<void>();
-  @Output() onNomSupprime = new EventEmitter<string>();
-  @Output() nomsChanged = new EventEmitter<string[]>();
+export class DictionaryTableComponent implements OnChanges {
 
-  constructor(private dictService: DictionaryService) {}
+  @Input() lines: Field[] = [];
+  @Output() technicalNamesChanged = new EventEmitter<string[]>();
+  @Output() dictionaryChanged = new EventEmitter<Field[]>();
 
-  ngOnInit() {
-    if (!this.lines || this.lines.length === 0) {
-      const backup = this.dictService.load();
-      this.lines = backup.length > 0 ? backup : this.genererLignesVides();
-      
-      // CRUCIAL : On émet un signal immédiatement pour que le 
-      // parent récupère ces lignes dans son propre tableau 'allFields'
-      setTimeout(() => {
-        this.onFieldChange.emit();
-      });
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['lines']) {
+      // Si lines est vide ou non défini, on génère des lignes vides
+      if (!this.lines || this.lines.length === 0) {
+        this.lines = this.generateEmptyLines();
+        setTimeout(() => this.emitChanges());
+      }
+      // Si lines est rempli (chargement depuis la BD), on met à jour les noms techniques
+      else {
+        setTimeout(() => this.emitChanges());
+      }
     }
   }
 
-  // Cette fonction est appelée à chaque lettre tapée
- onDataChange() {
-    this.dictService.save(this.lines);
-    this.onFieldChange.emit(); 
-
-    const noms = this.lines.map(l => l.TechnicalName).filter(n => !!n);
-    this.nomsChanged.emit(noms);
+  emitChanges() {
+    const names = this.lines
+      .map(l => l.TechnicalName)
+      .filter(n => n && n.trim() !== '');
+    this.technicalNamesChanged.emit(names);
+    this.dictionaryChanged.emit(this.lines);
   }
 
-  onInputChange() {
-    this.onFieldChange.emit();
+  addLine() {
+    this.lines.push(new Field(Date.now().toString(), '', '', ''));
+    this.emitChanges();
   }
 
-  ajouterLigne() {
-    const nouvelleLigne = new Field(Date.now().toString(), "", "", "");
-    this.lines.push(nouvelleLigne); // On ajoute à la liste existante
-    this.onDataChange();
-  }
-
-  supprimerLigne(index: number) {
-    const nom = this.lines[index].TechnicalName;
+  removeLine(index: number) {
     this.lines.splice(index, 1);
-    if (nom) this.onNomSupprime.emit(nom);
-    this.onDataChange();
+    this.emitChanges();
   }
 
-  dupliquerLigne(index: number) {
+  duplicateLine(index: number) {
     const s = this.lines[index];
-    const copie = new Field(
-      Date.now().toString(), 
-      s.name, 
-      s.TechnicalName, 
-      s.Type
-    );
-    this.lines.push(copie);
-    this.onDataChange();
+    this.lines.push(new Field(Date.now().toString(), s.name, s.TechnicalName, s.Type));
+    this.emitChanges();
   }
-  
+
   trackByFn(index: number, item: any) {
-    return item.id; // Ou index si tes objets n'ont pas d'ID stable
+    return item.id;
   }
 
-  private genererLignesVides(): Field[] {
-    const defaultLines = [];
+  private generateEmptyLines(): Field[] {
+    const lines = [];
     for (let i = 1; i <= 5; i++) {
-      defaultLines.push(new Field(Date.now().toString() + i, "", "", ""));
+      lines.push(new Field(Date.now().toString() + i, '', '', ''));
     }
-    return defaultLines;
+    return lines;
   }
-
 }
