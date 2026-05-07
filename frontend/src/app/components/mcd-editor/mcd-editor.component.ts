@@ -1,10 +1,16 @@
-import { Component, OnInit, OnDestroy, HostListener, Input, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, Input, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Graph, Node } from '@antv/x6'; // Import de Node indispensable
+import { Graph, Node, Edge, Path } from '@antv/x6';
 import { Selection } from '@antv/x6-plugin-selection';
 import { Dnd } from '@antv/x6-plugin-dnd';
+import { Transform } from '@antv/x6-plugin-transform'; // Pour redimensionner
+
 import { Mcd } from '../../models/mcd';
+import { Entity } from '../../models/entity';
+import { Association } from '../../models/association';
+import { Link } from '../../models/link';
 import { Field } from '../../models/field';
+import { McdService } from '../../services/mcd.service';
 import { ToolButtonComponent } from '../toll-button/toll-button.component';
 
 @Component({
@@ -16,114 +22,215 @@ import { ToolButtonComponent } from '../toll-button/toll-button.component';
 })
 export class McdEditorComponent implements OnInit, OnDestroy {
   @ViewChild('container', { static: true }) containerRef!: ElementRef;
-  
+  @Input() slug: string = '';
   @Input() mcd: Mcd | undefined;
-  @Output() saveRequested = new EventEmitter<void>();
 
   private graph?: Graph;
   private dnd?: Dnd;
 
-  @HostListener('window:keydown', ['$event'])
-  onKeyDown(event: KeyboardEvent) {
-    if ((event.key === 'Delete' || event.key === 'Backspace') && this.graph) {
-      const cells = this.graph.getSelectedCells();
-      if (cells.length > 0) this.graph.removeCells(cells);
-    }
-  }
+  constructor(private mcdService: McdService) { }
 
   ngOnInit(): void {
+    // On charge d'abord les données
+    const savedMcd = this.mcdService.loadMcd(this.slug);
+    if (savedMcd) this.mcd = savedMcd;
+
     setTimeout(() => {
       this.initGraph();
       if (this.mcd) this.drawMcd();
-    }, 500);
+    }, 100);
   }
 
   initGraph() {
     this.graph = new Graph({
       container: this.containerRef.nativeElement,
       autoResize: true,
-      grid: { size: 20, visible: true, type: 'dot', args: { color: '#d7d7d7', thickness: 1 } },
+      grid: { size: 10, visible: true, type: 'mesh', args: { color: '#e2e8f0', thickness: 1 } },
       panning: true,
       mousewheel: { enabled: true, modifiers: ['ctrl'] },
-      interacting: { nodeMovable: true, edgeMovable: true },
-    });
+      connecting: {
+        snap: { radius: 20 },
+        allowBlank: false,
+        allowLoop: false,
+        highlight: true,
+        router: 'manhattan',
+        connector: 'rounded',
+        validateConnection({ sourceView, targetView }) {
+          if (!sourceView || !targetView) return false;
 
-    // --- FIX WARNING : On vérifie l'existence avant d'enregistrer ---
-    if (!Node.registry.exist('merise-entity')) {
-      Graph.registerNode('merise-entity', {
-        inherit: 'rect',
-        markup: [{ tagName: 'rect', selector: 'body' }, { tagName: 'rect', selector: 'header' }, { tagName: 'text', selector: 'label' }, { tagName: 'line', selector: 'divider' }, { tagName: 'circle', selector: 'addButton' }, { tagName: 'text', selector: 'plusSign' }],
-        attrs: {
-          body: { fill: '#ffffff', stroke: '#334155', strokeWidth: 2, rx: 8, ry: 8 },
-          header: { fill: '#334155', height: 30, refWidth: '100%', rx: 8, ry: 8 },
-          label: { textAnchor: 'middle', refX: '50%', refY: 15, fill: '#ffffff', fontSize: 14, fontWeight: 'bold' },
-          divider: { stroke: '#334155', strokeWidth: 1, x1: 0, refY: 30, refX2: '100%' },
-          addButton: { r: 10, refX: '100%', refX2: -15, refY: '100%', refY2: -15, fill: '#3b82f6', cursor: 'pointer', event: 'node:add-field' },
-          plusSign: { text: '+', refX: '100%', refX2: -15, refY: '100%', refY2: -15, fill: '#ffffff', fontSize: 16, fontWeight: 'bold', textAnchor: 'middle', textVerticalAnchor: 'middle', pointerEvents: 'none' }
+          const sourceNode = sourceView.cell as Node;
+          const targetNode = targetView.cell as Node;
+
+          if (!sourceNode.isNode() || !targetNode.isNode()) return false;
+
+          const sourceShape = sourceNode.shape;
+          const targetShape = targetNode.shape;
+
+          // Association → Entité OU Entité → Association
+          return (
+            (sourceShape === 'ellipse' && targetShape === 'merise-entity') ||
+            (sourceShape === 'merise-entity' && targetShape === 'ellipse')
+          );
+        },
+        createEdge() {
+          return this.createEdge({
+            shape: 'edge',
+            attrs: { line: { stroke: '#334155', strokeWidth: 2, targetMarker: null } },
+            zIndex: 0
+          });
         }
-      });
-    }
+      }
+    })
 
-    this.graph.on('node:add-field', ({ node }: { node: Node }) => {
-      const data = node.getData() as any;
-      if (data && data.fields) {
-        data.fields.push(new Field(Date.now().toString(), "New_Field","", "VARCHAR2", false));
-        const size = node.getSize();
-        node.resize(size.width, size.height + 25);
+    // Plugins
+    this.graph.use(new Selection({ enabled: true, rubberband: true, showNodeSelectionBox: true }));
+
+    this.graph.use(new Transform({
+      resizing: {
+        enabled: true,
+        orthogonal: false,
+        restrict: false,
+        preserveAspectRatio: false,
+      },
+      rotating: false,
+    }));
+
+    // --- ENREGISTREMENT DES FORMES AVEC PORTS ---
+    Graph.registerNode('merise-entity', {
+      inherit: 'rect',
+      markup: [{ tagName: 'rect', selector: 'body' }, { tagName: 'rect', selector: 'header' }, { tagName: 'text', selector: 'label' }, { tagName: 'text', selector: 'fields' }],
+      attrs: {
+        body: { fill: '#ffffff', stroke: '#1e293b', strokeWidth: 2, rx: 4, ry: 4, magnet: true },
+        header: { fill: '#1e293b', height: 25, refWidth: '100%', rx: 4, ry: 4 },
+        label: { textAnchor: 'middle', refX: '50%', refY: 12, fill: '#ffffff', fontSize: 12, fontWeight: 'bold' },
+        fields: { refX: 8, refY: 35, fontSize: 11, fill: '#334155' }
+      }
+    }, true);
+
+    // --- EVENEMENTS DE SAUVEGARDE (Fix le problème du coin en haut à gauche) ---
+    const updateData = ({ node }: { node: Node }) => {
+      const data = node.getData();
+      if (data) {
+        const pos = node.getPosition();   // ← getPosition() et non position()
+        const size = node.getSize();      // ← getSize() et non size()
+        data.posX = pos.x;
+        data.posY = pos.y;
+        data.width = size.width;
+        data.height = size.height;
+        this.autoSave();
+      }
+    };
+
+    this.graph.on('node:change:position', updateData);
+    this.graph.on('node:resized', updateData);
+
+    // Édition Cardinalité au double clic sur le lien
+    this.graph.on('edge:dblclick', ({ edge }) => {
+      const data = edge.getData();
+      const newCard = prompt('Modifier la cardinalité :', data?.cardinality || '1,N');
+      if (newCard !== null) {
+        if (data) data.cardinality = newCard;
+        edge.setLabels([{ attrs: { text: { text: newCard } } }]);
+        this.autoSave();
       }
     });
 
-    this.graph.use(new Selection({ enabled: true, multiple: true, rubberband: true, showNodeSelectionBox: true }));
-    
-    this.dnd = new Dnd({ 
-      target: this.graph, 
-      scaled: false,
-      validateNode: () => true 
+    this.graph.on('edge:connected', ({ edge }) => {
+      const source = edge.getSourceNode();
+      const target = edge.getTargetNode();
+      if (source && target && this.mcd) {
+        const card = prompt('Cardinalité :', '1,N') || '1,N';
+        const link = new Link(card);
+        // On identifie qui est l'asso et qui est l'entité
+        const sourceData = source.getData();
+        const targetData = target.getData();
+
+        link.anchoringAssoc = source.shape === 'ellipse' ? sourceData : targetData;
+        link.anchoringEntity = source.shape === 'merise-entity' ? sourceData : targetData;
+
+        this.mcd.Links.push(link);
+        edge.setData(link);
+        edge.setLabels([{ attrs: { text: { text: card } } }]);
+        this.autoSave();
+      }
     });
+
+    this.dnd = new Dnd({ target: this.graph });
   }
 
   drawMcd() {
     if (!this.graph || !this.mcd) return;
     this.graph.clearCells();
-    this.mcd.Entities.forEach(entite => {
-      this.graph?.addNode({
-        id: entite.name,           
+
+    this.mcd.Entities.forEach(e => {
+      this.graph!.addNode({
         shape: 'merise-entity',
-        x: entite.posX,            
-        y: entite.posY,            
-        width: entite.width,
-        height: entite.height,
-        label: entite.name,
-        data: entite
+        x: e.posX ?? 0,
+        y: e.posY ?? 0,
+        width: e.width ?? 120,
+        height: e.height ?? 80,
+        data: e,
+        attrs: { label: { text: e.name } }
       });
     });
-  }
 
-  startDrag(event: MouseEvent, type: 'entity' | 'association') {
-    if (!this.graph || !this.dnd) return;
-    const node = type === 'entity' 
-      ? this.graph.createNode({ shape: 'merise-entity', width: 140, height: 100, label: 'ENTITY' })
-      : this.graph.createNode({ shape: 'ellipse', width: 120, height: 60, label: 'ASSOCIATION', attrs: { body: { fill: '#fff', stroke: '#e67e22', strokeWidth: 2 }, label: { text: 'ASSOCIATION', fontWeight: 'bold' } } });
-    
-    this.dnd.start(node, event);
-  }
-
-  triggerSave() {
-    if (this.graph && this.mcd) {
-      this.graph.getNodes().forEach(node => {
-        const entity = this.mcd?.Entities.find(e => e.name === node.id); 
-        if (entity) {
-          const pos = node.getPosition();
-          const size = node.getSize();
-          entity.posX = pos.x;   
-          entity.posY = pos.y;
-          entity.width = size.width;
-          entity.height = size.height;
-        }
+    this.mcd.Associations.forEach(a => {
+      this.graph!.addNode({
+        shape: 'ellipse',
+        x: a.posX ?? 0,
+        y: a.posY ?? 0,
+        width: a.width ?? 80,
+        height: a.height ?? 50,
+        label: a.name,
+        data: a,
+        attrs: { body: { fill: '#ffffff', stroke: '#f59e0b', strokeWidth: 2, magnet: true } }
       });
-      this.saveRequested.emit();
+    });
+
+    this.mcd.Links.forEach(l => {
+      const sourceNode = this.graph?.getNodes().find(n => n.getData() === l.anchoringAssoc);
+      const targetNode = this.graph?.getNodes().find(n => n.getData() === l.anchoringEntity);
+      if (sourceNode && targetNode) {
+        this.graph!.addEdge({
+          source: sourceNode, target: targetNode,
+          labels: [{ attrs: { text: { text: l.cardinality } } }],
+          data: l
+        });
+      }
+    });
+  }
+  
+  triggerSave() {
+    this.autoSave();
+  }
+
+  private autoSave() {
+    if (this.mcd && this.slug) {
+      console.log("Saving MCD position and sizes...", this.mcd);
+      this.mcdService.saveMcd(this.slug, this.mcd);
     }
   }
 
-  ngOnDestroy(): void { this.graph?.dispose(); }
+
+  startDrag(event: MouseEvent, type: 'entity' | 'association') {
+    if (!this.graph || !this.dnd) return;
+
+    let newNode;
+    const suffix = Math.floor(Math.random() * 1000);
+
+    if (type === 'entity') {
+      const ent = new Entity('ENTITE_' + suffix, [], 0, 0, 120, 80);
+      this.mcd?.Entities.push(ent);
+      newNode = this.graph.createNode({ shape: 'merise-entity', width: 120, height: 80, data: ent, attrs: { label: { text: ent.name } } });
+    } else {
+      const asc = new Association('ASSOC_' + suffix, [], 0, 0, 80, 50);
+      this.mcd?.Associations.push(asc);
+      newNode = this.graph.createNode({ shape: 'ellipse', width: 80, height: 50, label: asc.name, data: asc, attrs: { body: { fill: '#ffffff', stroke: '#f59e0b', strokeWidth: 2, magnet: true } } });
+    }
+    this.dnd.start(newNode, event);
+  }
+
+  ngOnDestroy(): void {
+    this.graph?.dispose();
+  }
 }
