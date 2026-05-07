@@ -23,7 +23,7 @@ export class DependenceTableComponent implements OnInit {
   }
   get lignes(): DependenceLine[] { return this._lignes; }
 
-  @Input() nomsTechniques: string[] = [];
+  @Input() nomsDisponibles: string[] = [];
 
   searchSource: { [key: string]: string } = {};
   searchCible: { [key: string]: string } = {};
@@ -104,14 +104,14 @@ export class DependenceTableComponent implements OnInit {
   }
 
   filteredNoms(search: string): string[] {
-    console.log('Recherche en cours pour:', search, 'parmi:', this.nomsTechniques);
-    if (!this.nomsTechniques) return [];
+    console.log('Recherche en cours pour:', search, 'parmi:', this.nomsDisponibles);
+    if (!this.nomsDisponibles) return [];
     
     // Si l'utilisateur n'a rien tapé, on montre tout
-    if (!search) return this.nomsTechniques;
+    if (!search) return this.nomsDisponibles;
     
     // Sinon, on filtre (insensible à la casse)
-    return this.nomsTechniques.filter(nom => 
+    return this.nomsDisponibles.filter(nom => 
       nom.toLowerCase().includes(search.toLowerCase())
     );
   }
