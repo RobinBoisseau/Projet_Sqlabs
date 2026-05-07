@@ -1,0 +1,59 @@
+<div class="page">
+  <div class="page-header">
+    <a routerLink="/admin" class="back-link">← Administration</a>
+    <h1>Gestion des utilisateurs</h1>
+  </div>
+
+  <div class="loading" *ngIf="loading">Chargement...</div>
+  <div class="error-banner" *ngIf="error">{{ error }}</div>
+
+  <div class="table-wrapper" *ngIf="!loading && !error">
+    <table>
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>E-mail</th>
+          <th>Rôle</th>
+          <th class="col-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user.name }}</td>
+          <td class="email">{{ user.email }}</td>
+          <td>
+            <span class="badge" [ngClass]="'badge-' + user.role">
+              {{ roleLabel(user.role) }}
+            </span>
+          </td>
+          <td class="col-actions">
+            <a [routerLink]="['/admin/users', user.id, 'edit']" class="btn-edit">Éditer</a>
+            <button class="btn-delete" (click)="openDeleteModal(user)">Supprimer</button>
+          </td>
+        </tr>
+        <tr *ngIf="users.length === 0">
+          <td colspan="4" class="empty">Aucun utilisateur trouvé.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modale de confirmation de suppression -->
+<div class="modal-overlay" *ngIf="userToDelete" (click)="closeDeleteModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2 class="modal-title">Confirmer la suppression</h2>
+    <p class="modal-body">
+      Voulez-vous vraiment supprimer le compte de <strong>{{ userToDelete.name }}</strong> ?
+      Cette action est irréversible.
+    </p>
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="closeDeleteModal()" [disabled]="deleteLoading">
+        Annuler
+      </button>
+      <button class="btn-confirm-delete" (click)="confirmDelete()" [disabled]="deleteLoading">
+        {{ deleteLoading ? 'Suppression...' : 'Supprimer' }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -8,6 +8,7 @@
 
   <div class="right-group">
     <ng-container *ngIf="auth.currentUser$ | async as user; else guestTpl">
+      <a *ngIf="user.role === 'admin'" routerLink="/admin" class="btn-admin">Administration</a>
       <span class="user-name">{{ user.name }}</span>
       <span class="user-role">{{ user.role }}</span>
       <button class="btn-logout" (click)="logout()">Déconnexion</button>

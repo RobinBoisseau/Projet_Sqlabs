@@ -95,6 +95,23 @@
   border-color: #fed7d7;
 }
 
+.btn-admin {
+  padding: 6px 14px;
+  border: 1px solid #e8eaed;
+  border-radius: 8px;
+  background: #f8f9fa;
+  color: #333;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-admin:hover {
+  background: #e8eaed;
+  border-color: #ccc;
+}
+
 .btn-login {
   padding: 8px 18px;
   background: #1a73e8;

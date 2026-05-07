@@ -23,7 +23,7 @@ class UserController extends Controller
     }
 
     // GET /api/users/{id}
-    public function show($id)
+    public function show(int $id)
     {
         $user = User::find($id);
         if (!$user) {
@@ -33,18 +33,25 @@ class UserController extends Controller
     }
 
     // PUT /api/users/{id}
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
         $user = User::find($id);
         if (!$user) {
             return response()->json(['message' => 'Utilisateur non trouvé'], 404);
         }
-        $user->update($request->all());
+
+        $data = $request->validate([
+            'name'  => 'sometimes|string|max:255',
+            'email' => "sometimes|email|unique:users,email,{$id}",
+            'role'  => 'sometimes|in:etudiant,professeur,admin',
+        ]);
+
+        $user->update($data);
         return new UserResource($user);
     }
 
     // DELETE /api/users/{id}
-    public function destroy($id)
+    public function destroy(int $id)
     {
         $user = User::find($id);
         if (!$user) {

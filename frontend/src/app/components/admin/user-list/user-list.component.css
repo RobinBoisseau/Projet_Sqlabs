@@ -1,0 +1,197 @@
+.page {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 24px;
+}
+
+.page-header {
+  margin-bottom: 28px;
+}
+
+.back-link {
+  display: inline-block;
+  font-size: 0.875rem;
+  color: #1a73e8;
+  text-decoration: none;
+  margin-bottom: 12px;
+}
+
+.back-link:hover { text-decoration: underline; }
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.loading { color: #666; }
+
+.error-banner {
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  color: #c53030;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.875rem;
+}
+
+.table-wrapper {
+  background: white;
+  border: 1px solid #e8eaed;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: #f8f9fa;
+  border-bottom: 1px solid #e8eaed;
+}
+
+th {
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+td {
+  padding: 14px 16px;
+  font-size: 0.9rem;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+tr:last-child td { border-bottom: none; }
+
+tr:hover td { background: #fafbff; }
+
+.email { color: #555; font-size: 0.85rem; }
+
+.col-actions { text-align: right; }
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.badge-etudiant   { background: #e8f5e9; color: #2e7d32; }
+.badge-professeur { background: #e3f2fd; color: #1565c0; }
+.badge-admin      { background: #fce4ec; color: #ad1457; }
+
+.btn-edit {
+  display: inline-block;
+  padding: 5px 14px;
+  border: 1px solid #1a73e8;
+  border-radius: 6px;
+  color: #1a73e8;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  margin-right: 8px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-edit:hover { background: #1a73e8; color: white; }
+
+.btn-delete {
+  padding: 5px 14px;
+  border: 1px solid #e53e3e;
+  border-radius: 6px;
+  background: white;
+  color: #e53e3e;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-delete:hover { background: #e53e3e; color: white; }
+
+.empty {
+  text-align: center;
+  color: #888;
+  padding: 40px 0;
+}
+
+/* Modale */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  border-radius: 16px;
+  padding: 36px 32px;
+  max-width: 440px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+.modal-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 12px;
+}
+
+.modal-body {
+  font-size: 0.95rem;
+  color: #444;
+  line-height: 1.6;
+  margin: 0 0 28px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn-cancel {
+  padding: 9px 20px;
+  border: 1px solid #dde1e7;
+  border-radius: 8px;
+  background: white;
+  color: #555;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-cancel:hover:not(:disabled) { background: #f5f5f5; }
+
+.btn-confirm-delete {
+  padding: 9px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #e53e3e;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-confirm-delete:hover:not(:disabled) { background: #c53030; }
+
+.btn-cancel:disabled,
+.btn-confirm-delete:disabled { opacity: 0.6; cursor: not-allowed; }
