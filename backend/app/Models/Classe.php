@@ -13,9 +13,11 @@ class Classe extends Model
     // On définit les champs remplissables (selon ta migration)
     protected $fillable = [
         'nom',
-        'mdp',
-        'user_id'
+        'join_code',
+        'user_id',
     ];
+
+    protected $hidden = ['join_code'];
 
     /**
      * Association "Inscrire"
