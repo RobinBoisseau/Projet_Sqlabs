@@ -4,9 +4,7 @@
   padding: 0 24px;
 }
 
-.page-header {
-  margin-bottom: 28px;
-}
+.page-header { margin-bottom: 28px; }
 
 .back-link {
   display: inline-block;
@@ -36,6 +34,72 @@ h1 {
   font-size: 0.875rem;
 }
 
+/* Barre de recherche */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.search-wrapper {
+  position: relative;
+  flex: 1;
+  max-width: 400px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: #999;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 9px 36px 9px 38px;
+  border: 1px solid #dde1e7;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12);
+}
+
+.search-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.search-clear:hover { color: #333; background: #f0f0f0; }
+
+.results-count {
+  font-size: 0.85rem;
+  color: #888;
+  white-space: nowrap;
+}
+
+/* Tableau */
 .table-wrapper {
   background: white;
   border: 1px solid #e8eaed;
@@ -62,7 +126,26 @@ th {
   color: #555;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
+
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+th.sortable:hover { background: #eef0f3; }
+
+.sort-icon {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 0.75rem;
+  color: #bbb;
+  transition: color 0.15s;
+}
+
+.sort-icon.active { color: #1a73e8; }
 
 td {
   padding: 14px 16px;
@@ -72,7 +155,6 @@ td {
 }
 
 tr:last-child td { border-bottom: none; }
-
 tr:hover td { background: #fafbff; }
 
 .email { color: #555; font-size: 0.85rem; }
@@ -133,13 +215,14 @@ tr:hover td { background: #fafbff; }
   text-align: center;
   color: #888;
   padding: 40px 0;
+  font-size: 0.9rem;
 }
 
 /* Modale */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0,0,0,0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -152,7 +235,7 @@ tr:hover td { background: #fafbff; }
   padding: 36px 32px;
   max-width: 440px;
   width: 90%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
 }
 
 .modal-title {

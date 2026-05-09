@@ -1,14 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { UserService } from '../../../services/user.service';
 import { AuthService } from '../../../services/auth.service';
 import { User } from '../../../models/user';
 
+type SortColumn = 'name' | 'email' | 'role';
+type SortDir    = 'asc'  | 'desc';
+
 @Component({
   selector: 'app-user-list',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.css'
 })
@@ -16,6 +20,10 @@ export class UserListComponent implements OnInit {
   users: User[] = [];
   loading = true;
   error = '';
+
+  searchQuery = '';
+  sortColumn: SortColumn | null = null;
+  sortDir: SortDir = 'asc';
 
   userToDelete: User | null = null;
   deleteLoading = false;
@@ -33,6 +41,41 @@ export class UserListComponent implements OnInit {
       next: users => { this.users = users; this.loading = false; },
       error: () => { this.error = 'Impossible de charger les utilisateurs.'; this.loading = false; }
     });
+  }
+
+  get filteredUsers(): User[] {
+    let result = this.users;
+
+    const q = this.searchQuery.trim().toLowerCase();
+    if (q) {
+      result = result.filter(u =>
+        u.name.toLowerCase().includes(q) ||
+        u.email.toLowerCase().includes(q) ||
+        this.roleLabel(u.role).toLowerCase().includes(q)
+      );
+    }
+
+    if (this.sortColumn) {
+      const col = this.sortColumn;
+      const dir = this.sortDir === 'asc' ? 1 : -1;
+      result = [...result].sort((a, b) => a[col].localeCompare(b[col], 'fr') * dir);
+    }
+
+    return result;
+  }
+
+  sortBy(column: SortColumn): void {
+    if (this.sortColumn === column) {
+      this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDir = 'asc';
+    }
+  }
+
+  sortIcon(column: SortColumn): string {
+    if (this.sortColumn !== column) return '↕';
+    return this.sortDir === 'asc' ? '↑' : '↓';
   }
 
   get adminCount(): number {
