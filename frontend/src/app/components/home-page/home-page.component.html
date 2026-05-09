@@ -1,35 +1,56 @@
-<div class="home-container">
-  <!-- Section Présentation -->
-  <section class="hero">
-    <h1>Bienvenue sur <span>Sqlabs</span></h1>
-    <p class="subtitle">L'outil intelligent pour maîtriser la modélisation de bases de données.</p>
-    <button routerLink="/exercices" class="cta-button">Découvrir les exercices</button>
+<div class="max-w-6xl mx-auto px-6 py-16">
+
+  <!-- Hero -->
+  <section class="text-center mb-20">
+    <h1 class="text-5xl font-bold text-gray-800 mb-4">
+      Bienvenue sur <span class="text-primary">Sqlabs</span>
+    </h1>
+    <p class="text-lg text-gray-500 mb-8 max-w-xl mx-auto">
+      L'outil intelligent pour maîtriser la modélisation de bases de données.
+    </p>
+    <button routerLink="/exercices" class="btn btn-primary btn-lg">
+      Découvrir les exercices
+    </button>
   </section>
 
-  <!-- Section Objectifs Pédagogiques -->
-  <section class="objectives">
-    <h2>Nos Objectifs Pédagogiques</h2>
-    <div class="grid">
-      <div class="card">
-        <div class="icon">📚</div>
-        <h3>Analyse</h3>
-        <p>Apprenez à extraire les informations essentielles à partir de documents bruts.</p>
+  <!-- Objectifs pédagogiques -->
+  <section>
+    <h2 class="text-3xl font-bold text-center text-gray-800 mb-10">Nos Objectifs Pédagogiques</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+      <div class="card bg-base-100 border border-base-200 shadow-sm hover:shadow-md transition-shadow">
+        <div class="card-body items-center text-center">
+          <div class="text-4xl mb-2">📚</div>
+          <h3 class="card-title text-gray-800">Analyse</h3>
+          <p class="text-gray-500 text-sm">Apprenez à extraire les informations essentielles à partir de documents bruts.</p>
+        </div>
       </div>
-      <div class="card">
-        <div class="icon">📋</div>
-        <h3>Dictionnaire</h3>
-        <p>Construisez des dictionnaires de données complets et sans ambiguïté.</p>
+
+      <div class="card bg-base-100 border border-base-200 shadow-sm hover:shadow-md transition-shadow">
+        <div class="card-body items-center text-center">
+          <div class="text-4xl mb-2">📋</div>
+          <h3 class="card-title text-gray-800">Dictionnaire</h3>
+          <p class="text-gray-500 text-sm">Construisez des dictionnaires de données complets et sans ambiguïté.</p>
+        </div>
       </div>
-      <div class="card">
-        <div class="icon">🔗</div>
-        <h3>Dépendances</h3>
-        <p>Déterminez les dépendances fonctionnelles pour une structure solide.</p>
+
+      <div class="card bg-base-100 border border-base-200 shadow-sm hover:shadow-md transition-shadow">
+        <div class="card-body items-center text-center">
+          <div class="text-4xl mb-2">🔗</div>
+          <h3 class="card-title text-gray-800">Dépendances</h3>
+          <p class="text-gray-500 text-sm">Déterminez les dépendances fonctionnelles pour une structure solide.</p>
+        </div>
       </div>
-      <div class="card">
-        <div class="icon">🤖</div>
-        <h3>Accompagnement IA</h3>
-        <p>Bénéficiez d'une IA qui vous guide et corrige vos erreurs en temps réel.</p>
+
+      <div class="card bg-base-100 border border-base-200 shadow-sm hover:shadow-md transition-shadow">
+        <div class="card-body items-center text-center">
+          <div class="text-4xl mb-2">🤖</div>
+          <h3 class="card-title text-gray-800">Accompagnement IA</h3>
+          <p class="text-gray-500 text-sm">Bénéficiez d'une IA qui vous guide et corrige vos erreurs en temps réel.</p>
+        </div>
       </div>
+
     </div>
   </section>
+
 </div>

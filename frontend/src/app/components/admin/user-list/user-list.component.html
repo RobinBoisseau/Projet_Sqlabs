@@ -1,72 +1,118 @@
-<div class="page">
-  <div class="page-header">
-    <a routerLink="/admin" class="back-link">← Administration</a>
-    <h1>Gestion des utilisateurs</h1>
+<div class="max-w-5xl mx-auto py-10 px-6">
+
+  <!-- En-tête -->
+  <div class="mb-8">
+    <a routerLink="/admin" class="text-sm text-primary hover:underline">← Administration</a>
+    <h1 class="text-2xl font-bold text-gray-900 mt-1">Gestion des utilisateurs</h1>
   </div>
 
-  <div class="loading" *ngIf="loading">Chargement...</div>
-  <div class="error-banner" *ngIf="error">{{ error }}</div>
+  <!-- Chargement -->
+  <div *ngIf="loading" class="text-gray-400">Chargement...</div>
+
+  <!-- Erreur -->
+  <div *ngIf="error" class="alert alert-error shadow-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <span>{{ error }}</span>
+  </div>
 
   <ng-container *ngIf="!loading && !error">
 
     <!-- Barre de recherche -->
-    <div class="toolbar">
-      <div class="search-wrapper">
-        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+    <div class="flex items-center gap-4 mb-5">
+      <label class="input input-bordered flex items-center gap-2 flex-1 max-w-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-50" viewBox="0 0 24 24" fill="currentColor">
           <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
         </svg>
         <input
           type="text"
-          class="search-input"
+          class="grow"
           [(ngModel)]="searchQuery"
           placeholder="Rechercher par nom, e-mail ou rôle…"
         />
-        <button class="search-clear" *ngIf="searchQuery" (click)="searchQuery = ''" title="Effacer">✕</button>
-      </div>
-      <span class="results-count" *ngIf="searchQuery">
+        <button
+          *ngIf="searchQuery"
+          (click)="searchQuery = ''"
+          class="text-base-content/40 hover:text-base-content cursor-pointer leading-none"
+          title="Effacer"
+        >✕</button>
+      </label>
+      <span *ngIf="searchQuery" class="text-sm text-gray-400 whitespace-nowrap">
         {{ filteredUsers.length }} résultat{{ filteredUsers.length > 1 ? 's' : '' }}
       </span>
     </div>
 
     <!-- Tableau -->
-    <div class="table-wrapper">
-      <table>
+    <div class="overflow-x-auto rounded-xl border border-base-200 shadow-sm bg-white">
+      <table class="table table-zebra w-full">
         <thead>
-          <tr>
-            <th class="sortable" (click)="sortBy('name')">
-              Nom <span class="sort-icon" [class.active]="sortColumn === 'name'">{{ sortIcon('name') }}</span>
+          <tr class="text-xs uppercase tracking-wide text-gray-500">
+            <th class="cursor-pointer select-none hover:bg-base-200 transition-colors" (click)="sortBy('name')">
+              Nom
+              <span class="ml-1" [class.text-primary]="sortColumn === 'name'" [class.text-gray-300]="sortColumn !== 'name'">
+                {{ sortIcon('name') }}
+              </span>
             </th>
-            <th class="sortable" (click)="sortBy('email')">
-              E-mail <span class="sort-icon" [class.active]="sortColumn === 'email'">{{ sortIcon('email') }}</span>
+            <th class="cursor-pointer select-none hover:bg-base-200 transition-colors" (click)="sortBy('email')">
+              E-mail
+              <span class="ml-1" [class.text-primary]="sortColumn === 'email'" [class.text-gray-300]="sortColumn !== 'email'">
+                {{ sortIcon('email') }}
+              </span>
             </th>
-            <th class="sortable" (click)="sortBy('role')">
-              Rôle <span class="sort-icon" [class.active]="sortColumn === 'role'">{{ sortIcon('role') }}</span>
+            <th class="cursor-pointer select-none hover:bg-base-200 transition-colors" (click)="sortBy('role')">
+              Rôle
+              <span class="ml-1" [class.text-primary]="sortColumn === 'role'" [class.text-gray-300]="sortColumn !== 'role'">
+                {{ sortIcon('role') }}
+              </span>
             </th>
-            <th class="col-actions">Actions</th>
+            <th class="text-right">Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let user of filteredUsers">
-            <td>{{ user.name }}</td>
-            <td class="email">{{ user.email }}</td>
+            <td class="font-medium text-gray-800">{{ user.name }}</td>
+            <td class="text-sm text-gray-500">{{ user.email }}</td>
             <td>
-              <span class="badge" [ngClass]="'badge-' + user.role">
+              <span
+                class="badge badge-lg font-semibold"
+                [ngClass]="{
+                  'badge-success text-green-800':  user.role === 'etudiant',
+                  'badge-info text-blue-800':      user.role === 'professeur',
+                  'badge-error text-red-800':      user.role === 'admin'
+                }"
+              >
                 {{ roleLabel(user.role) }}
               </span>
             </td>
-            <td class="col-actions">
-              <a [routerLink]="['/admin/users', user.id, 'edit']" class="btn-edit">Éditer</a>
+            <td class="text-right">
+              <a
+                [routerLink]="['/admin/users', user.id, 'edit']"
+                class="btn btn-xs btn-outline btn-primary mr-2"
+                title="Éditer"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                  style="fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </a>
               <button
-                class="btn-delete"
+                class="btn btn-xs btn-outline btn-error"
                 [disabled]="!canDelete(user)"
                 [title]="deleteTooltip(user)"
-                [class.btn-delete-disabled]="!canDelete(user)"
                 (click)="canDelete(user) && openDeleteModal(user)"
-              >Supprimer</button>
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                  style="fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
             </td>
           </tr>
           <tr *ngIf="filteredUsers.length === 0">
-            <td colspan="4" class="empty">
+            <td colspan="4" class="text-center text-gray-400 py-10">
               <ng-container *ngIf="searchQuery; else noUsers">
                 Aucun utilisateur ne correspond à « {{ searchQuery }} ».
               </ng-container>
@@ -81,19 +127,28 @@
 </div>
 
 <!-- Modale de confirmation de suppression -->
-<div class="modal-overlay" *ngIf="userToDelete" (click)="closeDeleteModal()">
-  <div class="modal" (click)="$event.stopPropagation()">
-    <h2 class="modal-title">Confirmer la suppression</h2>
-    <p class="modal-body">
-      Voulez-vous vraiment supprimer le compte de <strong>{{ userToDelete.name }}</strong> ?
+<div class="modal" [class.modal-open]="userToDelete">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <h3 class="font-bold text-lg text-gray-900">Confirmer la suppression</h3>
+    <p class="py-4 text-gray-600 leading-relaxed">
+      Voulez-vous vraiment supprimer le compte de <strong>{{ userToDelete?.name }}</strong> ?
       Cette action est irréversible.
     </p>
-    <div class="error-banner modal-error" *ngIf="deleteError">{{ deleteError }}</div>
-    <div class="modal-actions">
-      <button class="btn-cancel" (click)="closeDeleteModal()" [disabled]="deleteLoading">Annuler</button>
-      <button class="btn-confirm-delete" (click)="confirmDelete()" [disabled]="deleteLoading">
-        {{ deleteLoading ? 'Suppression...' : 'Supprimer' }}
+
+    <div *ngIf="deleteError" class="alert alert-error mb-4 text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ deleteError }}</span>
+    </div>
+
+    <div class="modal-action">
+      <button class="btn" (click)="closeDeleteModal()" [disabled]="deleteLoading">Annuler</button>
+      <button class="btn btn-error" (click)="confirmDelete()" [disabled]="deleteLoading">
+        <span *ngIf="deleteLoading" class="loading loading-spinner loading-xs"></span>
+        {{ deleteLoading ? 'Suppression…' : 'Supprimer' }}
       </button>
     </div>
   </div>
+  <div class="modal-backdrop bg-black/45" (click)="closeDeleteModal()"></div>
 </div>
