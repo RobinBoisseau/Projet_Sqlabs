@@ -9,10 +9,20 @@ class ClasseResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $userId = $request->user()?->id;
+        $isStaff = $userId && $this->isStaff($userId);
+
         return [
-            'id'         => $this->id,
-            'nom'        => $this->nom,
-            'created_at' => $this->created_at->format('d/m/Y'),
+            'id'           => $this->id,
+            'nom'          => $this->nom,
+            'description'  => $this->description,
+            'image'        => $this->image ? asset('storage/' . $this->image) : null,
+            'visibility'   => $this->visibility,
+            'member_count' => $this->creator()->count()
+                            + $this->teachers()->count()
+                            + $this->students()->count(),
+            'join_code'    => $isStaff ? $this->join_code : null,
+            'created_at'   => $this->created_at->format('d/m/Y'),
         ];
     }
 }

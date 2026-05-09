@@ -10,7 +10,7 @@ class Classe extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nom', 'join_code'];
+    protected $fillable = ['nom', 'description', 'image', 'visibility', 'join_code'];
 
     protected $hidden = ['join_code'];
 
@@ -38,5 +38,11 @@ class Classe extends Model
     public function isCreator(int $userId): bool
     {
         return $this->creator()->where('user_id', $userId)->exists();
+    }
+
+    public function isStaff(int $userId): bool
+    {
+        return $this->creator()->where('user_id', $userId)->exists()
+            || $this->teachers()->where('user_id', $userId)->exists();
     }
 }

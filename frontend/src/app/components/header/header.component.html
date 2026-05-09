@@ -9,6 +9,7 @@
   <div class="right-group">
     <ng-container *ngIf="auth.currentUser$ | async as user; else guestTpl">
       <a *ngIf="user.role === 'admin'" routerLink="/admin" class="btn-admin">Administration</a>
+      <a *ngIf="user.role === 'professeur' || user.role === 'admin'" routerLink="/classes" class="btn-admin">Gérer mes classes</a>
 
       <div class="profile-menu">
         <button class="profile-trigger" (click)="toggleDropdown()">
