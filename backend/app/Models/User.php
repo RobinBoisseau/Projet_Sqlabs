@@ -49,16 +49,29 @@ class User extends Authenticatable
         ];
     }
 
-    // app/Models/User.php
-
     public function tentatives()
     {
         return $this->hasMany(Tentative::class);
     }
 
-    public function classes()
-{
-    // On précise la table pivot car elle ne suit pas l'ordre alphabétique anglais (classes_users)
-    return $this->belongsToMany(Classe::class, 'classe_user');
-}
+    public function createdClasses()
+    {
+        return $this->belongsToMany(Classe::class, 'classe_user')
+                    ->wherePivot('role', 'creator')
+                    ->withTimestamps();
+    }
+
+    public function taughtClasses()
+    {
+        return $this->belongsToMany(Classe::class, 'classe_user')
+                    ->wherePivot('role', 'teacher')
+                    ->withTimestamps();
+    }
+
+    public function enrolledClasses()
+    {
+        return $this->belongsToMany(Classe::class, 'classe_user')
+                    ->wherePivot('role', 'student')
+                    ->withTimestamps();
+    }
 }

@@ -22,9 +22,11 @@ class ClasseController extends Controller
         ]);
 
         $data['join_code'] = Hash::make($data['join_code']);
-        $data['user_id']   = $request->user()->id;
 
-        return new ClasseResource(Classe::create($data));
+        $classe = Classe::create($data);
+        $classe->creator()->attach($request->user()->id);
+
+        return new ClasseResource($classe);
     }
 
     public function show(int $id)
@@ -49,10 +51,46 @@ class ClasseController extends Controller
         return new ClasseResource($classe);
     }
 
-    public function destroy(int $id)
+    public function destroy(Request $request, int $id)
     {
-        Classe::findOrFail($id)->delete();
+        $classe = Classe::findOrFail($id);
+
+        if (!$classe->isCreator($request->user()->id)) {
+            return response()->json(['message' => 'Seul le créateur peut supprimer cette classe.'], 403);
+        }
+
+        $classe->delete();
         return response()->json(['message' => 'Classe supprimée'], 200);
+    }
+
+    public function addTeacher(Request $request, int $id)
+    {
+        $classe = Classe::findOrFail($id);
+
+        if (!$classe->isCreator($request->user()->id)) {
+            return response()->json(['message' => 'Seul le créateur peut ajouter des enseignants.'], 403);
+        }
+
+        $data = $request->validate(['user_id' => 'required|exists:users,id']);
+
+        $classe->teachers()->syncWithoutDetaching($data['user_id']);
+
+        return response()->json(['message' => 'Enseignant ajouté.']);
+    }
+
+    public function removeTeacher(Request $request, int $id)
+    {
+        $classe = Classe::findOrFail($id);
+
+        if (!$classe->isCreator($request->user()->id)) {
+            return response()->json(['message' => 'Seul le créateur peut retirer des enseignants.'], 403);
+        }
+
+        $data = $request->validate(['user_id' => 'required|exists:users,id']);
+
+        $classe->teachers()->detach($data['user_id']);
+
+        return response()->json(['message' => 'Enseignant retiré.']);
     }
 
     public function join(Request $request)
@@ -69,7 +107,7 @@ class ClasseController extends Controller
             return response()->json(['message' => 'Code incorrect.'], 422);
         }
 
-        $classe->users()->syncWithoutDetaching($request->user()->id);
+        $classe->students()->syncWithoutDetaching($request->user()->id);
 
         return new ClasseResource($classe);
     }

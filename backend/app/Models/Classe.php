@@ -10,22 +10,33 @@ class Classe extends Model
 {
     use HasFactory;
 
-    // On définit les champs remplissables (selon ta migration)
-    protected $fillable = [
-        'nom',
-        'join_code',
-        'user_id',
-    ];
+    protected $fillable = ['nom', 'join_code'];
 
     protected $hidden = ['join_code'];
 
-    /**
-     * Association "Inscrire"
-     * Une classe contient plusieurs utilisateurs (élèves).
-     */
-    public function users(): BelongsToMany
+    public function creator(): BelongsToMany
     {
-        // 'classe_user' est le nom de la table pivot que tu as créée
-        return $this->belongsToMany(User::class, 'classe_user');
+        return $this->belongsToMany(User::class, 'classe_user')
+                    ->wherePivot('role', 'creator')
+                    ->withTimestamps();
+    }
+
+    public function teachers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'classe_user')
+                    ->wherePivot('role', 'teacher')
+                    ->withTimestamps();
+    }
+
+    public function students(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'classe_user')
+                    ->wherePivot('role', 'student')
+                    ->withTimestamps();
+    }
+
+    public function isCreator(int $userId): bool
+    {
+        return $this->creator()->where('user_id', $userId)->exists();
     }
 }
