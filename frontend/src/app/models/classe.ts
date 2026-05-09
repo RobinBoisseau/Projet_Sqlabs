@@ -6,5 +6,6 @@ export interface Classe {
   visibility: 'public' | 'private';
   member_count: number;
   join_code: string | null;
+  can_edit: boolean;
   created_at: string;
 }

@@ -34,7 +34,7 @@ class ClasseController extends Controller
         }
 
         $classe = Classe::create($data);
-        $classe->creator()->attach($request->user()->id);
+        $classe->creator()->attach($request->user()->id, ['role' => 'creator']);
 
         return new ClasseResource($classe);
     }
@@ -47,6 +47,10 @@ class ClasseController extends Controller
     public function update(Request $request, int $id)
     {
         $classe = Classe::findOrFail($id);
+
+        if (!$classe->canManageMembers($request->user())) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
 
         $data = $request->validate([
             'nom'         => 'sometimes|string|max:255',
@@ -102,6 +106,81 @@ class ClasseController extends Controller
         $classe->teachers()->detach($data['user_id']);
 
         return response()->json(['message' => 'Enseignant retiré.']);
+    }
+
+    public function members(Request $request, int $id)
+    {
+        $classe = Classe::findOrFail($id);
+
+        if (!$classe->canManageMembers($request->user())) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
+
+        $members = $classe->students()->get()->merge($classe->responsables()->get())
+            ->map(fn($u) => [
+                'id'         => $u->id,
+                'name'       => $u->name,
+                'email'      => $u->email,
+                'pivot_role' => $u->pivot->role,
+            ])
+            ->sortBy('name')
+            ->values();
+
+        return response()->json(['data' => $members]);
+    }
+
+    public function removeMembers(Request $request, int $id)
+    {
+        $classe = Classe::findOrFail($id);
+
+        if (!$classe->canManageMembers($request->user())) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
+
+        $data = $request->validate(['user_ids' => 'required|array', 'user_ids.*' => 'exists:users,id']);
+
+        $classe->students()->detach($data['user_ids']);
+        $classe->responsables()->detach($data['user_ids']);
+
+        return response()->json(['message' => 'Membres retirés.']);
+    }
+
+    public function promoteMembers(Request $request, int $id)
+    {
+        $classe = Classe::findOrFail($id);
+
+        if (!$classe->canManageMembers($request->user())) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
+
+        $data = $request->validate(['user_ids' => 'required|array', 'user_ids.*' => 'exists:users,id']);
+
+        \DB::table('classe_user')
+            ->where('classe_id', $id)
+            ->whereIn('user_id', $data['user_ids'])
+            ->where('role', 'student')
+            ->update(['role' => 'responsable']);
+
+        return response()->json(['message' => 'Membres promus responsables.']);
+    }
+
+    public function demoteMembers(Request $request, int $id)
+    {
+        $classe = Classe::findOrFail($id);
+
+        if (!$classe->canManageMembers($request->user())) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
+
+        $data = $request->validate(['user_ids' => 'required|array', 'user_ids.*' => 'exists:users,id']);
+
+        \DB::table('classe_user')
+            ->where('classe_id', $id)
+            ->whereIn('user_id', $data['user_ids'])
+            ->where('role', 'responsable')
+            ->update(['role' => 'student']);
+
+        return response()->json(['message' => 'Responsabilité retirée.']);
     }
 
     public function join(Request $request)

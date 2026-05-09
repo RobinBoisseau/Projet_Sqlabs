@@ -3,6 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { Classe } from '../models/classe';
 
+export interface Member {
+  id: number;
+  name: string;
+  email: string;
+  pivot_role: 'responsable' | 'student';
+}
+
 @Injectable({ providedIn: 'root' })
 export class ClasseService {
   private api = 'http://localhost:8000/api/classe';
@@ -32,5 +39,21 @@ export class ClasseService {
 
   join(join_code: string): Observable<Classe> {
     return this.http.post<{ data: Classe }>(`${this.api}/join`, { join_code }).pipe(map(r => r.data));
+  }
+
+  getMembers(classeId: number): Observable<Member[]> {
+    return this.http.get<{ data: Member[] }>(`${this.api}/${classeId}/members`).pipe(map(r => r.data));
+  }
+
+  removeMembers(classeId: number, userIds: number[]): Observable<void> {
+    return this.http.delete<void>(`${this.api}/${classeId}/members`, { body: { user_ids: userIds } });
+  }
+
+  promoteMembers(classeId: number, userIds: number[]): Observable<void> {
+    return this.http.post<void>(`${this.api}/${classeId}/members/promote`, { user_ids: userIds });
+  }
+
+  demoteMembers(classeId: number, userIds: number[]): Observable<void> {
+    return this.http.post<void>(`${this.api}/${classeId}/members/demote`, { user_ids: userIds });
   }
 }

@@ -32,6 +32,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('classe/join', [ClasseController::class, 'join']);
     Route::post('classe/{id}/teachers', [ClasseController::class, 'addTeacher']);
     Route::delete('classe/{id}/teachers', [ClasseController::class, 'removeTeacher']);
+    Route::get('classe/{id}/members', [ClasseController::class, 'members']);
+    Route::delete('classe/{id}/members', [ClasseController::class, 'removeMembers']);
+    Route::post('classe/{id}/members/promote', [ClasseController::class, 'promoteMembers']);
+    Route::post('classe/{id}/members/demote', [ClasseController::class, 'demoteMembers']);
     Route::apiResource('classe', ClasseController::class);
 
     // Routes réservées aux admins

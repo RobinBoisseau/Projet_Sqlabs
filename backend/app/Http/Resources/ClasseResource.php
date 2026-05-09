@@ -22,6 +22,7 @@ class ClasseResource extends JsonResource
                             + $this->teachers()->count()
                             + $this->students()->count(),
             'join_code'    => $isStaff ? $this->join_code : null,
+            'can_edit'     => $userId && $this->canManageMembers($request->user()),
             'created_at'   => $this->created_at->format('d/m/Y'),
         ];
     }

@@ -28,10 +28,19 @@ class Classe extends Model
                     ->withTimestamps();
     }
 
+    public function responsables(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'classe_user')
+                    ->wherePivot('role', 'responsable')
+                    ->withPivot('role')
+                    ->withTimestamps();
+    }
+
     public function students(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'classe_user')
                     ->wherePivot('role', 'student')
+                    ->withPivot('role')
                     ->withTimestamps();
     }
 
@@ -44,5 +53,12 @@ class Classe extends Model
     {
         return $this->creator()->where('user_id', $userId)->exists()
             || $this->teachers()->where('user_id', $userId)->exists();
+    }
+
+    public function canManageMembers(User $user): bool
+    {
+        if ($user->role === 'admin') return true;
+        return $this->creator()->where('user_id', $user->id)->exists()
+            || $this->responsables()->where('user_id', $user->id)->exists();
     }
 }
