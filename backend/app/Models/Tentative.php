@@ -29,12 +29,14 @@ class Tentative extends Model {
         'dateHeureTentative' => 'datetime'
     ];
 
-    public function etudiants() {
-        return $this->belongsToMany(Utilisateur::class, 'essayer', 'idTentative', 'idEtudiant');
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
-    public function exercices() {
-        return $this->belongsToMany(Exercice::class, 'concerner', 'idTentative', 'idExercice');
+    public function exercice()
+    {
+        return $this->belongsTo(Exercice::class);
     }
 
 }
