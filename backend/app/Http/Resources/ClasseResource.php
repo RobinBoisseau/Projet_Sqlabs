@@ -25,6 +25,7 @@ class ClasseResource extends JsonResource
             'join_code'    => $isStaff ? $this->join_code : null,
             'can_edit'     => $userId && $this->canManageMembers($user),
             'can_delete'   => $userId && ($user->role === 'admin' || $this->isCreator($userId)),
+            'is_creator'   => $userId && $this->isCreator($userId),
             'is_member'    => $userId && ($user->role === 'admin' || $this->isEnrolled($userId)),
             'created_at'   => $this->created_at->format('d/m/Y'),
         ];
