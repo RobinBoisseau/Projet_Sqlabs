@@ -1,5 +1,6 @@
 <a
   [routerLink]="['/exercice', exo.slug]"
+  [queryParams]="coursId ? { cours: coursId } : {}"
   class="flex items-center justify-between px-5 py-4 bg-white border border-base-200 rounded-xl shadow-sm hover:border-primary hover:shadow-md transition-all duration-200 group"
 >
   <!-- Gauche : numéro + titre -->

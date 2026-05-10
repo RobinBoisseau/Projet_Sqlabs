@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ClasseService, Member } from '../../../services/classe.service';
 
 interface SelectableMember extends Member {
@@ -23,11 +23,24 @@ export class ClassMembersComponent implements OnInit {
   actionMessage = '';
   private lastCheckedIndex: number | null = null;
 
-  constructor(private route: ActivatedRoute, private classeService: ClasseService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private classeService: ClasseService,
+  ) {}
 
   ngOnInit(): void {
     this.classeId = Number(this.route.parent!.snapshot.paramMap.get('id'));
-    this.loadMembers();
+    this.classeService.getClasse(this.classeId).subscribe({
+      next: classe => {
+        if (!classe.can_edit) {
+          this.router.navigate(['/classes', this.classeId]);
+          return;
+        }
+        this.loadMembers();
+      },
+      error: () => this.router.navigate(['/classes']),
+    });
   }
 
   loadMembers(): void {

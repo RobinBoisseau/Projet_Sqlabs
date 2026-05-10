@@ -26,4 +26,11 @@ class Exercice extends Model
     {
         return $this->hasMany(Tentative::class);
     }
+
+    public function cours()
+    {
+        return $this->belongsToMany(Cours::class, 'cours_exercice')
+                    ->withPivot('order')
+                    ->withTimestamps();
+    }
 }

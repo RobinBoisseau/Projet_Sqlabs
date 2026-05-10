@@ -61,4 +61,12 @@ class Classe extends Model
         return $this->creator()->where('user_id', $user->id)->exists()
             || $this->responsables()->where('user_id', $user->id)->exists();
     }
+
+    public function isEnrolled(int $userId): bool
+    {
+        return \DB::table('classe_user')
+            ->where('classe_id', $this->id)
+            ->where('user_id', $userId)
+            ->exists();
+    }
 }

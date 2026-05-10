@@ -19,6 +19,11 @@ export class HeaderComponent {
     return this.router.url.includes('/exercice/');
   }
 
+  backLink(): string {
+    const coursId = this.router.parseUrl(this.router.url).queryParams['cours'];
+    return coursId ? `/cours/${coursId}` : '/exercices';
+  }
+
   toggleDropdown(): void {
     this.dropdownOpen = !this.dropdownOpen;
   }

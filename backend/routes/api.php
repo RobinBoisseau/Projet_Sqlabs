@@ -9,6 +9,7 @@ use App\Http\Controllers\ClasseController;
 use App\Http\Controllers\TentativeController;
 use App\Http\Controllers\FichierController;
 use App\Http\Controllers\ReponseIAController;
+use App\Http\Controllers\CoursController;
 
 // Routes publiques
 Route::post('/register', [AuthController::class, 'register']);
@@ -38,9 +39,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('classe/{id}/members/demote', [ClasseController::class, 'demoteMembers']);
     Route::apiResource('classe', ClasseController::class);
 
-    // Routes réservées aux admins
+    // Cours : lecture pour tous, écriture réservée aux admins
+    Route::get('cours', [CoursController::class, 'index']);
+    Route::get('cours/{cours}', [CoursController::class, 'show']);
+    Route::get('cours/{cours}/stats', [CoursController::class, 'stats']);
+
     Route::middleware('admin')->group(function () {
         Route::apiResource('users', UserController::class);
+
+        Route::post('cours', [CoursController::class, 'store']);
+        Route::put('cours/{cours}', [CoursController::class, 'update']);
+        Route::put('cours/{cours}/exercices', [CoursController::class, 'updateExercices']);
+        Route::delete('cours/{cours}', [CoursController::class, 'destroy']);
     });
     Route::apiResource('fichiers', FichierController::class);
 });

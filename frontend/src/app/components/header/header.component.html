@@ -1,7 +1,7 @@
 <header class="header-container">
   <div class="left-group">
     <a routerLink="/" class="logo">Sqlabs</a>
-    <a *ngIf="isOnDetail()" routerLink="/exercices" class="back-link">
+    <a *ngIf="isOnDetail()" [routerLink]="backLink()" class="back-link">
       <span class="arrow">←</span> Liste des exercices
     </a>
   </div>

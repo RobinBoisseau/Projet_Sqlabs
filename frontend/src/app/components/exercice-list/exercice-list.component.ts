@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { ExerciceService } from '../../services/exercice.service';
+import { CoursService } from '../../services/cours.service';
 import { Exercice } from '../../models/exercice';
 import { ExerciceCardComponent } from '../exercice-card/exercice-card.component';
 
@@ -13,18 +15,52 @@ import { ExerciceCardComponent } from '../exercice-card/exercice-card.component'
   styleUrls: ['./exercice-list.component.css']
 })
 export class ExerciceListComponent implements OnInit {
+  // Vue "tous les exercices"
   sqlExercises: Exercice[] = [];
   bpmnExercises: Exercice[] = [];
 
-  constructor(private exerciceService: ExerciceService) {}
+  // Vue "exercices d'un cours"
+  coursId = 0;
+  coursNom = '';
+  courseExercises: Exercice[] = [];
+
+  loading = true;
+  error = '';
+
+  constructor(
+    private route: ActivatedRoute,
+    private exerciceService: ExerciceService,
+    private coursService: CoursService,
+  ) {}
 
   ngOnInit(): void {
-    this.exerciceService.getExercices().subscribe({
-      next: (data) => {
-        this.sqlExercises = data.filter(ex => ex.type === 'SQL');
-        this.bpmnExercises = data.filter(ex => ex.type === 'BPMN');
-      },
-      error: (err) => console.error("Erreur liste", err)
-    });
+    const coursId = Number(this.route.snapshot.paramMap.get('id'));
+
+    if (coursId) {
+      forkJoin({
+        cours: this.coursService.getCour(coursId),
+        exercices: this.exerciceService.getExercices(),
+      }).subscribe({
+        next: ({ cours, exercices }) => {
+          this.coursId = coursId;
+          this.coursNom = cours.nom;
+          const orderMap = new Map((cours.exercices ?? []).map(e => [e.id, e.order]));
+          this.courseExercises = exercices
+            .filter(e => orderMap.has(e.id))
+            .sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0));
+          this.loading = false;
+        },
+        error: () => { this.error = 'Impossible de charger le cours.'; this.loading = false; },
+      });
+    } else {
+      this.exerciceService.getExercices().subscribe({
+        next: (data) => {
+          this.sqlExercises = data.filter(ex => ex.type === 'SQL');
+          this.bpmnExercises = data.filter(ex => ex.type === 'BPMN');
+          this.loading = false;
+        },
+        error: () => { this.error = 'Impossible de charger les exercices.'; this.loading = false; },
+      });
+    }
   }
 }

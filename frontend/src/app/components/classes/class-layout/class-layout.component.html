@@ -3,7 +3,7 @@
   <div class="max-w-6xl mx-auto px-6">
     <div class="flex items-center gap-6 h-14">
 
-      <!-- Nom de la classe (retour à la page de la classe) -->
+      <!-- Nom de la classe (retour au tableau de bord) -->
       <a [routerLink]="['/classes', classe.id]"
         class="font-semibold text-gray-800 hover:text-primary transition-colors truncate max-w-xs">
         {{ classe.nom }}
@@ -11,8 +11,8 @@
 
       <div class="flex items-center gap-1 ml-auto">
 
-        <!-- Dropdown Gérer la classe -->
-        <div class="manage-dropdown relative">
+        <!-- Dropdown Gérer la classe — admin, créateur, responsable -->
+        <div class="manage-dropdown relative" *ngIf="classe.can_edit">
           <button
             class="btn btn-sm btn-ghost gap-1"
             (click)="manageOpen = !manageOpen; progressOpen = false">
@@ -24,6 +24,8 @@
           </button>
           <ul *ngIf="manageOpen"
             class="absolute right-0 top-full mt-1 bg-white border border-base-200 rounded-xl shadow-lg w-56 py-1 z-50">
+
+            <!-- Gérer les membres — admin, créateur, responsable -->
             <li>
               <a [routerLink]="['/classes', classe.id, 'members']"
                 class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-base-100"
@@ -31,33 +33,39 @@
                 Gérer les membres
               </a>
             </li>
-            <li>
+
+            <!-- Modifier la classe — admin, créateur uniquement -->
+            <li *ngIf="classe.can_delete">
               <a [routerLink]="['/classes', classe.id, 'edit']"
                 class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-base-100"
                 (click)="manageOpen = false">
                 Modifier la classe
               </a>
             </li>
-            <li><div class="divider my-0 h-px"></div></li>
-            <li>
+
+            <!-- Supprimer la classe — admin, créateur uniquement -->
+            <li *ngIf="classe.can_delete"><div class="divider my-0 h-px"></div></li>
+            <li *ngIf="classe.can_delete">
               <a [routerLink]="['/classes', classe.id, 'delete']"
                 class="flex items-center gap-3 px-4 py-2 text-sm text-error hover:bg-red-50"
                 (click)="manageOpen = false">
                 Supprimer la classe
               </a>
             </li>
+
           </ul>
         </div>
 
-        <!-- Exercices -->
-        <a [routerLink]="['/classes', classe.id, 'exercises']"
+        <!-- Exercices — admin, créateur, responsable, membre -->
+        <a *ngIf="classe.is_member"
+          [routerLink]="['/classes', classe.id, 'exercises']"
           class="btn btn-sm btn-ghost"
           routerLinkActive="btn-active">
           Les exercices
         </a>
 
-        <!-- Dropdown Progression -->
-        <div class="progress-dropdown relative">
+        <!-- Dropdown Progression — admin, créateur, responsable -->
+        <div class="progress-dropdown relative" *ngIf="classe.can_edit">
           <button
             class="btn btn-sm btn-ghost gap-1"
             (click)="progressOpen = !progressOpen; manageOpen = false">

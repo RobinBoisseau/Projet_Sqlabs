@@ -71,9 +71,10 @@ class ClasseController extends Controller
     public function destroy(Request $request, int $id)
     {
         $classe = Classe::findOrFail($id);
+        $user   = $request->user();
 
-        if (!$classe->isCreator($request->user()->id)) {
-            return response()->json(['message' => 'Seul le créateur peut supprimer cette classe.'], 403);
+        if ($user->role !== 'admin' && !$classe->isCreator($user->id)) {
+            return response()->json(['message' => 'Seul le créateur ou un administrateur peut supprimer cette classe.'], 403);
         }
 
         $classe->delete();
