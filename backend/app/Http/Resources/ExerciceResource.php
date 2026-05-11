@@ -13,7 +13,7 @@ class ExerciceResource extends JsonResource
      * @return array<string, mixed>
      */
    public function toArray(Request $request): array{
-        $tentatives = $this->tentatives()->where('user_id', 1);
+        $tentatives = $this->tentatives()->where('user_id', auth()->id());
 
         $estTermine = (clone $tentatives)
             ->where('dictionnaireValide', true)

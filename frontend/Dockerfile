@@ -1,4 +1,4 @@
-witch maiFROM node:18
+FROM node:18
 
 RUN npm install -g @angular/cli
 

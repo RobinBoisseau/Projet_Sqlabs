@@ -48,6 +48,12 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
     this.runSilentSave();
   }
 
+  @HostListener('window:keydown.control.s', ['$event'])
+  onCtrlS(event: Event) {
+    event.preventDefault();
+    this.save();
+  }
+
   ngOnDestroy(): void {
     console.log("🚶 [ngOnDestroy] Sortie de page détectée.");
     this.runSilentSave();
@@ -127,21 +133,15 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
 
   // --- 4. SAUVEGARDE MANUELLE ---
 
-  save(silent: boolean = false): Observable<any> {
-    if (!this.exercice || !this.isLoaded) return of(null);
+  save(): void {
+    if (!this.exercice || !this.isLoaded) return;
 
     const data = {
       dictionary: this.dictionary,
       dependencies: this.dependencies,
-      model: {} // --- MCD VIDE ---
+      model: {}
     };
 
-    console.log("🖱️ [MANUAL-SAVE] Clic bouton Sauvegarder. Envoi :", data);
-    const result = this.exerciceService.saveAttempt(this.exercice.id, data);
-    
-    // --- LOG DE CONFIRMATION ---
-    console.log("✅ [MANUAL-SAVE] La structure MCD vide a bien été envoyée à l'API.");
-    
-    return result;
+    this.exerciceService.saveAttempt(this.exercice.id, data).subscribe();
   }
 }

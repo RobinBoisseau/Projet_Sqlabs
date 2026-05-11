@@ -31,6 +31,7 @@ export class ExerciceService {
 
   // Sauvegarde d'urgence (keepalive) pour la fermeture du navigateur
   async emergencySave(exerciceId: number, data: any) {
+    const token = localStorage.getItem('auth_token');
     const payload = JSON.stringify({
       exercice_id: exerciceId,
       dictionary: data.dictionary,
@@ -39,7 +40,10 @@ export class ExerciceService {
     });
     return fetch(this.tentativesUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
       body: payload,
       keepalive: true
     });
