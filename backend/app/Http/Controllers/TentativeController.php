@@ -14,7 +14,7 @@ class TentativeController extends Controller
         $tentative = Tentative::updateOrCreate(
             [
                 'exercice_id' => $request->exercice_id,
-                'user_id' => 1
+                'user_id' => auth()->id()
             ],
             [
                 'dictionnaire' => $request->dictionary,
@@ -49,7 +49,7 @@ class TentativeController extends Controller
 
     public function getByExercice($exercice_id) {
         $tentative = Tentative::where('exercice_id', $exercice_id)
-            ->where('user_id', 1)
+            ->where('user_id', auth()->id())
             ->latest()
             ->first();
 

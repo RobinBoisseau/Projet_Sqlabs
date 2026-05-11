@@ -16,7 +16,6 @@
   <!-- Droite : badge statut -->
   <div class="ml-4 shrink-0">
 
-    <!-- Completed -->
     <span *ngIf="exo.status === 'completed'"
       class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-green-100 text-green-800">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
@@ -26,7 +25,6 @@
       Complété
     </span>
 
-    <!-- In Progress -->
     <span *ngIf="exo.status === 'in_progress'"
       class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-amber-100 text-amber-800">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
@@ -36,7 +34,6 @@
       En cours
     </span>
 
-    <!-- To Do -->
     <span *ngIf="exo.status === 'to_do' || !exo.status"
       class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-gray-100 text-gray-500">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"

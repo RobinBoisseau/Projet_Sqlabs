@@ -15,11 +15,9 @@ import { ExerciceCardComponent } from '../exercice-card/exercice-card.component'
   styleUrls: ['./exercice-list.component.css']
 })
 export class ExerciceListComponent implements OnInit {
-  // Vue "tous les exercices"
   sqlExercises: Exercice[] = [];
   bpmnExercises: Exercice[] = [];
 
-  // Vue "exercices d'un cours"
   coursId = 0;
   coursNom = '';
   courseExercises: Exercice[] = [];

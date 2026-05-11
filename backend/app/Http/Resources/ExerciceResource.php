@@ -13,18 +13,14 @@ class ExerciceResource extends JsonResource
      * @return array<string, mixed>
      */
    public function toArray(Request $request): array{
-        // 1. On récupère les tentatives liées
-        $tentatives = $this->tentatives();
+        $tentatives = $this->tentatives()->where('user_id', auth()->id());
 
-        // 2. Condition "Terminé" : Au moins une tentative avec les 3 à TRUE
         $estTermine = (clone $tentatives)
             ->where('dictionnaireValide', true)
             ->where('dependanceValide', true)
             ->where('modeleValide', true)
             ->exists();
 
-        // 3. Condition "En cours" : Au moins une tentative avec AU MOINS UN des trois à TRUE
-        // (Mais seulement si l'exercice n'est pas déjà considéré comme "Terminé")
         $estEnCours = false;
         if (!$estTermine) {
             $estEnCours = (clone $tentatives)
