@@ -11,15 +11,13 @@ class TentativeResource extends JsonResource
     {
         // On s'assure de ne pas appeler de fonctions sur des objets nuls
         return [
-            'id' => $this->id,
-            'exercise_id' => $this->exercice_id,
-            // Mapping English (Angular) -> French (Base de données)
-            'dictionary'  => $this->dictionnaire ?? [],
-            'dependencies' => $this->dependance ?? [],
-            'model'       => $this->modele ?? (object)[],
-            // On renvoie un statut fixe pour tester
-            'status'      => 'In Progress', 
-            'date'        => $this->dateHeureTentative ? $this->dateHeureTentative->format('Y-m-d H:i:s') : null
+            'id'            => $this->id,
+            'exercise_id'   => $this->exercice_id,
+            'is_correction' => $this->is_correction,
+            'dictionary'    => $this->dictionnaire ?? [],
+            'dependencies'  => $this->dependance ?? [],
+            'model'         => $this->modele ?? (object)[],
+            'date'          => $this->dateHeureTentative?->format('Y-m-d H:i:s'),
         ];
     }
 }

@@ -1,0 +1,46 @@
+<div class="max-w-lg mx-auto py-10 px-6">
+
+  <div *ngIf="loading" class="text-gray-400">Chargement...</div>
+
+  <div *ngIf="!loading && cours" class="card bg-white border border-error/30 shadow-sm">
+    <div class="card-body gap-5">
+
+      <!-- Icône + titre -->
+      <div class="flex flex-col items-center text-center gap-3 py-2">
+        <div class="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+            style="fill:none;stroke:#e53e3e;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6"/>
+            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+          </svg>
+        </div>
+        <h2 class="text-xl font-bold text-gray-900">Supprimer le cours</h2>
+        <p class="text-gray-600 leading-relaxed">
+          Vous êtes sur le point de supprimer le cours
+          <strong class="text-gray-900">« {{ cours.nom }} »</strong>.
+          <br>
+          Cette action est <strong class="text-error">définitive</strong> et ne peut pas être annulée.
+          Tous les exercices associés à ce cours seront dissociés.
+        </p>
+      </div>
+
+      <!-- Erreur -->
+      <div *ngIf="error" class="alert alert-error text-sm">
+        <span>{{ error }}</span>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex justify-center gap-3 mt-2">
+        <a [routerLink]="['/admin/cours', cours.id]" class="btn btn-ghost">Annuler</a>
+        <button class="btn btn-error" (click)="confirm()" [disabled]="deleting">
+          <span *ngIf="deleting" class="loading loading-spinner loading-xs"></span>
+          {{ deleting ? 'Suppression…' : 'Confirmer la suppression' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

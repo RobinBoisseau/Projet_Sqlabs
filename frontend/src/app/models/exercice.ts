@@ -4,5 +4,5 @@ export interface Exercice {
   slug: string;
   statement: string;
   type: 'SQL' | 'BPMN';
-  status: 'Terminé' | 'En cours' | 'A faire';
+  status: 'completed' | 'in_progress' | 'to_do';
 }

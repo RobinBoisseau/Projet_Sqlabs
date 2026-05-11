@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* 1. On casse toutes les cages du Split pour laisser passer le drag */
 as-split, as-split-area, .as-split-area, app-panel, .workbench-wrapper, .canvas-wrapper {
   overflow: visible !important;

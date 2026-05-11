@@ -1,0 +1,108 @@
+<div class="max-w-lg mx-auto py-10 px-6">
+
+  <!-- En-tête -->
+  <div class="mb-8">
+    <a routerLink="/admin/users" class="text-sm text-primary hover:underline">← Liste des utilisateurs</a>
+    <h1 class="text-2xl font-bold text-gray-900 mt-1">Modifier l'utilisateur</h1>
+  </div>
+
+  <!-- Chargement -->
+  <div *ngIf="loading" class="text-gray-400">Chargement...</div>
+
+  <!-- Erreur de chargement -->
+  <div *ngIf="error && !loading" class="alert alert-error shadow-sm mb-6">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+      style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span>{{ error }}</span>
+  </div>
+
+  <!-- Formulaire -->
+  <div *ngIf="!loading && form" class="card bg-white border border-base-200 shadow-sm">
+    <div class="card-body gap-5">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+
+        <!-- Nom -->
+        <div class="form-control">
+          <label class="label pb-1">
+            <span class="label-text font-semibold">Nom complet</span>
+          </label>
+          <input
+            id="name"
+            type="text"
+            formControlName="name"
+            placeholder="Prénom Nom"
+            class="input input-bordered w-full"
+            [class.input-error]="form.get('name')?.invalid && form.get('name')?.touched"
+          />
+          <label class="label pt-1" *ngIf="form.get('name')?.invalid && form.get('name')?.touched">
+            <span class="label-text-alt text-error">Nom requis</span>
+          </label>
+        </div>
+
+        <!-- E-mail -->
+        <div class="form-control">
+          <label class="label pb-1">
+            <span class="label-text font-semibold">Adresse e-mail</span>
+          </label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="exemple@domaine.fr"
+            class="input input-bordered w-full"
+            [class.input-error]="form.get('email')?.invalid && form.get('email')?.touched"
+          />
+          <label class="label pt-1" *ngIf="form.get('email')?.invalid && form.get('email')?.touched">
+            <span class="label-text-alt text-error">Adresse e-mail invalide</span>
+          </label>
+        </div>
+
+        <!-- Rôle -->
+        <div class="form-control">
+          <label class="label pb-1">
+            <span class="label-text font-semibold">Rôle</span>
+          </label>
+          <select id="role" formControlName="role" class="select select-bordered w-full">
+            <option value="etudiant">Étudiant</option>
+            <option value="professeur">Professeur</option>
+            <option value="admin">Administrateur</option>
+          </select>
+          <label class="label pt-1" *ngIf="isSelf">
+            <span class="label-text-alt text-gray-400">Vous ne pouvez pas modifier votre propre rôle.</span>
+          </label>
+        </div>
+
+        <!-- Succès -->
+        <div *ngIf="success" class="alert alert-success">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+            style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span>Modifications enregistrées. Redirection…</span>
+        </div>
+
+        <!-- Erreur de soumission -->
+        <div *ngIf="error && !loading" class="alert alert-error">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+            style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>{{ error }}</span>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex justify-end gap-3 mt-2">
+          <a routerLink="/admin/users" class="btn btn-ghost">Annuler</a>
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
+            <span *ngIf="saving" class="loading loading-spinner loading-xs"></span>
+            {{ saving ? 'Enregistrement…' : 'Enregistrer' }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+</div>

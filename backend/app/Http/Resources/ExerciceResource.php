@@ -32,16 +32,16 @@ class ExerciceResource extends JsonResource
                 ->exists();
         }
 
-        $statut = 'A faire';
-        if ($estTermine) $statut = 'Terminé';
-        elseif ($estEnCours) $statut = 'En cours';
+        $status = 'to_do';
+        if ($estTermine) $status = 'completed';
+        elseif ($estEnCours) $status = 'in_progress';
 
         return [
             'id' => $this->id,
             'title' => $this->titre,
             'slug' => $this->slug,
             'type' => $this->type,
-            'status' => $statut,
+            'status' => $status,
             'statement' => $this->enonce,
         ];
     }

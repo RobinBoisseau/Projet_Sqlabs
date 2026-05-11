@@ -1,0 +1,119 @@
+<div class="max-w-5xl mx-auto py-8 px-6">
+
+  <div *ngIf="loading" class="text-gray-400">Chargement...</div>
+  <div *ngIf="error && !loading" class="alert alert-error mb-4 text-sm"><span>{{ error }}</span></div>
+  <div *ngIf="successMessage" class="alert alert-success mb-4 text-sm"><span>{{ successMessage }}</span></div>
+
+  <div *ngIf="!loading" cdkDropListGroup class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- ── Colonne gauche : exercices du cours ── -->
+    <div class="flex flex-col gap-3">
+      <h2 class="font-semibold text-gray-800">
+        Exercices du cours
+        <span class="text-sm font-normal text-gray-400 ml-1">({{ courseItems.length }})</span>
+      </h2>
+
+      <div
+        cdkDropList
+        [cdkDropListData]="courseItems"
+        [cdkDropListSortingDisabled]="true"
+        (cdkDropListDropped)="drop($event)"
+        class="min-h-[300px] flex flex-col gap-2 p-3 bg-base-100 border border-base-200 rounded-xl"
+        [class.border-primary]="courseItems.length === 0">
+
+        @for (ex of courseItems; track ex.id; let i = $index) {
+          <div
+            cdkDrag [cdkDragData]="ex"
+            class="flex items-center gap-3 px-4 py-3 bg-white border border-base-200 rounded-lg shadow-sm cursor-grab active:cursor-grabbing group hover:border-primary transition-colors">
+
+            <svg class="text-gray-300 group-hover:text-gray-400 shrink-0" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+              style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">
+              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+
+            <span class="text-xs text-gray-400 w-5 text-center shrink-0">{{ i + 1 }}</span>
+            <span class="flex-1 text-sm text-gray-800 font-medium truncate">{{ ex.title }}</span>
+            <span class="badge badge-ghost text-xs shrink-0">{{ ex.type }}</span>
+
+            <button
+              (click)="$event.stopPropagation(); removeFromCourse(ex, i)"
+              class="btn btn-xs btn-ghost text-error opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+              title="Retirer du cours">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                style="fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        }
+
+        @if (courseItems.length === 0) {
+          <div class="flex flex-col items-center justify-center py-16 text-gray-400 text-sm gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"
+              style="fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Glissez des exercices ici
+          </div>
+        }
+
+      </div>
+    </div>
+
+    <!-- ── Colonne droite : exercices disponibles ── -->
+    <div class="flex flex-col gap-3">
+      <h2 class="font-semibold text-gray-800">
+        Exercices disponibles
+        <span class="text-sm font-normal text-gray-400 ml-1">({{ availableItems.length }})</span>
+      </h2>
+
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilter()"
+        placeholder="Rechercher un exercice…"
+        class="input input-bordered input-sm w-full"/>
+
+      <div
+        cdkDropList
+        [cdkDropListData]="availableItems"
+        [cdkDropListSortingDisabled]="true"
+        (cdkDropListDropped)="drop($event)"
+        class="min-h-[300px] flex flex-col gap-2 p-3 bg-base-100 border border-base-200 rounded-xl overflow-y-auto max-h-[520px]">
+
+        @for (ex of availableItems; track ex.id) {
+          <div
+            cdkDrag [cdkDragData]="ex"
+            class="flex items-center gap-3 px-4 py-3 bg-white border border-base-200 rounded-lg shadow-sm cursor-grab active:cursor-grabbing hover:border-primary transition-colors">
+
+            <svg class="text-gray-300 shrink-0" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+              style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">
+              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+
+            <span class="flex-1 text-sm text-gray-800 font-medium truncate">{{ ex.title }}</span>
+            <span class="badge badge-ghost text-xs shrink-0">{{ ex.type }}</span>
+          </div>
+        }
+
+        @if (availableItems.length === 0) {
+          <div class="flex items-center justify-center py-16 text-gray-400 text-sm">
+            {{ searchQuery ? 'Aucun exercice trouvé' : 'Tous les exercices sont dans le cours' }}
+          </div>
+        }
+
+      </div>
+    </div>
+
+  </div>
+
+  <div *ngIf="!loading" class="flex justify-end mt-6">
+    <button class="btn btn-primary" (click)="save()" [disabled]="saving">
+      <span *ngIf="saving" class="loading loading-spinner loading-xs"></span>
+      {{ saving ? 'Enregistrement…' : 'Enregistrer' }}
+    </button>
+  </div>
+
+</div>

@@ -1,18 +1,50 @@
 <header class="header-container">
-  <!-- Groupe Gauche : Aligné horizontalement -->
   <div class="left-group">
     <a routerLink="/" class="logo">Sqlabs</a>
-      
-    
-    <!-- Le lien "plus beau" -->
-    <a *ngIf="isOnDetail()" routerLink="/exercices" class="back-link">
-       <span class="arrow">←</span> Liste des exercices
+    <a *ngIf="isOnDetail()" [routerLink]="backLink()" class="back-link">
+      <span class="arrow">←</span> Liste des exercices
     </a>
   </div>
 
-  <!-- Groupe Droite -->
-  <div class="user-profile" (click)="onProfileClick()">
-    <span class="user-name">{{ firstName }} {{ lastName }}</span>
-    <span class="avatar-icon">👤</span>
+  <div class="right-group">
+    <ng-container *ngIf="auth.currentUser$ | async as user; else guestTpl">
+      <a *ngIf="user.role === 'admin'" routerLink="/admin" class="btn-admin">Administration</a>
+      <a *ngIf="user.role === 'professeur' || user.role === 'admin'" routerLink="/classes" class="btn-admin">Gérer mes classes</a>
+
+      <div class="profile-menu">
+        <button class="profile-trigger" (click)="toggleDropdown()">
+          <span class="avatar">{{ user.name[0] | uppercase }}</span>
+          <span class="user-name">{{ user.name }}</span>
+          <svg class="chevron" [class.rotated]="dropdownOpen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M7 10l5 5 5-5z"/>
+          </svg>
+        </button>
+
+        <div class="dropdown" *ngIf="dropdownOpen">
+          <div class="dropdown-header">
+            <span class="dropdown-name">{{ user.name }}</span>
+            <span class="dropdown-role">{{ user.role }}</span>
+          </div>
+          <div class="dropdown-divider"></div>
+          <a routerLink="/profile" class="dropdown-item" (click)="dropdownOpen = false">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+            </svg>
+            Mon profil
+          </a>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item dropdown-item-danger" (click)="logout()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+            </svg>
+            Déconnexion
+          </button>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #guestTpl>
+      <a routerLink="/login" class="btn-login">Se connecter</a>
+    </ng-template>
   </div>
 </header>

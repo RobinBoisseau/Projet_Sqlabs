@@ -1,9 +1,10 @@
 witch maiFROM node:18
 
-# Installation de l'interface en ligne de commande Angular mondialement
 RUN npm install -g @angular/cli
 
 WORKDIR /app
 
-# On expose le port par défaut d'Angular
+COPY package*.json ./
+RUN npm install
+
 EXPOSE 4200

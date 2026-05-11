@@ -1,0 +1,102 @@
+<!-- Sous-header de la classe -->
+<div class="bg-white border-b border-base-200 shadow-sm sticky top-0 z-50" *ngIf="classe">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="flex items-center gap-6 h-14">
+
+      <!-- Nom de la classe (retour au tableau de bord) -->
+      <a [routerLink]="['/classes', classe.id]"
+        class="font-semibold text-gray-800 hover:text-primary transition-colors truncate max-w-xs">
+        {{ classe.nom }}
+      </a>
+
+      <div class="flex items-center gap-1 ml-auto">
+
+        <!-- Dropdown Gérer la classe — admin, créateur, responsable -->
+        <div class="manage-dropdown relative" *ngIf="classe.can_edit">
+          <button
+            class="btn btn-sm btn-ghost gap-1"
+            (click)="manageOpen = !manageOpen; progressOpen = false">
+            Gérer la classe
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+              style="fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <ul *ngIf="manageOpen"
+            class="absolute right-0 top-full mt-1 bg-white border border-base-200 rounded-xl shadow-lg w-56 py-1 z-50">
+
+            <!-- Gérer les membres — admin, créateur, responsable -->
+            <li>
+              <a [routerLink]="['/classes', classe.id, 'members']"
+                class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-base-100"
+                (click)="manageOpen = false">
+                Gérer les membres
+              </a>
+            </li>
+
+            <!-- Modifier la classe — admin, créateur uniquement -->
+            <li *ngIf="classe.can_delete">
+              <a [routerLink]="['/classes', classe.id, 'edit']"
+                class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-base-100"
+                (click)="manageOpen = false">
+                Modifier la classe
+              </a>
+            </li>
+
+            <!-- Supprimer la classe — admin, créateur uniquement -->
+            <li *ngIf="classe.can_delete"><div class="divider my-0 h-px"></div></li>
+            <li *ngIf="classe.can_delete">
+              <a [routerLink]="['/classes', classe.id, 'delete']"
+                class="flex items-center gap-3 px-4 py-2 text-sm text-error hover:bg-red-50"
+                (click)="manageOpen = false">
+                Supprimer la classe
+              </a>
+            </li>
+
+          </ul>
+        </div>
+
+        <!-- Exercices — admin, créateur, responsable, membre -->
+        <a *ngIf="classe.is_member"
+          [routerLink]="['/classes', classe.id, 'exercises']"
+          class="btn btn-sm btn-ghost"
+          routerLinkActive="btn-active">
+          Les exercices
+        </a>
+
+        <!-- Dropdown Progression — admin, créateur, responsable -->
+        <div class="progress-dropdown relative" *ngIf="classe.can_edit">
+          <button
+            class="btn btn-sm btn-ghost gap-1"
+            (click)="progressOpen = !progressOpen; manageOpen = false">
+            Progression
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+              style="fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <ul *ngIf="progressOpen"
+            class="absolute right-0 top-full mt-1 bg-white border border-base-200 rounded-xl shadow-lg w-64 py-1 z-50">
+            <li>
+              <a [routerLink]="['/classes', classe.id, 'progress', 'individual']"
+                class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-base-100"
+                (click)="progressOpen = false">
+                Progression individuelle
+              </a>
+            </li>
+            <li>
+              <a [routerLink]="['/classes', classe.id, 'progress', 'global']"
+                class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-base-100"
+                (click)="progressOpen = false">
+                Progression globale
+              </a>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<router-outlet/>

@@ -9,32 +9,31 @@ class Tentative extends Model {
     use HasFactory;
 
     protected $fillable = [
+        'is_correction',
         'dictionnaire', 'dependance', 'modele',
         'dictionnaireValide', 'dependanceValide', 'modeleValide',
-        'dictionnaireCorrige', 'dependanceCorrige', 'modeleCorrige',
-        'dateHeureTentative','user_id','exercice_id',
+        'dateHeureTentative', 'user_id', 'exercice_id',
     ];
 
-    // Important pour transformer le JSON en tableau PHP automatiquement
     protected $casts = [
-        'dictionnaire' => 'array',
-        'dependance' => 'array',
-        'modele' => 'array',
-        'dictionnaireCorrige' => 'array',
-        'dependanceCorrige' => 'array',
-        'modeleCorrige' => 'array',
+        'is_correction'    => 'boolean',
+        'dictionnaire'     => 'array',
+        'dependance'       => 'array',
+        'modele'           => 'array',
         'dictionnaireValide' => 'boolean',
-        'dependanceValide' => 'boolean',
-        'modeleValide' => 'boolean',
-        'dateHeureTentative' => 'datetime'
+        'dependanceValide'   => 'boolean',
+        'modeleValide'       => 'boolean',
+        'dateHeureTentative' => 'datetime',
     ];
 
-    public function etudiants() {
-        return $this->belongsToMany(Utilisateur::class, 'essayer', 'idTentative', 'idEtudiant');
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
-    public function exercices() {
-        return $this->belongsToMany(Exercice::class, 'concerner', 'idTentative', 'idExercice');
+    public function exercice()
+    {
+        return $this->belongsTo(Exercice::class);
     }
 
 }

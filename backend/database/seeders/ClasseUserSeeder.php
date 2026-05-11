@@ -10,26 +10,31 @@ class ClasseUserSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Récupérer tous les utilisateurs et toutes les classes
-        $users = User::all();
-        $classes = Classe::all();
+        $teachers = User::where('role', 'professeur')->get();
+        $students = User::where('role', 'etudiant')->get();
+        $classes  = Classe::all();
 
-        // Sécurité : Vérifier qu'on a bien des données
-        if ($users->isEmpty() || $classes->isEmpty()) {
-            $this->command->warn("Il manque des utilisateurs ou des classes pour faire l'inscription !");
+        if ($classes->isEmpty()) {
+            $this->command->warn('Aucune classe trouvée.');
             return;
         }
 
-        // 2. Pour chaque utilisateur, on lui assigne des classes au hasard
-        foreach ($users as $user) {
-            // On prend entre 1 et 3 classes aléatoirement
-            $classesToAssign = $classes->random(rand(1, 2))->pluck('id');
-
-            // On utilise attach() pour remplir la table pivot
-            // syncWithoutDetaching évite les doublons si on lance le seeder plusieurs fois
-            $user->classes()->syncWithoutDetaching($classesToAssign);
+        // Assigner un professeur par classe
+        foreach ($classes as $index => $classe) {
+            if ($teachers->isNotEmpty()) {
+                $teacher = $teachers[$index % $teachers->count()];
+                $classe->teachers()->syncWithoutDetaching([$teacher->id]);
+            }
         }
 
-        $this->command->info("L'association Inscrire a été remplie avec succès !");
+        // Inscrire chaque étudiant dans 1 ou 2 classes
+        foreach ($students as $student) {
+            $assigned = $classes->random(rand(1, min(2, $classes->count())));
+            foreach ($assigned as $classe) {
+                $classe->students()->syncWithoutDetaching([$student->id]);
+            }
+        }
+
+        $this->command->info('Association classe_user remplie avec succès.');
     }
 }

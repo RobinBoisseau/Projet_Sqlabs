@@ -10,13 +10,11 @@ class ClasseFactory extends Factory
     public function definition(): array
     {
         return [
-            // On génère un mot aléatoire et on le coupe à 10 caractères au cas où
-            'nom' => Str::limit($this->faker->word(), 10, ''),
-            
-            // On génère un mot de passe simple de 8 caractères
-            'mdp' => Str::random(10),
-
-            'user_id' => \App\Models\User::pluck('id')->random(),
+            'nom'         => fake()->words(2, true),
+            'description' => fake()->optional()->sentence(),
+            'image'       => null,
+            'visibility'  => fake()->randomElement(['public', 'private']),
+            'join_code'   => strtoupper(Str::random(6)),
         ];
     }
 }

@@ -1,35 +1,94 @@
-<div class="home-container">
-  <!-- Section Présentation -->
-  <section class="hero">
-    <h1>Bienvenue sur <span>Sqlabs</span></h1>
-    <p class="subtitle">L'outil intelligent pour maîtriser la modélisation de bases de données.</p>
-    <button routerLink="/exercices" class="cta-button">Découvrir les exercices</button>
+<div class="max-w-6xl mx-auto px-6 py-16">
+
+  <!-- Hero -->
+  <section class="text-center mb-16">
+    <h1 class="text-5xl font-bold text-gray-800 mb-4">
+      Bienvenue sur <span class="text-primary">Sqlabs</span>
+    </h1>
+    <p class="text-lg text-gray-500 max-w-xl mx-auto">
+      L'outil intelligent pour maîtriser la modélisation de bases de données.
+    </p>
   </section>
 
-  <!-- Section Objectifs Pédagogiques -->
-  <section class="objectives">
-    <h2>Nos Objectifs Pédagogiques</h2>
-    <div class="grid">
-      <div class="card">
-        <div class="icon">📚</div>
-        <h3>Analyse</h3>
-        <p>Apprenez à extraire les informations essentielles à partir de documents bruts.</p>
+  <!-- Cours publiés -->
+  <section class="mb-20">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Cours disponibles</h2>
+
+    <div *ngIf="loading" class="text-gray-400">Chargement...</div>
+
+    <div *ngIf="error" class="alert alert-error shadow-sm">
+      <span>{{ error }}</span>
+    </div>
+
+    <div *ngIf="!loading && !error" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <a *ngFor="let c of cours"
+        [routerLink]="['/cours', c.id]"
+        class="card bg-white border border-base-200 shadow-sm hover:shadow-md hover:border-primary transition-all duration-200 cursor-pointer no-underline">
+
+        <!-- Image -->
+        <figure class="h-40 bg-base-200 overflow-hidden">
+          <img *ngIf="c.image" [src]="c.image" [alt]="c.nom" class="w-full h-full object-cover"/>
+          <div *ngIf="!c.image" class="w-full h-full flex items-center justify-center text-base-content/30">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"
+              style="fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+          </div>
+        </figure>
+
+        <div class="card-body gap-2 p-5">
+          <h3 class="card-title text-base text-gray-900 leading-snug">{{ c.nom }}</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">{{ truncate(c.description) }}</p>
+        </div>
+      </a>
+
+      <div *ngIf="cours.length === 0" class="col-span-full text-center text-gray-400 py-16">
+        Aucun cours disponible pour l'instant.
       </div>
-      <div class="card">
-        <div class="icon">📋</div>
-        <h3>Dictionnaire</h3>
-        <p>Construisez des dictionnaires de données complets et sans ambiguïté.</p>
-      </div>
-      <div class="card">
-        <div class="icon">🔗</div>
-        <h3>Dépendances</h3>
-        <p>Déterminez les dépendances fonctionnelles pour une structure solide.</p>
-      </div>
-      <div class="card">
-        <div class="icon">🤖</div>
-        <h3>Accompagnement IA</h3>
-        <p>Bénéficiez d'une IA qui vous guide et corrige vos erreurs en temps réel.</p>
-      </div>
+
     </div>
   </section>
+
+  <!-- Objectifs pédagogiques -->
+  <section>
+    <h2 class="text-3xl font-bold text-center text-gray-800 mb-10">Nos Objectifs Pédagogiques</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+      <div class="card bg-base-100 border border-base-200 shadow-sm hover:shadow-md transition-shadow">
+        <div class="card-body items-center text-center">
+          <div class="text-4xl mb-2">📚</div>
+          <h3 class="card-title text-gray-800">Analyse</h3>
+          <p class="text-gray-500 text-sm">Apprenez à extraire les informations essentielles à partir de documents bruts.</p>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 border border-base-200 shadow-sm hover:shadow-md transition-shadow">
+        <div class="card-body items-center text-center">
+          <div class="text-4xl mb-2">📋</div>
+          <h3 class="card-title text-gray-800">Dictionnaire</h3>
+          <p class="text-gray-500 text-sm">Construisez des dictionnaires de données complets et sans ambiguïté.</p>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 border border-base-200 shadow-sm hover:shadow-md transition-shadow">
+        <div class="card-body items-center text-center">
+          <div class="text-4xl mb-2">🔗</div>
+          <h3 class="card-title text-gray-800">Dépendances</h3>
+          <p class="text-gray-500 text-sm">Déterminez les dépendances fonctionnelles pour une structure solide.</p>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 border border-base-200 shadow-sm hover:shadow-md transition-shadow">
+        <div class="card-body items-center text-center">
+          <div class="text-4xl mb-2">🤖</div>
+          <h3 class="card-title text-gray-800">Accompagnement IA</h3>
+          <p class="text-gray-500 text-sm">Bénéficiez d'une IA qui vous guide et corrige vos erreurs en temps réel.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
 </div>

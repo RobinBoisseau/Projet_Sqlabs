@@ -1,0 +1,77 @@
+<div class="max-w-2xl mx-auto py-10 px-6">
+
+  <div *ngIf="loading" class="text-gray-400">Chargement...</div>
+
+  <div *ngIf="error && !loading" class="alert alert-error mb-6">
+    <span>{{ error }}</span>
+  </div>
+
+  <div *ngIf="!loading && form" class="card bg-white border border-base-200 shadow-sm">
+    <div class="card-body gap-5">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+
+        <!-- Nom -->
+        <div class="form-control">
+          <label class="label pb-1">
+            <span class="label-text font-semibold">Nom du cours</span>
+          </label>
+          <input type="text" formControlName="nom" placeholder="Nom du cours"
+            class="input input-bordered w-full"
+            [class.input-error]="form.get('nom')?.invalid && form.get('nom')?.touched"/>
+          <label class="label pt-1" *ngIf="form.get('nom')?.invalid && form.get('nom')?.touched">
+            <span class="label-text-alt text-error">Nom requis</span>
+          </label>
+        </div>
+
+        <!-- Description -->
+        <div class="form-control">
+          <label class="label pb-1">
+            <span class="label-text font-semibold">Description</span>
+          </label>
+          <textarea formControlName="description" placeholder="Description du cours" rows="4"
+            class="textarea textarea-bordered w-full"
+            [class.textarea-error]="form.get('description')?.invalid && form.get('description')?.touched"></textarea>
+          <label class="label pt-1" *ngIf="form.get('description')?.invalid && form.get('description')?.touched">
+            <span class="label-text-alt text-error">Description requise</span>
+          </label>
+        </div>
+
+        <!-- Image -->
+        <div class="form-control">
+          <label class="label pb-1">
+            <span class="label-text font-semibold">Image <span class="text-gray-400 font-normal">(URL)</span></span>
+          </label>
+          <input type="url" formControlName="image" placeholder="https://…"
+            class="input input-bordered w-full"/>
+        </div>
+
+        <!-- Visibilité -->
+        <div class="form-control">
+          <label class="label cursor-pointer justify-start gap-4">
+            <input type="checkbox" formControlName="visibility" class="toggle toggle-primary"/>
+            <span class="label-text font-semibold">Publier le cours</span>
+          </label>
+          <p class="text-xs text-gray-400 mt-1">
+            Un cours publié est visible par les utilisateurs du site.
+          </p>
+        </div>
+
+        <!-- Succès -->
+        <div *ngIf="success" class="alert alert-success">
+          <span>Modifications enregistrées. Redirection…</span>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex justify-end gap-3 mt-2">
+          <a [routerLink]="['/admin/cours', cours.id]" class="btn btn-ghost">Annuler</a>
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
+            <span *ngIf="saving" class="loading loading-spinner loading-xs"></span>
+            {{ saving ? 'Enregistrement…' : 'Enregistrer' }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+</div>

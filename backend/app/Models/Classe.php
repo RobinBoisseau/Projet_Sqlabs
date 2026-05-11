@@ -10,20 +10,63 @@ class Classe extends Model
 {
     use HasFactory;
 
-    // On définit les champs remplissables (selon ta migration)
-    protected $fillable = [
-        'nom',
-        'mdp',
-        'user_id'
-    ];
+    protected $fillable = ['nom', 'description', 'image', 'visibility', 'join_code'];
 
-    /**
-     * Association "Inscrire"
-     * Une classe contient plusieurs utilisateurs (élèves).
-     */
-    public function users(): BelongsToMany
+    protected $hidden = ['join_code'];
+
+    public function creator(): BelongsToMany
     {
-        // 'classe_user' est le nom de la table pivot que tu as créée
-        return $this->belongsToMany(User::class, 'classe_user');
+        return $this->belongsToMany(User::class, 'classe_user')
+                    ->wherePivot('role', 'creator')
+                    ->withTimestamps();
+    }
+
+    public function teachers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'classe_user')
+                    ->wherePivot('role', 'teacher')
+                    ->withTimestamps();
+    }
+
+    public function responsables(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'classe_user')
+                    ->wherePivot('role', 'responsable')
+                    ->withPivot('role')
+                    ->withTimestamps();
+    }
+
+    public function students(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'classe_user')
+                    ->wherePivot('role', 'student')
+                    ->withPivot('role')
+                    ->withTimestamps();
+    }
+
+    public function isCreator(int $userId): bool
+    {
+        return $this->creator()->where('user_id', $userId)->exists();
+    }
+
+    public function isStaff(int $userId): bool
+    {
+        return $this->creator()->where('user_id', $userId)->exists()
+            || $this->teachers()->where('user_id', $userId)->exists();
+    }
+
+    public function canManageMembers(User $user): bool
+    {
+        if ($user->role === 'admin') return true;
+        return $this->creator()->where('user_id', $user->id)->exists()
+            || $this->responsables()->where('user_id', $user->id)->exists();
+    }
+
+    public function isEnrolled(int $userId): bool
+    {
+        return \DB::table('classe_user')
+            ->where('classe_id', $this->id)
+            ->where('user_id', $userId)
+            ->exists();
     }
 }

@@ -4,8 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Exercice extends Model
 {
@@ -24,8 +22,15 @@ class Exercice extends Model
     return 'slug';
     }
 
-    public function tentatives(): HasMany
+    public function tentatives()
     {
         return $this->hasMany(Tentative::class);
+    }
+
+    public function cours()
+    {
+        return $this->belongsToMany(Cours::class, 'cours_exercice')
+                    ->withPivot('order')
+                    ->withTimestamps();
     }
 }

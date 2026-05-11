@@ -1,0 +1,6 @@
+.cdk-drag-placeholder {
+  border: 2px dashed #6366f1;
+  border-radius: 0.5rem;
+  background: #eef2ff;
+  min-height: 48px;
+}

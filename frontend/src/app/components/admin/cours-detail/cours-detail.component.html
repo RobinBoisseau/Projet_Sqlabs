@@ -1,0 +1,49 @@
+<div class="max-w-5xl mx-auto py-10 px-6">
+
+  <div *ngIf="loading" class="text-gray-400">Chargement...</div>
+
+  <div *ngIf="error" class="alert alert-error">
+    <span>{{ error }}</span>
+  </div>
+
+  <div *ngIf="!loading && stats" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+    <!-- Visibilité -->
+    <div class="card bg-white border border-base-200 shadow-sm">
+      <div class="card-body gap-2 p-5">
+        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Visibilité</p>
+        <div class="flex items-center gap-2 mt-1">
+          <span *ngIf="stats.visibility" class="badge badge-success text-green-800 font-semibold">Publié</span>
+          <span *ngIf="!stats.visibility" class="badge badge-ghost text-gray-500 font-semibold">Non publié</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exercices -->
+    <div class="card bg-white border border-base-200 shadow-sm">
+      <div class="card-body gap-2 p-5">
+        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Exercices</p>
+        <p class="text-3xl font-bold text-gray-900">{{ stats.exercices_count }}</p>
+      </div>
+    </div>
+
+    <!-- Utilisateurs ayant débuté -->
+    <div class="card bg-white border border-base-200 shadow-sm">
+      <div class="card-body gap-2 p-5">
+        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Ont débuté</p>
+        <p class="text-3xl font-bold text-blue-600">{{ stats.started }}</p>
+        <p class="text-xs text-gray-400">utilisateur{{ stats.started > 1 ? 's' : '' }}</p>
+      </div>
+    </div>
+
+    <!-- Utilisateurs ayant terminé -->
+    <div class="card bg-white border border-base-200 shadow-sm">
+      <div class="card-body gap-2 p-5">
+        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Ont terminé</p>
+        <p class="text-3xl font-bold text-green-600">{{ stats.completed }}</p>
+        <p class="text-xs text-gray-400">utilisateur{{ stats.completed > 1 ? 's' : '' }}</p>
+      </div>
+    </div>
+
+  </div>
+</div>

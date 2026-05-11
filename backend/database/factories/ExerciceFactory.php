@@ -17,7 +17,6 @@ class ExerciceFactory extends Factory
         'enonce' => fake()->paragraph(),
         'type'   => fake()->randomElement(['SQL', 'BPMN']),
         'etat'   => fake()->randomElement(['Fini', 'Non fini']),
-        'type'   => fake()->randomElement(['SQL', 'BPMN']),
         'user_id' => fake()->numberBetween(1, 10),
     ];
 }

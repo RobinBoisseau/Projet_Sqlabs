@@ -1,0 +1,64 @@
+<div class="max-w-5xl mx-auto py-10 px-6">
+
+  <!-- En-tête -->
+  <div class="mb-8">
+    <a routerLink="/admin" class="text-sm text-primary hover:underline">← Administration</a>
+    <h1 class="text-2xl font-bold text-gray-900 mt-1">Gestion des cours</h1>
+  </div>
+
+  <!-- Chargement -->
+  <div *ngIf="loading" class="text-gray-400">Chargement...</div>
+
+  <!-- Erreur -->
+  <div *ngIf="error" class="alert alert-error shadow-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+      style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span>{{ error }}</span>
+  </div>
+
+  <!-- Grille de cours -->
+  <div *ngIf="!loading && !error" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    <!-- Carte cours -->
+    <a *ngFor="let c of cours"
+      [routerLink]="['/admin/cours', c.id]"
+      class="card bg-white border border-base-200 shadow-sm hover:shadow-md hover:border-primary transition-all duration-200 no-underline cursor-pointer">
+
+      <!-- Image -->
+      <figure class="h-40 bg-base-200 overflow-hidden">
+        <img *ngIf="c.image" [src]="c.image" [alt]="c.nom" class="w-full h-full object-cover"/>
+        <div *ngIf="!c.image" class="w-full h-full flex items-center justify-center text-base-content/30">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"
+            style="fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+        </div>
+      </figure>
+
+      <div class="card-body gap-2 p-5">
+
+        <!-- Titre + badge statut -->
+        <div class="flex items-start justify-between gap-2">
+          <h2 class="card-title text-base text-gray-900 leading-snug">{{ c.nom }}</h2>
+          <span *ngIf="c.visibility"
+            class="badge badge-success text-green-800 font-semibold shrink-0">Publié</span>
+          <span *ngIf="!c.visibility"
+            class="badge badge-ghost text-gray-500 font-semibold shrink-0">Non publié</span>
+        </div>
+
+        <!-- Description tronquée -->
+        <p class="text-sm text-gray-500 leading-relaxed">{{ truncate(c.description) }}</p>
+
+      </div>
+    </a>
+
+    <!-- État vide -->
+    <div *ngIf="cours.length === 0" class="col-span-full text-center text-gray-400 py-16">
+      Aucun cours créé pour l'instant.
+    </div>
+
+  </div>
+</div>
