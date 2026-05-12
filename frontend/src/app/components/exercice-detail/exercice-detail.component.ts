@@ -114,10 +114,16 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
 
   // --- 3. SYNCHRONISATION ---
   onDictionaryChanged(updatedLines: Field[]) {
-    this.dictionary = updatedLines;
-    this.updateTechnicalNames(); // On garde la synchro avec les D.F.
-    if (this.exercice && this.exercice.slug) {
-      this.dictionaryService.save(this.exercice.slug, updatedLines);
+    // On met à jour la variable locale
+    this.dictionary = [...updatedLines];
+
+    // On met à jour les noms techniques (pour les dépendances fonctionnelles)
+    this.updateTechnicalNames();
+
+    // SAUVEGARDE CRUCIALE : On écrase l'ancien dictionnaire dans le localStorage
+    if (this.exercice?.slug) {
+      this.dictionaryService.save(this.exercice.slug, this.dictionary);
+      console.log("🗑️ Ligne supprimée et dictionnaire mis à jour pour :", this.exercice.slug);
     }
   }
 

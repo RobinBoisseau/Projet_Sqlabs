@@ -12,35 +12,28 @@
     <div class="dep-row" *ngFor="let ligne of lines; let i = index">
 
       <!-- ZONE SOURCES -->
-      <app-choix-champ
-        [champsSelectionnes]="ligne.source"
-        [champsDisponibles]="technicalNames"
-        placeholder="Ajouter source..."
-        (selectionChanged)="emitChanges()">
+      <app-choix-champ [champsSelectionnes]="ligne.source" [champsDisponibles]="technicalNames"
+        placeholder="Ajouter source..." (selectionChanged)="emitChanges()">
       </app-choix-champ>
 
       <!-- FLÈCHE -->
       <div class="arrow-icon">➔</div>
 
       <!-- ZONE CIBLES -->
-      <app-choix-champ
-        [champsSelectionnes]="ligne.cible"
-        [champsDisponibles]="technicalNames"
-        placeholder="Ajouter cible..."
-        (selectionChanged)="emitChanges()">
+      <app-choix-champ [champsSelectionnes]="ligne.cible" [champsDisponibles]="technicalNames"
+        placeholder="Ajouter cible..." (selectionChanged)="emitChanges()">
       </app-choix-champ>
 
       <!-- ACTIONS ⋮ -->
       <div class="actions-column">
         <div class="dropdown">
-          <button class="dots-btn">⋮</button>
+          <button class="dots-btn" (mousedown)="$event.stopPropagation()">⋮</button>
           <div class="dropdown-content">
-            <a (click)="dupliquerLigne(i)">Dupliquer</a>
-            <a (click)="supprimerLigne(i)" class="delete-text">Supprimer</a>
+            <button type="button" (mousedown)="dupliquerLigne(i)">Dupliquer</button>
+            <button type="button" (mousedown)="supprimerLigne(i)" class="delete-text">Supprimer</button>
           </div>
         </div>
       </div>
-
     </div>
   </div>
 

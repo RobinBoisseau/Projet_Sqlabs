@@ -8,7 +8,7 @@ import { ChoixChampComponent } from '../choix-champ/choix-champ.component';
 @Component({
   selector: 'app-dependence-table',
   standalone: true,
-  imports: [CommonModule, FormsModule, AddButtonComponent,ChoixChampComponent],
+  imports: [CommonModule, FormsModule, AddButtonComponent, ChoixChampComponent],
   templateUrl: './dependence-table.component.html',
   styleUrls: ['./dependence-table.component.css']
 })
@@ -78,14 +78,22 @@ export class DependenceTableComponent implements OnInit {
   }
 
   supprimerLigne(index: number) {
-    this._lines.splice(index, 1);
+    // On crée une nouvelle référence de tableau
+    this._lines = this._lines.filter((_, i) => i !== index);
+
+    // On maintient le minimum de lignes vides
     this.remplirSiVide();
+
+    // On notifie le parent pour la sauvegarde
     this.emitChanges();
   }
 
   dupliquerLigne(index: number) {
     const s = this._lines[index];
-    this._lines.push(new DependenceLine(Date.now().toString(), [...s.source], [...s.cible]));
+    // On crée un nouvel objet pour éviter les problèmes de référence mémoire
+    const nouvelleLigne = new DependenceLine(Date.now().toString(), [...s.source], [...s.cible]);
+
+    this._lines = [...this._lines, nouvelleLigne];
     this.emitChanges();
   }
 

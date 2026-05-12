@@ -45,7 +45,8 @@ export class DictionaryTableComponent implements OnChanges {
   }
 
   removeLine(index: number) {
-    this.lines.splice(index, 1);
+    console.log("BOUTON SUPPRIMER CLIQUÉ ! Index:", index);
+    this.lines = this.lines.filter((_, i) => i !== index);
     this.emitChanges();
   }
 
