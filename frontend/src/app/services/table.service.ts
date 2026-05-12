@@ -2,15 +2,13 @@ import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { Node } from '@antv/x6';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class TableService {
-  // On utilise un Subject pour dire au composant "Hé, ouvre la liste des champs !"
-  private openPickerSource = new Subject<{ node: Node, currentFields: any[] }>();
+  // On ajoute 'slug' dans l'objet transmis
+  private openPickerSource = new Subject<{ node: Node, currentFields: any[], slug: string }>();
   openPicker$ = this.openPickerSource.asObservable();
 
-  triggerPicker(node: Node, currentFields: any[]) {
-    this.openPickerSource.next({ node, currentFields });
+  triggerPicker(node: Node, currentFields: any[], slug: string) {
+    this.openPickerSource.next({ node, currentFields, slug });
   }
 }

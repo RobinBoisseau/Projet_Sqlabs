@@ -19,14 +19,11 @@
     <!-- Modale centrée -->
     <div class="picker-panel" (click)="$event.stopPropagation()">
       <div class="picker-header">
-        <span>Choisir des champs</span>
+        <span>Choisir un champ pour l'entité : {{ pickerNode?.attr('label/text') }}</span>
         <button class="picker-close" (click)="closePicker()">×</button>
       </div>
-      <app-choix-champ
-        [champsDisponibles]="pickerAvailableNames"
-        [champsSelectionnes]="pickerCurrentNames"
-        placeholder="Rechercher un champ..."
-        (selectionChanged)="onPickerSelectionChanged($event)">
+      <app-choix-champ [champsDisponibles]="pickerAvailableNames" [champsSelectionnes]="pickerCurrentNames"
+        placeholder="Rechercher un champ..." (selectionChanged)="onPickerSelectionChanged($event)">
       </app-choix-champ>
     </div>
   </div>

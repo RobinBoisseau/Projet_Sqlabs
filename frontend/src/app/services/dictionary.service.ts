@@ -1,32 +1,19 @@
 import { Injectable } from '@angular/core';
 import { Field } from '../models/field';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class DictionaryService {
-  private readonly STORAGE_KEY = 'mon_historique_travail';
-
-  // Sauvegarde brute en JSON
-  save(lines: Field[]): void {
-    try {
-      const data = JSON.stringify(lines);
-      localStorage.setItem(this.STORAGE_KEY, data);
-    } catch (e) {
-      console.error("Erreur localStorage", e);
-    }
+  // On enlève la constante fixe
+  private getStorageKey(slug: string): string {
+    return `dict_data_${slug}`; // Clé unique par exercice
   }
 
-  // Chargement
-  load(): Field[] {
-    const data = localStorage.getItem(this.STORAGE_KEY);
-    if (data) {
-      try {
-        return JSON.parse(data);
-      } catch (e) {
-        return [];
-      }
-    }
-    return [];
+  save(slug: string, lines: Field[]): void {
+    localStorage.setItem(this.getStorageKey(slug), JSON.stringify(lines));
+  }
+
+  load(slug: string): Field[] {
+    const data = localStorage.getItem(this.getStorageKey(slug));
+    return data ? JSON.parse(data) : [];
   }
 }

@@ -8,8 +8,9 @@ import { Observable, of } from 'rxjs';
 import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
 import { Mcd } from '../../models/mcd';
-import { Field } from '../../models/field'; 
+import { Field } from '../../models/field';
 import { DependenceLine } from '../../models/dependence-line.model';
+import { DictionaryService } from '../../services/dictionary.service';
 
 import { PanelComponent } from '../panel/panel.component';
 import { DictionaryTableComponent } from '../dictionary-table/dictionary-table.component';
@@ -26,20 +27,21 @@ import { McdEditorComponent } from '../mcd-editor/mcd-editor.component';
 export class ExerciceDetailComponent implements OnInit, OnDestroy {
   exercice: Exercice | undefined;
   mcd: Mcd | undefined;
-  dictionary: Field[] = []; 
+  dictionary: Field[] = [];
   dependencies: DependenceLine[] = [];
   technicalNames: string[] = [];
-  
+
   // Sécurité : empêche d'envoyer du vide si Laravel n'a pas encore répondu au début
-  isLoaded: boolean = false; 
+  isLoaded: boolean = false;
 
   @ViewChild(McdEditorComponent) mcdEditor!: McdEditorComponent;
 
   constructor(
-    private route: ActivatedRoute, 
+    private route: ActivatedRoute,
     private exerciceService: ExerciceService,
-    private cdr: ChangeDetectorRef 
-  ) {}
+    private dictionaryService: DictionaryService,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   // --- 1. SAUVEGARDE AUTOMATIQUE (Navigation et Fermeture) ---
 
@@ -66,9 +68,9 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
         dependencies: this.dependencies,
         model: {} // --- ON ENVOIE UN MCD VIDE ICI ---
       };
-      
+
       console.log("💾 [AUTO-SAVE] Données envoyées à Laravel :", data);
-      
+
       // On utilise emergencySave (fetch keepalive) pour passer outre l'erreur status: 0
       this.exerciceService.emergencySave(this.exercice.id, data);
 
@@ -92,18 +94,18 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
             if (res && res.data) {
               const attempt = res.data;
               console.log("📥 [LOAD] Données brutes lues en BD :", attempt);
-              
+
               this.dictionary = attempt.dictionary || attempt.dictionnaire || [];
-              this.dependencies = attempt.dependencies || attempt.dependance 
-                  ? (attempt.dependencies || attempt.dependance).map((d: any) => DependenceLine.fromJSON(d)) 
-                  : [];
-              
+              this.dependencies = attempt.dependencies || attempt.dependance
+                ? (attempt.dependencies || attempt.dependance).map((d: any) => DependenceLine.fromJSON(d))
+                : [];
+
               this.updateTechnicalNames();
               console.log("✨ [LOAD] État restauré. Dico lignes :", this.dictionary.length);
             }
 
-            this.isLoaded = true; 
-            this.cdr.detectChanges(); 
+            this.isLoaded = true;
+            this.cdr.detectChanges();
           });
         }
       });
@@ -111,23 +113,24 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
   }
 
   // --- 3. SYNCHRONISATION ---
-
-  onDictionaryChanged(event: Field[]) { 
-    this.dictionary = event; 
-    console.log("🔄 [SYNC] Dictionnaire mis à jour dans le parent.");
-    this.updateTechnicalNames(); 
-    this.cdr.detectChanges(); 
+  onDictionaryChanged(updatedLines: Field[]) {
+    this.dictionary = updatedLines;
+    this.updateTechnicalNames(); // On garde la synchro avec les D.F.
+    if (this.exercice && this.exercice.slug) {
+      this.dictionaryService.save(this.exercice.slug, updatedLines);
+    }
   }
 
-  onDependenciesChanged(event: DependenceLine[]) { 
-    this.dependencies = event; 
+
+  onDependenciesChanged(event: DependenceLine[]) {
+    this.dependencies = event;
     console.log("🔄 [SYNC] Dépendances mises à jour dans le parent.");
-    this.cdr.detectChanges(); 
+    this.cdr.detectChanges();
   }
 
   updateTechnicalNames() {
     this.technicalNames = this.dictionary
-      .map(l => l.TechnicalName) 
+      .map(l => l.TechnicalName)
       .filter(n => n && n.trim() !== '');
   }
 
