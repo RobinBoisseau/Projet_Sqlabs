@@ -59,6 +59,10 @@ const ASSOC_PORTS = {
   ]
 };
 
+const HEADER_HEIGHT = 32;
+const LINE_HEIGHT = 22; // Un peu plus grand pour aérer comme sur l'image
+const START_Y = 35;     // Position du premier champ
+
 
 @Component({
   selector: 'app-mcd-editor',
@@ -152,27 +156,80 @@ export class McdEditorComponent implements OnInit, OnDestroy {
 
   updateNodeDisplay(node: any) {
     const data = node.getData();
-    const fields = data.fields || [];
+    const fields: any[] = data.fields || [];
+    const hasFields = fields.length > 0;
 
-    // On réduit un peu la longueur du trait pour qu'il ne touche pas le bord
-    const fieldsContent = fields
-      .map((f: any) => `${f.PrimaryKey ? '#' : '-'} ${f.name} : ${f.Type}\n__________________________`)
-      .join('\n');
+    if (node.shape === 'merise-assoc') {
+      const fieldsContent = fields
+        .map((f: any) => `${f.PrimaryKey ? '#' : '-'} ${f.name} : ${f.Type}`)
+        .join('\n');
 
-    node.setAttrs({
-      'fields-text': {
-        text: fieldsContent,
-        lineHeight: 18,
-        fontWeight: 'bold',
-        fontSize: 11, // On repasse à 11 pour gagner en finesse
-      }
-    });
+      const { width, height } = node.getSize();
 
-    const exactHeight = 32 + (fields.length * 36) + 12;
+      // Positions en valeurs absolues depuis le haut du nœud
+      const labelY = hasFields ? height * 0.28 : height * 0.5;
+      const separatorY = height * 0.45;
+      const fieldsStartY = height * 0.5;
 
-    // LARGEUR RÉDUITE ICI : On passe à 190 pour un look compact
-    node.resize(190, exactHeight);
+      node.setAttrs({
+        label: {
+          refX: width / 2,
+          refY: labelY,
+          textVerticalAnchor: 'middle',
+        },
+        separator: {
+          display: hasFields ? 'block' : 'none',
+          x1: width * 0.15,
+          y1: separatorY,
+          x2: width * 0.85,
+          y2: separatorY,
+        },
+        'fields-text': {
+          text: fieldsContent,
+          refX: width / 2,
+          refY: fieldsStartY,
+          lineHeight: LINE_HEIGHT,
+          display: hasFields ? 'block' : 'none'
+        }
+      });
+
+    } else {
+      // Logique entité inchangée
+      const fieldsContent = fields
+        .map((f: any) => `${f.PrimaryKey ? '#' : '-'} ${f.name} : ${f.Type}`)
+        .join('\n');
+
+      const separatorPath = fields
+        .map((_: any, i: number) => {
+          if (i === 0) return null;
+          const y = START_Y + (i * LINE_HEIGHT);
+          return `M 0 ${y} L 200 ${y}`;
+        })
+        .filter((p): p is string => p !== null)
+        .join(' ');
+
+      node.setAttrs({
+        'field-separators': {
+          d: separatorPath,
+          stroke: '#1890ff',
+          strokeWidth: 1,
+          display: hasFields ? 'block' : 'none'
+        },
+        'fields-text': {
+          text: fieldsContent,
+          lineHeight: LINE_HEIGHT,
+          refY: START_Y + 5,
+          textVerticalAnchor: 'top',
+          fontSize: 12,
+          fill: '#334155'
+        }
+      });
+
+      const dynamicHeight = START_Y + (fields.length * LINE_HEIGHT) + 10;
+      node.resize(200, Math.max(dynamicHeight, 50));
+    }
   }
+
   // ─────────────────────────────────────────────────────────────────────────────
   // Suppression clavier (Delete / Backspace)
   // ─────────────────────────────────────────────────────────────────────────────
@@ -322,6 +379,7 @@ export class McdEditorComponent implements OnInit, OnDestroy {
       markup: [
         { tagName: 'rect', selector: 'body' },
         { tagName: 'rect', selector: 'header' },
+        { tagName: 'path', selector: 'field-separators' },
         { tagName: 'text', selector: 'label' },
         { tagName: 'text', selector: 'fields-text' },
       ],
@@ -350,21 +408,31 @@ export class McdEditorComponent implements OnInit, OnDestroy {
       inherit: 'ellipse',
       markup: [
         { tagName: 'ellipse', selector: 'body' },
+        { tagName: 'line', selector: 'separator' },
         { tagName: 'text', selector: 'label' },
-        { tagName: 'text', selector: 'fields-text' }, // AJOUTÉ : Pour voir les champs !
+        { tagName: 'text', selector: 'fields-text' },
       ],
       attrs: {
-        body: { refWidth: '100%', refHeight: '100%', fill: '#fffbeb', stroke: '#f59e0b', strokeWidth: 2 },
-        label: { refX: '50%', refY: '40%', textAnchor: 'middle', textVerticalAnchor: 'middle', fill: '#92400e', fontSize: 12, fontWeight: 'bold' },
+        body: { fill: '#FFFBEB', stroke: '#F59E0B', strokeWidth: 2 },
+        separator: {
+          stroke: '#F59E0B', strokeWidth: 1,
+          x1: '-40%', y1: 0, x2: '40%', y2: 0, // ligne horizontale au centre
+          display: 'none'
+        },
+        label: {
+          refX: '50%', refY: '50%',
+          textAnchor: 'middle', textVerticalAnchor: 'middle',
+          fill: '#92400E', fontSize: 12, fontWeight: 'bold'
+        },
         'fields-text': {
-          refX: '50%', refY: '60%', textAnchor: 'middle', fill: '#92400e', fontSize: 10, fontStyle: 'italic'
+          refX: '50%', refY: '50%',
+          textAnchor: 'middle', textVerticalAnchor: 'top',
+          fill: '#92400E', fontSize: 11, whiteSpace: 'pre'
         }
       },
-      ports: ASSOC_PORTS
+      ports: { ...ASSOC_PORTS }
     }, true);
   }
-
-
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Affichage des ports au survol
@@ -383,8 +451,6 @@ export class McdEditorComponent implements OnInit, OnDestroy {
 
       const data = node.getData();
       const fields = data?.fields || [];
-
-      // 2. Initialiser le tableau de Tools avec tes boutons existants
       const tools: any[] = [
         // Bouton de suppression globale du nœud
         {
@@ -411,8 +477,6 @@ export class McdEditorComponent implements OnInit, OnDestroy {
             ],
             x: '100%', y: 0, offset: { x: -35, y: 10 },
             onClick: () => {
-              // `node` vient de la closure externe (node:mouseenter)
-              // X6 ne passe pas `node` dans les params du button tool
               const data = node.getData();
               const newName = window.prompt("Nouveau nom :", data.name);
 
@@ -437,9 +501,39 @@ export class McdEditorComponent implements OnInit, OnDestroy {
               { tagName: 'circle', selector: 'button', attrs: { r: 10, stroke: '#1890ff', 'stroke-width': 2, fill: 'white', cursor: 'pointer' } },
               { tagName: 'path', selector: 'icon', attrs: { d: 'M-5 0 L5 0 M0 -5 L0 5', stroke: '#1890ff', 'stroke-width': 2, 'pointer-events': 'none' } },
             ],
-            x: '100%', y: '100%', offset: { x: -15, y: -15 },
+            x: '100%', y: node.shape === 'merise-assoc' ? '80%' : '100%', offset: { x: -15, y: -15 },
             onClick: ({ view }: { view: any }) => {
-              const n = view.cell;
+              const n = view.cell; fields.forEach((_: any, index: number) => {
+                tools.push({
+                  name: 'button-remove',
+                  args: {
+                    x: '100%',
+                    y: 32 + (index * 36) + 12,
+                    offset: { x: -20, y: HEADER_HEIGHT + 10 + (index * LINE_HEIGHT) + (LINE_HEIGHT / 2) },
+                    markup: [
+                      {
+                        tagName: 'circle',
+                        selector: 'button',
+                        attrs: { r: 6, fill: '#ff4d4f', cursor: 'pointer' },
+                      },
+                      {
+                        tagName: 'path',
+                        selector: 'icon',
+                        attrs: {
+                          d: 'M -3 -3 L 3 3 M -3 3 L 3 -3', // Le dessin de la croix
+                          fill: 'none', stroke: '#FFFFFF', 'stroke-width': 2, 'pointer-events': 'none'
+                        },
+                      },
+                    ],
+                    onClick: () => {
+                      this.removeFieldFromEntity(node, index);
+                      // On force le retrait immédiat des outils pour éviter les boutons fantômes
+                      node.removeTools();
+                    },
+                  },
+                });
+              });
+
               const d = n.getData();
               this.tableService.triggerPicker(n, d.fields || [], this.slug);
             }
@@ -447,38 +541,96 @@ export class McdEditorComponent implements OnInit, OnDestroy {
         }
       ];
 
-      // 3. AJOUT DYNAMIQUE : Une petite croix rouge en face de chaque champ
-      fields.forEach((_: any, index: number) => {
-        tools.push({
-          name: 'button-remove',
-          args: {
-            x: '100%',
-            y: 32 + (index * 36) + 12,
-            offset: { x: -20, y: 0 },
-            markup: [
-              {
-                tagName: 'circle',
-                selector: 'button',
-                attrs: { r: 6, fill: '#ff4d4f', cursor: 'pointer' },
-              },
-              {
-                tagName: 'path',
-                selector: 'icon',
-                attrs: {
-                  d: 'M -3 -3 L 3 3 M -3 3 L 3 -3', // Le dessin de la croix
-                  fill: 'none', stroke: '#FFFFFF', 'stroke-width': 2, 'pointer-events': 'none'
+      // Bouton : Une petite croix rouge en face de chaque champ (entité)
+      if (node.shape === 'merise-entity') {
+        fields.forEach((_: any, index: number) => {
+          tools.push({
+            name: 'button-remove',
+            args: {
+              x: '100%',
+              // START_Y + (index * LINE_HEIGHT) nous place en haut de la ligne
+              // On ajoute (LINE_HEIGHT / 2) pour centrer la croix sur le texte
+              y: START_Y + (index * LINE_HEIGHT) + (LINE_HEIGHT / 2) - 5,
+              offset: { x: -35, y: 5 },
+              markup: [
+                {
+                  tagName: 'circle',
+                  selector: 'button',
+                  attrs: {
+                    r: 6,
+                    fill: '#ff4d4f',
+                    cursor: 'pointer',
+                  },
                 },
-              },
-            ],
-            onClick: () => {
-              this.removeFieldFromEntity(node, index);
-              // On force le retrait immédiat des outils pour éviter les boutons fantômes
-              node.removeTools();
-            },
-          },
-        });
-      });
+                {
+                  tagName: 'path',
+                  selector: 'icon',
+                  attrs: {
+                    d: 'M -3 -3 L 3 3 M -3 3 L 3 -3',
+                    stroke: '#FFFFFF',
+                    strokeWidth: 2,
+                  },
+                },
+              ],
+              onClick: ({ view }: { view: any }) => {
+                const node = view.cell;
+                const data = node.getData();
 
+                // 1. On supprime la donnée
+                data.fields.splice(index, 1);
+                node.setData({ ...data }, { overwrite: true });
+
+                // 2. IMPORTANT : On vide les outils actuels pour forcer le nettoyage
+                node.removeTools();
+
+                // 3. On rafraîchit l'affichage (hauteur, texte)
+                this.updateNodeDisplay(node);
+              }
+            },
+          });
+        });
+      }
+      // Bouton : Une petite croix rouge en face de chaque champ (association)
+      if (node.shape === 'merise-assoc') {
+        const { height } = node.getSize();
+        const centerY = height / 2;
+
+        fields.forEach((_: any, index: number) => {
+          // On recalcule la position Y absolue du champ dans le nœud
+          const fieldY = centerY + 4 + (index * LINE_HEIGHT) + (LINE_HEIGHT / 2);
+
+          tools.push({
+            name: 'button-remove',
+            args: {
+              x: 0,
+              y: fieldY,
+              offset: { x: 60, y: 0 }, // Décalé à droite du texte centré
+              markup: [
+                {
+                  tagName: 'circle', selector: 'button',
+                  attrs: { r: 6, fill: '#ff4d4f', cursor: 'pointer' }
+                },
+                {
+                  tagName: 'path', selector: 'icon',
+                  attrs: {
+                    d: 'M -3 -3 L 3 3 M -3 3 L 3 -3',
+                    stroke: '#FFFFFF', strokeWidth: 2, pointerEvents: 'none'
+                  }
+                }
+              ],
+              onClick: ({ view }: { view: any }) => {
+                const n = view.cell;
+                const d = n.getData();
+                d.fields.splice(index, 1);
+                n.setData({ ...d }, { overwrite: true });
+                n.removeTools();
+                this.updateNodeDisplay(n);
+                this.autoSave();
+              }
+            }
+          });
+        });
+      }
       // 4. Appliquer tous les outils d'un coup
       node.addTools(tools);
 
