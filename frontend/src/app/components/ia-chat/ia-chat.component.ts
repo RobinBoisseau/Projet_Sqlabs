@@ -10,7 +10,7 @@ import { HttpClient } from '@angular/common/http';
 })
 export class IaChatComponent {
   reponse = '';
-  reponseMcd: { entite: string | null; message: string }[] = [];
+  reponseMcd: { entite: string | null; statut: 'valide' | 'invalide'; message: string }[] = [];
   reponseMcdJson = '';
   loading = false;
   loadingMcd = false;
@@ -36,7 +36,7 @@ export class IaChatComponent {
     this.reponseMcd = [];
     this.erreur = '';
 
-    this.http.get<{ remarques: { entite: string | null; message: string }[] }>('http://localhost:8000/api/ia/analyze-mcd')
+    this.http.get<{ remarques: { entite: string | null; statut: 'valide' | 'invalide'; message: string }[] }>('http://localhost:8000/api/ia/analyze-mcd')
       .subscribe({
         next: (res) => {
           this.reponseMcd = res.remarques;

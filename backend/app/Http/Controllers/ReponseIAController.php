@@ -24,101 +24,126 @@ class ReponseIAController extends Controller
         set_time_limit(0);
         ini_set('default_socket_timeout', -1);
 
-        // MCD soumis par l'étudiant
+        // MCD soumis par l'étudiant — structure identique au modèle frontend (Mcd / Entity / Association / Link)
         $mcd = [
-            'entites' => [
+            'Entities' => [
                 [
-                    'nom'      => 'Personne',
-                    'attributs' => [
-                        ['nom' => 'id',     'type' => 'INT',     'cle_primaire' => true],
-                        //['nom' => 'nom',    'type' => 'VARCHAR',     'cle_primaire' => false],
-                        ['nom' => 'prenom', 'type' => 'VARCHAR', 'cle_primaire' => false],
+                    'id'     => 1,
+                    'name'   => 'Personne',
+                    'fields' => [
+                        ['name' => 'id',     'Type' => 'INT',     'PrimaryKey' => true],
+                        ['name' => 'nom',    'Type' => 'VARCHAR', 'PrimaryKey' => false],
+                        ['name' => 'prenom', 'Type' => 'VARCHAR', 'PrimaryKey' => false],
                     ],
                 ],
                 [
-                    'nom'      => 'Voiture',
-                    'attributs' => [
-                        ['nom' => 'id',     'type' => 'INT',     'cle_primaire' => true],
-                        ['nom' => 'marque', 'type' => 'VARCHAR', 'cle_primaire' => false],
-                        ['nom' => 'modele', 'type' => 'VARCHAR', 'cle_primaire' => false],
+                    'id'     => 2,
+                    'name'   => 'Voiture',
+                    'fields' => [
+                        ['name' => 'id',     'Type' => 'INT',     'PrimaryKey' => true],
+                        ['name' => 'marque', 'Type' => 'VARCHAR', 'PrimaryKey' => false],
+                        ['name' => 'modele', 'Type' => 'VARCHAR', 'PrimaryKey' => false],
                     ],
                 ],
             ],
-            'associations' => [
+            'Associations' => [
                 [
-                    'nom'     => 'Conduire',
-                    'entites' => [
-                        //['nom' => 'Personne', 'cardinalite' => '1,N'],
-                        ['nom' => 'Voiture',  'cardinalite' => '1,N'],
+                    'id'     => 1,
+                    'name'   => 'Conduire',
+                    'fields' => [],
+                ],
+            ],
+            'Links' => [
+                ['id' => 1, 'cardinality' => '1,N', 'assocId' => 1, 'entityId' => 1],
+                ['id' => 2, 'cardinality' => '1,N', 'assocId' => 1, 'entityId' => 2],
+            ],
+        ];
+
+        // MCD attendu (correction de référence) — même structure, sans positions
+        $attendu = [
+            'Entities' => [
+                'Personne' => [
+                    'fields' => [
+                        ['name' => 'id',     'Type' => 'INT',     'PrimaryKey' => true],
+                        ['name' => 'nom',    'Type' => 'VARCHAR', 'PrimaryKey' => false],
+                        ['name' => 'prenom', 'Type' => 'VARCHAR', 'PrimaryKey' => false],
+                    ],
+                ],
+                'Voiture' => [
+                    'fields' => [
+                        ['name' => 'id',     'Type' => 'INT',     'PrimaryKey' => true],
+                        ['name' => 'marque', 'Type' => 'VARCHAR', 'PrimaryKey' => false],
+                        ['name' => 'modele', 'Type' => 'VARCHAR', 'PrimaryKey' => false],
+                    ],
+                ],
+            ],
+            'Associations' => [
+                'Conduire' => [
+                    'links' => [
+                        ['entityName' => 'Personne', 'cardinality' => '1,N'],
+                        ['entityName' => 'Voiture',  'cardinality' => '1,N'],
                     ],
                 ],
             ],
         ];
 
-        // MCD attendu (correction de référence)
-        $attendu = [
-            'entites' => [
-                'Personne' => [
-                    'id'     => ['type' => 'INT',     'cle_primaire' => true],
-                    'nom'    => ['type' => 'VARCHAR', 'cle_primaire' => false],
-                    'prenom' => ['type' => 'VARCHAR', 'cle_primaire' => false],
-                ],
-                'Voiture' => [
-                    'id'     => ['type' => 'INT',     'cle_primaire' => true],
-                    'marque' => ['type' => 'VARCHAR', 'cle_primaire' => false],
-                    'modele' => ['type' => 'VARCHAR', 'cle_primaire' => false],
-                ],
-            ],
-            'associations' => [
-                'Conduire' => [
-                    'Personne' => '1,N',
-                    'Voiture'  => '1,N',
-                ],
-            ],
-        ];
+        // Table de correspondance id → name pour les entités soumises
+        $entityIdToName = array_column($mcd['Entities'], 'name', 'id');
 
         // Comparaison PHP — détection des erreurs exactes
         $erreurs = [];
 
-        foreach ($mcd['entites'] as $entite) {
-            $nom     = $entite['nom'];
+        // Comparaison des entités
+        foreach ($mcd['Entities'] as $entity) {
+            $nom           = $entity['name'];
             $erreursEntite = [];
-            $attenduAttrs  = $attendu['entites'][$nom] ?? [];
-            $soumisAttrs   = array_column($entite['attributs'], null, 'nom');
+            $attenduFields = array_column($attendu['Entities'][$nom]['fields'] ?? [], null, 'name');
+            $soumisFields  = array_column($entity['fields'], null, 'name');
 
-            foreach ($attenduAttrs as $attrNom => $attrAttendu) {
-                if (!isset($soumisAttrs[$attrNom])) {
-                    $erreursEntite[] = "attribut '$attrNom' manquant";
+            foreach ($attenduFields as $fieldName => $fieldAttendu) {
+                if (!isset($soumisFields[$fieldName])) {
+                    $erreursEntite[] = "attribut '$fieldName' manquant";
                 } else {
-                    if (strtoupper($soumisAttrs[$attrNom]['type']) !== strtoupper($attrAttendu['type'])) {
-                        $erreursEntite[] = "attribut '$attrNom' : type '{$soumisAttrs[$attrNom]['type']}' au lieu de '{$attrAttendu['type']}'";
+                    if (strtoupper($soumisFields[$fieldName]['Type']) !== strtoupper($fieldAttendu['Type'])) {
+                        $erreursEntite[] = "attribut '$fieldName' : type '{$soumisFields[$fieldName]['Type']}' au lieu de '{$fieldAttendu['Type']}'";
                     }
-                    if ((bool)$soumisAttrs[$attrNom]['cle_primaire'] !== (bool)$attrAttendu['cle_primaire']) {
-                        $etat = $attrAttendu['cle_primaire'] ? 'devrait être clé primaire' : 'ne devrait pas être clé primaire';
-                        $erreursEntite[] = "attribut '$attrNom' : $etat";
+                    if ((bool)$soumisFields[$fieldName]['PrimaryKey'] !== (bool)$fieldAttendu['PrimaryKey']) {
+                        $etat = $fieldAttendu['PrimaryKey'] ? 'devrait être clé primaire' : 'ne devrait pas être clé primaire';
+                        $erreursEntite[] = "attribut '$fieldName' : $etat";
                     }
                 }
             }
-            foreach ($soumisAttrs as $attrNom => $_) {
-                if (!isset($attenduAttrs[$attrNom])) {
-                    $erreursEntite[] = "attribut '$attrNom' en trop (non demandé)";
+            foreach ($soumisFields as $fieldName => $_) {
+                if (!isset($attenduFields[$fieldName])) {
+                    $erreursEntite[] = "attribut '$fieldName' en trop (non demandé)";
                 }
             }
 
             $erreurs[$nom] = $erreursEntite;
         }
 
-        foreach ($mcd['associations'] as $assoc) {
-            $nom           = $assoc['nom'];
-            $erreursAssoc  = [];
-            $attenduCards  = $attendu['associations'][$nom] ?? [];
-            $soumisCards   = array_column($assoc['entites'], 'cardinalite', 'nom');
+        // Comparaison des associations via les Links
+        foreach ($mcd['Associations'] as $assoc) {
+            $nom          = $assoc['name'];
+            $erreursAssoc = [];
 
-            foreach ($attenduCards as $entiteNom => $cardAttendue) {
-                if (!isset($soumisCards[$entiteNom])) {
-                    $erreursAssoc[] = "cardinalité de '$entiteNom' manquante";
-                } elseif ($soumisCards[$entiteNom] !== $cardAttendue) {
-                    $erreursAssoc[] = "cardinalité de '$entiteNom' : '{$soumisCards[$entiteNom]}' au lieu de '$cardAttendue'";
+            // Construire la map entityName → cardinality depuis les links soumis
+            $soumisLinks = array_filter($mcd['Links'], fn($l) => $l['assocId'] === $assoc['id']);
+            $soumisCards = [];
+            foreach ($soumisLinks as $link) {
+                $entityName = $entityIdToName[$link['entityId']] ?? null;
+                if ($entityName) {
+                    $soumisCards[$entityName] = $link['cardinality'];
+                }
+            }
+
+            foreach ($attendu['Associations'][$nom]['links'] ?? [] as $linkAttendu) {
+                $entityName   = $linkAttendu['entityName'];
+                $cardAttendue = $linkAttendu['cardinality'];
+                if (!isset($soumisCards[$entityName])) {
+                    $erreursAssoc[] = "lien avec '$entityName' manquant";
+                } elseif ($soumisCards[$entityName] !== $cardAttendue) {
+                    $erreursAssoc[] = "cardinalité de '$entityName' : '{$soumisCards[$entityName]}' au lieu de '$cardAttendue'";
                 }
             }
 
@@ -132,8 +157,12 @@ class ReponseIAController extends Controller
 
         foreach ($erreurs as $nom => $liste) {
             if (count($liste) === 0) {
-                $type = isset($attendu['associations'][$nom]) ? "L'association" : "L'entité";
-                $remarques[] = ['entite' => $nom, 'message' => "$type $nom est correcte, bien joué !"];
+                $type = isset($attendu['Associations'][$nom]) ? "L'association" : "L'entité";
+                $remarques[] = [
+                    'entite'  => $nom,
+                    'statut'  => 'valide',
+                    'message' => "$type $nom est correcte, bien joué !",
+                ];
             }
         }
 
@@ -143,13 +172,14 @@ class ReponseIAController extends Controller
             foreach ($avecErreurs as $nom => $liste) {
                 $categories = [];
                 foreach ($liste as $erreur) {
-                    if (str_contains($erreur, 'cardinalité'))      $categories[] = 'une ou plusieurs cardinalités incorrectes ou manquantes';
+                    if (str_contains($erreur, 'lien') && str_contains($erreur, 'manquant')) $categories[] = 'un ou plusieurs liens manquants entre cette association et ses entités';
+                    elseif (str_contains($erreur, 'cardinalité'))  $categories[] = 'une ou plusieurs cardinalités incorrectes';
                     elseif (str_contains($erreur, 'clé primaire')) $categories[] = 'une clé primaire incorrecte';
                     elseif (str_contains($erreur, 'type'))         $categories[] = 'un type d\'attribut incorrect';
                     elseif (str_contains($erreur, 'manquant'))     $categories[] = 'un ou plusieurs attributs manquants';
                     elseif (str_contains($erreur, 'en trop'))      $categories[] = 'un ou plusieurs attributs en trop';
                 }
-                $estAssociation = isset($attendu['associations'][$nom]);
+                $estAssociation = isset($attendu['Associations'][$nom]);
                 $erreursAbstraites[$nom] = [
                     'type'       => $estAssociation ? 'association' : 'entité',
                     'categories' => array_unique($categories),
@@ -170,7 +200,7 @@ Règles :
 * Ne jamais mentionner de noms ou valeurs précises
 * Ne pas expliquer ce qui est faux
 * Utiliser "cette entité" ou "cette association" selon le type
-* Exemples : "Avez-vous bien vérifié les attributs de cette entité ?", "Avez vous bien défini toutes les cardinalités pour cette association ?"
+* Exemples : "Avez-vous bien vérifié les attributs de cette entité ?", "Avez vous bien défini tous les liens pour cette association ?"
 
 Retourne uniquement cet objet JSON où les clés sont les noms des entités/associations :
 {"questions": {"NomEntite": "question...", "NomAssociation": "question..."}}
@@ -179,7 +209,11 @@ PROMPT;
             $data = $ollama->generateJson($prompt, 300);
             foreach ($avecErreurs as $nom => $_) {
                 $question    = $data['questions'][$nom] ?? "Avez-vous bien vérifié tous les éléments de $nom ?";
-                $remarques[] = ['entite' => $nom, 'message' => $question];
+                $remarques[] = [
+                    'entite'  => $nom,
+                    'statut'  => 'invalide',
+                    'message' => $question,
+                ];
             }
         }
 

@@ -21,8 +21,15 @@
       {{ loadingMcd ? 'Analyse en cours...' : 'Analyser le MCD' }}
     </button>
     <div *ngIf="reponseMcd.length > 0" class="flex flex-col gap-3">
-      <div *ngFor="let r of reponseMcd" class="bg-white border border-base-200 rounded-xl p-4 shadow-sm flex gap-3 items-start">
-        <span class="badge badge-outline shrink-0">{{ r.entite ?? 'Global' }}</span>
+      <div *ngFor="let r of reponseMcd"
+           class="bg-white border rounded-xl p-4 shadow-sm flex gap-3 items-start"
+           [class.border-green-300]="r.statut === 'valide'"
+           [class.border-orange-300]="r.statut === 'invalide'">
+        <span class="badge shrink-0"
+              [class.badge-success]="r.statut === 'valide'"
+              [class.badge-warning]="r.statut === 'invalide'">
+          {{ r.entite ?? 'Global' }}
+        </span>
         <p class="text-gray-800 text-sm">{{ r.message }}</p>
       </div>
       <details class="mt-2">
