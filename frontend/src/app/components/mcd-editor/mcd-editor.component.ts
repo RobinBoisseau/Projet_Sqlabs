@@ -191,8 +191,9 @@ export class McdEditorComponent implements OnInit, OnDestroy {
 
 
       const baseWidth = 120;
-      const dynamicWidth = hasFields ? Math.max(baseWidth, fields.length * 60) : baseWidth;
-      const fieldWidth = fields.length > 0 ? dynamicWidth / fields.length : dynamicWidth;
+      const dynamicWidth = hasFields
+        ? Math.max(baseWidth, fields.reduce((acc: number, f: any) => acc + (f.TechnicalName.length * 7), 40))
+        : baseWidth;
 
       node.resize(dynamicWidth, 80);
       node.setAttrs({
@@ -216,15 +217,22 @@ export class McdEditorComponent implements OnInit, OnDestroy {
       });
     } else {
       // Logique entité inchangée
+      // Dans updateNodeDisplay pour les entités
+      const { width } = node.getSize();
+      const maxChars = Math.floor((width - 20) / 6.5); // ~6.5px par caractère en fontSize 11
+
       const fieldsContent = fields
-        .map((f: any) => `${f.PrimaryKey ? '#' : '-'} ${f.TechnicalName} : ${f.Type}`)
+        .map((f: any) => {
+          const line = `${f.PrimaryKey ? '#' : '-'} ${f.TechnicalName} : ${f.Type}`;
+          return line.length > maxChars ? line.substring(0, maxChars) + '…' : line;
+        })
         .join('\n');
 
       const separatorPath = fields
         .map((_: any, i: number) => {
           if (i === 0) return null;
           const y = START_Y + (i * LINE_HEIGHT);
-          return `M 0 ${y} L 200 ${y}`;
+          return `M 0 ${y} L ${width} ${y}`; // ✅ au lieu de L 200
         })
         .filter((p): p is string => p !== null)
         .join(' ');
@@ -240,6 +248,7 @@ export class McdEditorComponent implements OnInit, OnDestroy {
           text: fieldsContent,
           lineHeight: LINE_HEIGHT,
           refY: START_Y + 5,
+          refWidth: '95%', // ✅ AJOUTE ÇA
           textVerticalAnchor: 'top',
           fontSize: 12,
           fill: '#334155'
@@ -247,7 +256,7 @@ export class McdEditorComponent implements OnInit, OnDestroy {
       });
 
       const dynamicHeight = START_Y + (fields.length * LINE_HEIGHT) + 10;
-      node.resize(200, Math.max(dynamicHeight, 50));
+      node.resize(200, Math.max(dynamicHeight, 60));
     }
   }
 
@@ -418,7 +427,8 @@ export class McdEditorComponent implements OnInit, OnDestroy {
           textVerticalAnchor: 'top',
           whiteSpace: 'pre',
           cursor: 'pointer',
-          pointerEvents: 'auto' // <--- FORCE LE TEXTE À ÉCOUTER LE CLIC
+          pointerEvents: 'auto',
+          refWidth: '100%',
         }
       },
       ports: { ...ENTITY_PORTS }
@@ -470,17 +480,6 @@ export class McdEditorComponent implements OnInit, OnDestroy {
         node.setPortProp(port.id!, 'attrs/circle/style/visibility', 'visible');
       });
 
-      // Survol d'une assoc : montrer les ports de toutes les entités comme cibles
-      if (node.shape === 'merise-assoc') {
-        graph.getNodes().forEach(n => {
-          if (n.shape === 'merise-entity') {
-            n.getPorts().forEach(port => {
-              n.setPortProp(port.id!, 'attrs/circle/style/visibility', 'visible');
-            });
-          }
-        });
-      }
-
       const data = node.getData();
       const fields = data?.fields || [];
       const tools: any[] = [
@@ -519,7 +518,6 @@ export class McdEditorComponent implements OnInit, OnDestroy {
                 node.setData(data, { overwrite: true });
                 // Mise à jour visuelle du header
                 node.setAttrs({ label: { text: trimmed } });
-                this.updateNodeDisplay(node);
                 this.autoSave();
               }
             }
@@ -674,20 +672,10 @@ export class McdEditorComponent implements OnInit, OnDestroy {
 
     graph.on('node:mouseleave', ({ node }) => {
       if (!graph.isSelected(node)) {
-        // Ne pas cacher les ports des entités quand un drag de connexion est en cours
-        if (!this.connecting || node.shape !== 'merise-entity') {
+        // Cache les ports de ce nœud seulement si pas en train de connecter
+        if (!this.connecting) {
           node.getPorts().forEach(port => {
             node.setPortProp(port.id!, 'attrs/circle/style/visibility', 'hidden');
-          });
-        }
-        // En quittant une assoc sans drag actif, masquer aussi les ports des entités
-        if (node.shape === 'merise-assoc' && !this.connecting) {
-          graph.getNodes().forEach(n => {
-            if (n.shape === 'merise-entity' && !graph.isSelected(n)) {
-              n.getPorts().forEach(port => {
-                n.setPortProp(port.id!, 'attrs/circle/style/visibility', 'hidden');
-              });
-            }
           });
         }
         node.setAttrByPath('delete-group/visibility', 'hidden');
@@ -714,7 +702,27 @@ export class McdEditorComponent implements OnInit, OnDestroy {
     graph.on('node:resized', syncGeometry);
 
     graph.on('node:resized', ({ node }) => {
-      this.updateNodeDisplay(node);
+      syncGeometry({ node });
+
+      if (node.shape === 'merise-entity') {
+        const data = node.getData();
+        const fields: any[] = data.fields || [];
+        const { width } = node.getSize(); // ✅ largeur actuelle après resize
+
+        const separatorPath = fields
+          .map((_: any, i: number) => {
+            if (i === 0) return null;
+            const y = START_Y + (i * LINE_HEIGHT);
+            return `M 0 ${y} L ${width} ${y}`; // ✅ suit la largeur
+          })
+          .filter((p): p is string => p !== null)
+          .join(' ');
+
+        node.setAttrs({
+          'field-separators': { d: separatorPath },
+          'fields-text': { refWidth: '90%' } // ✅ s'adapte à la largeur
+        });
+      }
     });
     // CHANGER CARDINALITÉ (Clic simple sur le lien)
     graph.on('edge:click', ({ edge, e }) => {

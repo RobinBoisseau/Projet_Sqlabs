@@ -15,8 +15,7 @@
             <input type="text" [(ngModel)]="line.name" (ngModelChange)="emitChanges()" placeholder="ex: Customer Name">
           </td>
           <td>
-            <input type="text" [(ngModel)]="line.TechnicalName" (ngModelChange)="emitChanges()"
-              placeholder="ex: customer_name">
+            <input type="text" [(ngModel)]="line.TechnicalName" (blur)="emitChanges()" placeholder="ex: customer_name">
           </td>
           <td>
             <select [(ngModel)]="line.Type" (ngModelChange)="emitChanges()">

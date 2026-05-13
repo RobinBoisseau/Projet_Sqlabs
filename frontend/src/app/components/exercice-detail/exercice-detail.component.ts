@@ -29,6 +29,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
   exercice: Exercice | undefined;
   mcd: Mcd | undefined;
   dictionary: Field[] = [];
+  private lastSavedDictionary: Field[] = [];
   dependencies: DependenceLine[] = [];
   technicalNames: string[] = [];
 
@@ -98,6 +99,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
 
               // 1. Dictionnaire
               this.dictionary = attempt.dictionary || attempt.dictionnaire || [];
+              this.lastSavedDictionary = this.deepCopyFields(this.dictionary);
 
               // 2. Dépendances — BD en priorité, localStorage en fallback
               const rawDeps = attempt.dependencies || attempt.dependance;
@@ -137,7 +139,9 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
 
   // --- 3. SYNCHRONISATION ---
   onDictionaryChanged(updatedLines: Field[]) {
+    this.syncDependenciesToDictionary(this.lastSavedDictionary, updatedLines);
     this.dictionary = updatedLines;
+    this.lastSavedDictionary = this.deepCopyFields(updatedLines);
     this.updateTechnicalNames();
 
     if (this.exercice && this.isLoaded) {
@@ -152,15 +156,47 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
     }
   }
 
+  private deepCopyFields(fields: Field[]): Field[] {
+    return fields.map(f => Field.fromJSON(f));
+  }
+
+  private syncDependenciesToDictionary(prevFields: Field[], newFields: Field[]) {
+    const newIds = new Set(newFields.map(f => f.id));
+
+    const deletedNames = new Set(
+      prevFields.filter(f => !newIds.has(f.id)).map(f => f.TechnicalName).filter(Boolean)
+    );
+
+    const renames = new Map<string, string>();
+    for (const prev of prevFields) {
+      const next = newFields.find(f => f.id === prev.id);
+      if (next && prev.TechnicalName && prev.TechnicalName !== next.TechnicalName) {
+        renames.set(prev.TechnicalName, next.TechnicalName);
+      }
+    }
+
+    if (deletedNames.size === 0 && renames.size === 0) return;
+
+    this.dependencies = this.dependencies.map(dep => ({
+      ...dep,
+      source: dep.source.filter(s => !deletedNames.has(s)).map(s => renames.get(s) ?? s),
+      cible: dep.cible.filter(c => !deletedNames.has(c)).map(c => renames.get(c) ?? c),
+    }));
+  }
+
 
   onDependenciesChanged(event: DependenceLine[]) {
     this.dependencies = event;
-    console.log('💾 deps à sauvegarder:', JSON.stringify(event));
-    console.log('📦 onDependenciesChanged appelé, isLoaded:', this.isLoaded, 'nb lignes:', event.length);
 
     if (this.exercice && this.isLoaded) {
       this.dependenceService.saveDependences(this.exercice.slug!, this.dependencies);
-      console.log('✅ Dépendances sauvegardées dans localStorage');
+
+      const data = {
+        dictionary: this.dictionary,
+        dependencies: this.dependencies,
+        model: {}
+      };
+      this.exerciceService.saveAttempt(this.exercice.id, data).subscribe();
     }
     this.cdr.detectChanges();
   }
