@@ -1,56 +1,164 @@
-:host { display: flex; flex-direction: column; height: 100%; width: 100%; }
-
-.dict-container {
-  flex: 1; display: flex; flex-direction: column; height: 100%;
-  background-color: white; border-radius: 8px; border: 1px solid #e2e8f0; overflow: hidden;
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
 }
 
-.table-scroll-area { flex: 1; overflow-y: auto; overflow-x: hidden; }
+.dict-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
 
-.dict-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.table-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 
+.dict-table {
+  width: 100%;
+  /* On change collapse en separate pour permettre l'espacement */
+  border-collapse: separate; 
+  border-spacing: 0 8px; /* 0px horizontal, 8px vertical */
+  table-layout: fixed;
+}
+
+.dict-table thead th:nth-child(3),
+.dict-table tbody td:nth-child(3) {
+  width: 120px !important; /* On monte à 135px pour être large */
+  min-width: 120px;
+}
+
+/* On réduit la place des colonnes de texte pour compenser */
+.dict-table thead th:nth-child(1),
+.dict-table thead th:nth-child(2) {
+  width: auto; /* Laisse le navigateur répartir le reste */
+}
 .dict-table thead th {
-  background-color: #0061d5; color: white; padding: 12px;
-  font-size: 0.9rem; font-weight: bold; text-align: left;
-  position: sticky; top: 0; z-index: 100;
+  background-color: #0061d5;
+  color: white;
+  padding: 12px 8px; /* On réduit un peu le padding latéral */
+  font-size: 0.85rem;
+  white-space: nowrap; /* Évite que le titre "NOM TECHNIQUE" passe sur 2 lignes */
 }
 
 .dict-table td {
-  padding: 8px 12px; border-bottom: 1px solid #f1f5f9;
-  vertical-align: middle; overflow: visible !important;
+  /* On passe de 8px à 12px (ou plus) pour le haut et le bas */
+  padding: 12px 12px; 
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
 }
 
+
+/* --- OPTIMISATION DU SELECT --- */
+select {
+  width: 100%;
+  padding: 8px 4px; /* Un peu moins de padding pour laisser de la place au texte */
+  cursor: pointer;
+  text-overflow: ellipsis;
+}
+
+/* --- INPUTS & SELECTS --- */
 input, select {
-  width: 100%; padding: 8px; border: 1px solid #d1d5db;
-  border-radius: 4px; font-size: 14px;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+  transition: border-color 0.2s;
 }
 
-/* --- STYLE UNIFIÉ DES ACTIONS --- */
-.actions-cell { width: 40px; text-align: center; }
+input:focus, select:focus {
+  outline: none;
+  border-color: #0061d5;
+}
 
-.dropdown { position: relative; display: inline-block; }
+/* --- ACTIONS COLUMN --- */
+.actions-cell {
+  width: 45px;
+  text-align: center;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
 
 .dots-btn {
-  background: none; border: none; cursor: pointer;
-  color: #94a3b8; font-size: 1.2rem; padding: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  font-size: 1.3rem;
+  padding: 4px 8px;
+  line-height: 1;
   transition: color 0.2s;
 }
-.dots-btn:hover { color: #0061d5; }
+
+.dots-btn:hover {
+  color: #0061d5;
+}
 
 .dropdown-content {
-  display: none; position: absolute; right: 0; top: 100%;
-  background-color: white; min-width: 130px;
-  box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
-  z-index: 10000; border-radius: 4px; border: 1px solid #eee; overflow: hidden;
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: white;
+  min-width: 140px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  z-index: 10000;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  padding: 4px 0;
 }
-.dropdown:hover .dropdown-content { display: block; }
 
-.dropdown-content a {
-  padding: 10px 15px; display: block; color: #333;
-  font-size: 13px; text-decoration: none; cursor: pointer; text-align: left;
+.dropdown:hover .dropdown-content {
+  display: block;
 }
-.dropdown-content a:hover { background-color: #f5f5f5; }
 
-.delete-text { color: #e74c3c !important; border-top: 1px solid #f8f8f8; }
+/* Stylisation des boutons du menu pour remplacer les <a> */
+.dropdown-content button {
+  width: 100%;
+  padding: 10px 15px;
+  display: block;
+  color: #475569;
+  font-size: 13px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
 
-.add-section { padding: 12px; border-top: 1px solid #f1f5f9; }
+.dropdown-content button:hover {
+  background-color: #f8fafc;
+  color: #0061d5;
+}
+
+.dropdown-content .delete-text {
+  color: #ef4444;
+  border-top: 1px solid #f1f5f9;
+}
+
+.dropdown-content .delete-text:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+/* --- ADD SECTION --- */
+.add-section {
+  padding: 12px;
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: center;
+}

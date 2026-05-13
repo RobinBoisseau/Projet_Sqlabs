@@ -4,6 +4,7 @@ import { Graph, Node, Edge } from '@antv/x6';
 import { Selection } from '@antv/x6-plugin-selection';
 import { Dnd } from '@antv/x6-plugin-dnd';
 import { Transform } from '@antv/x6-plugin-transform';
+import { Subscription } from 'rxjs';
 
 import { Mcd } from '../../models/mcd';
 import { Entity } from '../../models/entity';
@@ -11,6 +12,9 @@ import { Association } from '../../models/association';
 import { Link, MERISE_CARDINALITIES } from '../../models/link';
 import { Field } from '../../models/field';
 import { McdService } from '../../services/mcd.service';
+import { TableService } from '../../services/table.service';
+import { DictionaryService } from '../../services/dictionary.service';
+import { ChoixChampComponent } from '../choix-champ/choix-champ.component';
 import { ToolButtonComponent } from '../toll-button/toll-button.component';
 
 // ─── Configuration des ports réutilisable ────────────────────────────────────
@@ -19,8 +23,8 @@ import { ToolButtonComponent } from '../toll-button/toll-button.component';
  * Groupes de ports cardinaux (N/S/E/O) partagés par Entités et Associations.
  *
  * RÈGLE MERISE :
- *   - Sur les Entités  → magnet: false  (on ne peut PAS partir d'une entité)
- *   - Sur les Assocs   → magnet: true   (seule source de lien autorisée)
+ *   - Entités et Associations ont magnet: true pour permettre le drag dans les
+ *     deux sens. La règle entity↔assoc est enforced par validateConnection.
  *
  * Les ports sont invisibles par défaut et n'apparaissent qu'au survol du nœud
  * grâce aux attrs.circle.style.visibility contrôlé via connected:highlight.
@@ -28,7 +32,7 @@ import { ToolButtonComponent } from '../toll-button/toll-button.component';
 const ENTITY_PORTS = {
   groups: {
     top: { position: 'top', attrs: { circle: { r: 4, magnet: 'passive', stroke: '#1890ff', style: { visibility: 'hidden' } } } },
-    bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: 'pasive', stroke: '#1890ff', style: { visibility: 'hidden' } } } },
+    bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: 'passive', stroke: '#1890ff', style: { visibility: 'hidden' } } } },
     left: { position: 'left', attrs: { circle: { r: 4, magnet: 'passive', stroke: '#1890ff', style: { visibility: 'hidden' } } } },
     right: { position: 'right', attrs: { circle: { r: 4, magnet: 'passive', stroke: '#1890ff', style: { visibility: 'hidden' } } } },
   },
@@ -55,11 +59,16 @@ const ASSOC_PORTS = {
   ]
 };
 
+const HEADER_HEIGHT = 32;
+const LINE_HEIGHT = 22; // Un peu plus grand pour aérer comme sur l'image
+const START_Y = 35;     // Position du premier champ
+
+
 
 @Component({
   selector: 'app-mcd-editor',
   standalone: true,
-  imports: [CommonModule, ToolButtonComponent],
+  imports: [CommonModule, ToolButtonComponent, ChoixChampComponent],
   templateUrl: './mcd-editor.component.html',
   styleUrls: ['./mcd-editor.component.css']
 })
@@ -70,42 +79,185 @@ export class McdEditorComponent implements OnInit, OnDestroy {
 
   private graph?: Graph;
   private dnd?: Dnd;
+  private connecting = false;
 
-  constructor(private mcdService: McdService) { }
+  showPicker = false;
+  public pickerNode: Node | null = null;
+  pickerCurrentNames: string[] = [];
+  pickerAvailableNames: string[] = [];
+  private pickerSub?: Subscription;
+  private dictSub?: Subscription;
 
+  constructor(
+    private mcdService: McdService,
+    private tableService: TableService,
+    private dictionaryService: DictionaryService
+  ) { }
   // ─────────────────────────────────────────────────────────────────────────────
   // Cycle de vie
   // ─────────────────────────────────────────────────────────────────────────────
 
+
   ngOnInit(): void {
-    // 1. Charger le MCD depuis le localStorage.
-    //    fromJSON des modèles préserve posX/posY/id
     const savedMcd = this.mcdService.loadMcd(this.slug);
     if (savedMcd) this.mcd = savedMcd;
 
-    // 2. Le DOM doit être stable avant d'instancier X6
     setTimeout(() => {
       this.initGraph();
       if (this.mcd) this.drawMcd();
     }, 100);
+
+    this.pickerSub = this.tableService.openPicker$.subscribe(({ node, currentFields, slug }) => {
+      const activeSlug = slug || this.slug;
+      const allFields = this.dictionaryService.load(activeSlug);
+
+      // RÉCUPÈRE LES CHAMPS RÉELS DU NŒUD (ceux qui n'ont pas été supprimés)
+      const nodeData = node.getData();
+      const actualFields = nodeData.fields || [];
+
+      this.pickerAvailableNames = allFields.map(f => f.TechnicalName);
+      // On met à jour la liste des champs déjà sélectionnés
+      this.pickerCurrentNames = actualFields.map((f: any) => f.TechnicalName);
+
+      this.pickerNode = node;
+      this.showPicker = true;
+    });
+
+    this.dictSub = this.dictionaryService.onUpdated$.subscribe(({ slug, fields }) => {
+      if (slug !== this.slug || !this.graph) return;
+
+      this.graph.getNodes().forEach(node => {
+        const data = node.getData();
+        if (!data?.fields) return;
+
+        const updatedFields = data.fields
+          .filter((f: any) => fields.some((df: any) => df.id === f.id)) // supprime si absent du dico
+          .map((f: any) => {
+            const dictField = fields.find((df: any) => df.id === f.id);
+            return dictField ? {
+              ...f,
+              TechnicalName: dictField.TechnicalName,
+              Type: dictField.Type
+            } : f;
+          });
+
+        node.setData({ ...data, fields: updatedFields }, { overwrite: true });
+        this.updateNodeDisplay(node);
+      });
+    });
   }
 
   ngOnDestroy(): void {
     this.graph?.dispose();
+    this.pickerSub?.unsubscribe();
+    this.dictSub?.unsubscribe();
   }
 
+  // À mettre dans mcd-editor.component.ts
+
   ngAfterViewInit(): void {
-    // On attend un micro-délai pour être sûr que le DOM est prêt
+    // On utilise un setTimeout pour s'assurer que le navigateur
+    // a fini d'appliquer le CSS (flexbox, grid, etc.) sur #container
     setTimeout(() => {
       if (this.graph) {
+        // Sécurité : on nettoie les cellules fantômes (optionnel)
         this.graph.clearCells();
 
-        // On force le graphe à recalculer sa taille
-        const width = document.getElementById('container')?.clientWidth || 800;
-        const height = document.getElementById('container')?.clientHeight || 600;
-        this.graph.resize(width, height);
+        // --- C'EST ICI QUE CA SE PASSE : LE RESIZE FORCÉ ---
+        // On récupère le conteneur HTML du graphe
+        const container = document.getElementById('container');
+
+        if (container) {
+          // On récupère sa taille RÉELLE calculée par le navigateur
+          const width = container.clientWidth;
+          const height = container.clientHeight;
+
+          // On force le graphe à s'adapter à cette taille
+          this.graph.resize(width, height);
+
+          console.log(`[MCD] Graphe redimensionné : ${width}x${height}`);
+        }
       }
     }, 100);
+  }
+
+  updateNodeDisplay(node: any) {
+    const data = node.getData();
+    const fields: any[] = data.fields || [];
+    const hasFields = fields.length > 0;
+
+    if (node.shape === 'merise-assoc') {
+      const fieldsContent = fields.map((f: any) => f.TechnicalName).join('          ');
+
+
+      const baseWidth = 120;
+      const dynamicWidth = hasFields
+        ? Math.max(baseWidth, fields.reduce((acc: number, f: any) => acc + (f.TechnicalName.length * 7), 40))
+        : baseWidth;
+
+      node.resize(dynamicWidth, 80);
+      node.setAttrs({
+        label: {
+          refX: '50%',
+          refY: hasFields ? '35%' : '50%',
+          textVerticalAnchor: 'middle',
+        },
+        separator: {
+          display: 'none'
+        },
+        'fields-text': {
+          text: fieldsContent,
+          refX: '50%',
+          refY: 40,
+          lineHeight: LINE_HEIGHT,
+          textVerticalAnchor: 'top',
+          textAnchor: 'middle',
+          display: hasFields ? 'block' : 'none'
+        }
+      });
+    } else {
+      // Logique entité inchangée
+      // Dans updateNodeDisplay pour les entités
+      const { width } = node.getSize();
+      const maxChars = Math.floor((width - 20) / 6.5); // ~6.5px par caractère en fontSize 11
+
+      const fieldsContent = fields
+        .map((f: any) => {
+          const line = `${f.PrimaryKey ? '#' : '-'} ${f.TechnicalName} : ${f.Type}`;
+          return line.length > maxChars ? line.substring(0, maxChars) + '…' : line;
+        })
+        .join('\n');
+
+      const separatorPath = fields
+        .map((_: any, i: number) => {
+          if (i === 0) return null;
+          const y = START_Y + (i * LINE_HEIGHT);
+          return `M 0 ${y} L ${width} ${y}`; // ✅ au lieu de L 200
+        })
+        .filter((p): p is string => p !== null)
+        .join(' ');
+
+      node.setAttrs({
+        'field-separators': {
+          d: separatorPath,
+          stroke: '#1890ff',
+          strokeWidth: 1,
+          display: hasFields ? 'block' : 'none'
+        },
+        'fields-text': {
+          text: fieldsContent,
+          lineHeight: LINE_HEIGHT,
+          refY: START_Y + 5,
+          refWidth: '95%', // ✅ AJOUTE ÇA
+          textVerticalAnchor: 'top',
+          fontSize: 12,
+          fill: '#334155'
+        }
+      });
+
+      const dynamicHeight = START_Y + (fields.length * LINE_HEIGHT) + 10;
+      node.resize(200, Math.max(dynamicHeight, 60));
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -151,7 +303,7 @@ export class McdEditorComponent implements OnInit, OnDestroy {
       panning: { enabled: true, modifiers: ['space'] },
       mousewheel: { enabled: true, modifiers: ['ctrl'] },
 
-      // ── Affichage des ports au survol ────────────────────────────────────────
+      // ── Affichage des ports au survol
 
       highlighting: {
         // Quand un port est prêt à recevoir un lien
@@ -183,25 +335,14 @@ export class McdEditorComponent implements OnInit, OnDestroy {
          * Un lien ne peut partir QUE d'un port magnet=true (Association)
          * et arriver QUE sur un nœud de shape 'merise-entity'.
          */
-        validateConnection({ sourceMagnet, sourceView, targetView }) {
-          // La source doit être un port magnet (Association uniquement)
-          if (!sourceMagnet) return false;
+        validateConnection({ sourceView, targetView }) {
+          const sourceCell = sourceView?.cell as any;
+          const targetCell = targetView?.cell as any;
 
-          if (!sourceView || !targetView) return false;
+          // isNode() exclut les arêtes et ports qui peuvent capturer le survol
+          if (!sourceCell?.isNode?.() || !targetCell?.isNode?.()) return false;
 
-          const sourceNode = sourceView.cell as Node;
-          const targetNode = targetView.cell as Node;
-
-          if (!sourceNode?.isNode() || !targetNode?.isNode()) return false;
-
-          // Interdire : Association → Association
-          if (sourceNode.shape === 'merise-assoc' && targetNode.shape === 'merise-assoc') return false;
-
-          // Interdire : Entité → n'importe quoi (magnet: false sur entités, mais double sécurité)
-          if (sourceNode.shape === 'merise-entity') return false;
-
-          // Autoriser uniquement : Association → Entité
-          return targetNode.shape === 'merise-entity';
+          return sourceCell.shape === 'merise-assoc' && targetCell.shape === 'merise-entity';
         },
 
         createEdge() {
@@ -211,7 +352,8 @@ export class McdEditorComponent implements OnInit, OnDestroy {
               line: {
                 stroke: '#334155',
                 strokeWidth: 2,
-                targetMarker: null  // Pas de flèche : lien Merise non-directionnel
+                targetMarker: '',  // Pas de flèche : lien Merise non-directionnel
+                sourceMarker: ''
               }
             },
             zIndex: 0
@@ -226,13 +368,13 @@ export class McdEditorComponent implements OnInit, OnDestroy {
       enabled: true,
       rubberband: true,
       modifiers: ['shift'],
-      showNodeSelectionBox: false, // On l'a déjà dit, mais assure-toi que c'est bien là
+      showNodeSelectionBox: false,
       pointerEvents: 'none',
     }));
 
     this.graph.use(new Transform({
       resizing: {
-        enabled: true,
+        enabled: (node: Node) => node.shape !== 'merise-assoc', // ✅
         orthogonal: false,
         restrict: false,
         preserveAspectRatio: false,
@@ -247,114 +389,79 @@ export class McdEditorComponent implements OnInit, OnDestroy {
     this.registerNodeShapes();
     this.bindGraphEvents();
 
-    this.dnd = new Dnd({ target: this.graph });
+    this.dnd = new Dnd({
+      target: this.graph,
+      scaled: false,
+      getDragNode: (node) => node.clone(),
+      getDropNode: (node) => node.clone(),
+    });
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Formes personnalisées AntV X6
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private registerNodeShapes(): void {
 
-    /**
-     * ENTITÉ MERISE
-     * - Rectangle avec en-tête sombre + zone de champs scrollable
-     * - Ports cardinaux avec magnet: FALSE → impossible de partir d'une entité
-     * - markup étendu : 'fields-text' affiche les Field[] de l'objet métier
-     */
+  private registerNodeShapes(): void {
+    // ENTITÉ
     Graph.registerNode('merise-entity', {
       inherit: 'rect',
       markup: [
         { tagName: 'rect', selector: 'body' },
         { tagName: 'rect', selector: 'header' },
+        { tagName: 'path', selector: 'field-separators' },
         { tagName: 'text', selector: 'label' },
-        { tagName: 'line', selector: 'divider' },
         { tagName: 'text', selector: 'fields-text' },
       ],
       attrs: {
-        body: {
-          refWidth: '100%',
-          refHeight: '100%',
-          fill: '#ffffff',
-          stroke: '#0061d5',
-          strokeWidth: 2,
-          rx: 8,
-          ry: 8,
-          magnet: true,
-        },
-        header: {
-          refWidth: '100%',
-          height: 28,
-          fill: '#0061d5',
-          rx: 8,
-          ry: 8,
-          stroke: 'none',
-        },
-        label: {
-          refX: '50%',
-          refY: 14,
-          textAnchor: 'middle',
-          textVerticalAnchor: 'middle',
-          fill: '#ffffff',
-          fontSize: 12,
-          fontWeight: 'bold',
-          fontFamily: 'system-ui, sans-serif',
-        },
-        divider: {
-          refX1: 0,
-          refX2: '100%',
-          refY1: 28,
-          refY2: 28,
-          stroke: '#cbd5e1',
-          strokeWidth: 1,
-        },
+        body: { refWidth: '100%', refHeight: '100%', fill: '#ffffff', stroke: '#0061d5', strokeWidth: 2, rx: 8, ry: 8 },
+        header: { refWidth: '100%', height: 28, fill: '#0061d5', rx: 8, ry: 8, stroke: 'none' },
+        label: { refX: '50%', refY: 14, textAnchor: 'middle', fill: '#ffffff', fontSize: 12, fontWeight: 'bold' },
+        // Dans registerNodeShapes() pour merise-entity
         'fields-text': {
-          refX: 8,
-          refY: 36,
+          refX: 8, // Un peu moins de marge à gauche
+          refY: 35,
           fill: '#334155',
           fontSize: 11,
-          fontFamily: 'system-ui, sans-serif',
-          // Le texte multi-lignes sera injecté via node.setAttrByPath()
-          text: '',
+          textAnchor: 'start',
+          textVerticalAnchor: 'top',
+          whiteSpace: 'pre',
+          cursor: 'pointer',
+          pointerEvents: 'auto',
+          refWidth: '100%',
         }
       },
-      ports: ENTITY_PORTS
+      ports: { ...ENTITY_PORTS }
     }, true);
 
-    /**
-     * ASSOCIATION MERISE
-     * - Ellipse avec bordure ambre
-     * - Ports cardinaux avec magnet: TRUE → SEULE source de lien autorisée
-     */
+    // ASSOCIATION
     Graph.registerNode('merise-assoc', {
       inherit: 'ellipse',
       markup: [
         { tagName: 'ellipse', selector: 'body' },
+        { tagName: 'line', selector: 'separator' },
         { tagName: 'text', selector: 'label' },
+        { tagName: 'text', selector: 'fields-text' },
       ],
       attrs: {
-        body: {
-          refCx: '50%',
-          refCy: '50%',
-          refRx: '50%',
-          refRy: '50%',
-          fill: '#fffbeb',
-          stroke: '#f59e0b',
-          strokeWidth: 2,
-          magnet: true,
+        body: { fill: '#FFFBEB', stroke: '#F59E0B', strokeWidth: 2 },
+        separator: {
+          stroke: '#F59E0B', strokeWidth: 1,
+          x1: '-40%', y1: 0, x2: '40%', y2: 0, // ligne horizontale au centre
+          display: 'none'
         },
         label: {
-          refX: '50%',
-          refY: '50%',
-          textAnchor: 'middle',
-          textVerticalAnchor: 'middle',
-          fill: '#92400e',
-          fontSize: 12,
-          fontWeight: 'bold',
-          fontFamily: 'system-ui, sans-serif',
+          refX: '50%', refY: '50%',
+          textAnchor: 'middle', textVerticalAnchor: 'middle',
+          fill: '#92400E', fontSize: 12, fontWeight: 'bold'
+        },
+        'fields-text': {
+          refX: '50%', refY: '50%',
+          textAnchor: 'middle', textVerticalAnchor: 'top',
+          fill: '#92400E', fontSize: 11, whiteSpace: 'pre'
         }
       },
-      ports: ASSOC_PORTS
+      ports: { ...ASSOC_PORTS }
     }, true);
   }
 
@@ -363,20 +470,220 @@ export class McdEditorComponent implements OnInit, OnDestroy {
   // ─────────────────────────────────────────────────────────────────────────────
 
   private bindGraphEvents(): void {
-    if (!this.graph) return;
+    const graph = this.graph; // On crée une référence stable pour TypeScript
+    if (!graph) return;
 
-    // GESTION DES PORTS (Hover)
-    this.graph.on('node:mouseenter', ({ node }) => {
+    // --- GESTION DU SURVOL (Ports et Bouton) ---
+    graph.on('node:mouseenter', ({ node }) => {
+      // 1. Afficher les ports de ce nœud
       node.getPorts().forEach(port => {
         node.setPortProp(port.id!, 'attrs/circle/style/visibility', 'visible');
       });
+
+      const data = node.getData();
+      const fields = data?.fields || [];
+      const tools: any[] = [
+        // Bouton de suppression globale du nœud
+        {
+          name: 'button-remove',
+          args: {
+            x: '100%',
+            y: 0,
+            offset: { x: -10, y: 10 },
+          },
+        },
+        // Bouton renommer
+        {
+          name: 'button',
+          args: {
+            markup: [
+              { tagName: 'circle', selector: 'button', attrs: { stroke: '#2ecc71', 'stroke-width': 2, r: 8, fill: '#fff', cursor: 'pointer' } },
+              {
+                tagName: 'path', selector: 'icon',
+                attrs: {
+                  d: 'M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32L19.513 8.2Z',
+                  fill: '#2ecc71', transform: 'scale(0.3) translate(-12, -12)', 'pointer-events': 'none'
+                }
+              },
+            ],
+            x: '100%', y: 0, offset: { x: -35, y: 10 },
+            onClick: () => {
+              const data = node.getData();
+              const newName = window.prompt("Nouveau nom :", data.name);
+
+              if (newName && newName.trim() !== "") {
+                const trimmed = newName.trim();
+                // Mise à jour en place pour conserver la référence vers this.mcd
+                data.name = trimmed;
+                node.setData(data, { overwrite: true });
+                // Mise à jour visuelle du header
+                node.setAttrs({ label: { text: trimmed } });
+                this.autoSave();
+              }
+            }
+          }
+        },
+        // Bouton pour ajouter un champ (Plus)
+        {
+          name: 'button',
+          args: {
+            markup: [
+              { tagName: 'circle', selector: 'button', attrs: { r: 10, stroke: '#1890ff', 'stroke-width': 2, fill: 'white', cursor: 'pointer' } },
+              { tagName: 'path', selector: 'icon', attrs: { d: 'M-5 0 L5 0 M0 -5 L0 5', stroke: '#1890ff', 'stroke-width': 2, 'pointer-events': 'none' } },
+            ],
+            x: '100%', y: node.shape === 'merise-assoc' ? '100%' : '100%', offset: { x: node.shape === 'merise-assoc' ? -10 : -15, y: node.shape === 'merise-assoc' ? -10 : -15 },
+            onClick: ({ view }: { view: any }) => {
+              const n = view.cell; fields.forEach((_: any, index: number) => {
+                tools.push({
+                  name: 'button-remove',
+                  args: {
+                    x: '100%',
+                    y: 32 + (index * 36) + 12,
+                    offset: { x: -20, y: HEADER_HEIGHT + 10 + (index * LINE_HEIGHT) + (LINE_HEIGHT / 2) },
+                    markup: [
+                      {
+                        tagName: 'circle',
+                        selector: 'button',
+                        attrs: { r: 6, fill: '#ff4d4f', cursor: 'pointer' },
+                      },
+                      {
+                        tagName: 'path',
+                        selector: 'icon',
+                        attrs: {
+                          d: 'M -3 -3 L 3 3 M -3 3 L 3 -3', // Le dessin de la croix
+                          fill: 'none', stroke: '#FFFFFF', 'stroke-width': 2, 'pointer-events': 'none'
+                        },
+                      },
+                    ],
+                    onClick: () => {
+                      this.removeFieldFromEntity(node, index);
+                      // On force le retrait immédiat des outils pour éviter les boutons fantômes
+                      node.removeTools();
+                    },
+                  },
+                });
+              });
+
+              const d = n.getData();
+              this.tableService.triggerPicker(n, d.fields || [], this.slug);
+            }
+          }
+        }
+      ];
+
+      // Bouton : Une petite croix rouge en face de chaque champ (entité)
+      if (node.shape === 'merise-entity') {
+        fields.forEach((_: any, index: number) => {
+          tools.push({
+            name: 'button-remove',
+            args: {
+              x: '100%',
+              // START_Y + (index * LINE_HEIGHT) nous place en haut de la ligne
+              // On ajoute (LINE_HEIGHT / 2) pour centrer la croix sur le texte
+              y: START_Y + (index * LINE_HEIGHT) + (LINE_HEIGHT / 2) - 5,
+              offset: { x: -35, y: 5 },
+              markup: [
+                {
+                  tagName: 'circle',
+                  selector: 'button',
+                  attrs: {
+                    r: 6,
+                    fill: '#ff4d4f',
+                    cursor: 'pointer',
+                  },
+                },
+                {
+                  tagName: 'path',
+                  selector: 'icon',
+                  attrs: {
+                    d: 'M -3 -3 L 3 3 M -3 3 L 3 -3',
+                    stroke: '#FFFFFF',
+                    strokeWidth: 2,
+                  },
+                },
+              ],
+              onClick: ({ view }: { view: any }) => {
+                const node = view.cell;
+                const data = node.getData();
+
+                // 1. On supprime la donnée
+                data.fields.splice(index, 1);
+                node.setData({ ...data }, { overwrite: true });
+
+                // 2. IMPORTANT : On vide les outils actuels pour forcer le nettoyage
+                node.removeTools();
+
+                // 3. On rafraîchit l'affichage (hauteur, texte)
+                this.updateNodeDisplay(node);
+              }
+            },
+          });
+        });
+      }
+      // Bouton : Une petite croix rouge en face de chaque champ (association)
+      if (node.shape === 'merise-assoc') {
+        const ROW_HEIGHT = LINE_HEIGHT * 2;
+
+        fields.forEach((_: any, index: number) => {
+          const { width } = node.getSize(); // Récupère la largeur actuelle du nœud
+          const fieldWidth = fields.length > 0 ? width / fields.length : width;
+          const crossX = (index * fieldWidth) + (fieldWidth / 2);
+          const crossY = 55;
+          tools.push({
+            name: 'button-remove',
+            args: {
+              x: crossX,
+              y: crossY,
+              offset: { x: 0, y: 0 },
+              markup: [
+                {
+                  tagName: 'circle', selector: 'button',
+                  attrs: { r: 5, fill: '#ff4d4f', cursor: 'pointer' }
+                },
+                {
+                  tagName: 'path', selector: 'icon',
+                  attrs: {
+                    d: 'M -3 -3 L 3 3 M -3 3 L 3 -3',
+                    stroke: '#FFFFFF', strokeWidth: 2, pointerEvents: 'none'
+                  }
+                }
+              ],
+              onClick: ({ view }: { view: any }) => {
+                const n = view.cell;
+                const d = n.getData();
+                d.fields.splice(index, 1);
+                n.setData({ ...d }, { overwrite: true });
+                n.removeTools();
+                this.updateNodeDisplay(n);
+                this.autoSave();
+              }
+            }
+          });
+        });
+      }
+
+      // Appliquer tous les boutons d'un coup
+      node.addTools(tools);
+
+      // Gérer la visibilité des anciens sélecteurs si nécessaire
+      node.setAttrByPath('delete-group/visibility', 'visible');
+      node.setAttrByPath('delete-btn/visibility', 'visible');
     });
 
-    this.graph.on('node:mouseleave', ({ node }) => {
-      node.getPorts().forEach(port => {
-        node.setPortProp(port.id!, 'attrs/circle/style/visibility', 'hidden');
-      });
+    graph.on('node:mouseleave', ({ node }) => {
+      if (!graph.isSelected(node)) {
+        // Cache les ports de ce nœud seulement si pas en train de connecter
+        if (!this.connecting) {
+          node.getPorts().forEach(port => {
+            node.setPortProp(port.id!, 'attrs/circle/style/visibility', 'hidden');
+          });
+        }
+        node.setAttrByPath('delete-group/visibility', 'hidden');
+        node.setAttrByPath('delete-btn/visibility', 'hidden');
+      }
+      node.removeTools();
     });
+
 
     // SYNCHRONISATION GÉOMÉTRIE (Position & Taille)
     const syncGeometry = ({ node }: { node: Node }) => {
@@ -391,24 +698,34 @@ export class McdEditorComponent implements OnInit, OnDestroy {
       this.autoSave();
     };
 
-    this.graph.on('node:change:position', syncGeometry);
-    this.graph.on('node:resized', syncGeometry);
+    graph.on('node:change:position', syncGeometry);
+    graph.on('node:resized', syncGeometry);
 
-    // RENOMMER UN NŒUD (Double-clic)
-    this.graph.on('node:dblclick', ({ node }) => {
-      const obj = node.getData<Entity | Association>();
-      if (!obj) return;
+    graph.on('node:resized', ({ node }) => {
+      syncGeometry({ node });
 
-      const newName = prompt('Renommer :', obj.name);
-      if (newName === null || newName.trim() === '') return;
+      if (node.shape === 'merise-entity') {
+        const data = node.getData();
+        const fields: any[] = data.fields || [];
+        const { width } = node.getSize(); // ✅ largeur actuelle après resize
 
-      obj.renameNewName(newName.trim());
-      node.setAttrByPath('label/text', newName.trim());
-      this.autoSave();
+        const separatorPath = fields
+          .map((_: any, i: number) => {
+            if (i === 0) return null;
+            const y = START_Y + (i * LINE_HEIGHT);
+            return `M 0 ${y} L ${width} ${y}`; // ✅ suit la largeur
+          })
+          .filter((p): p is string => p !== null)
+          .join(' ');
+
+        node.setAttrs({
+          'field-separators': { d: separatorPath },
+          'fields-text': { refWidth: '90%' } // ✅ s'adapte à la largeur
+        });
+      }
     });
-
     // CHANGER CARDINALITÉ (Clic simple sur le lien)
-    this.graph.on('edge:click', ({ edge, e }) => {
+    graph.on('edge:click', ({ edge, e }) => {
       e.stopPropagation();
 
       const link = edge.getData<Link>();
@@ -435,8 +752,21 @@ export class McdEditorComponent implements OnInit, OnDestroy {
       this.autoSave();
     });
 
-    // CRÉATION DU LIEN (Association -> Entité)
-    this.graph.on('edge:connected', ({ edge }) => {
+    // CRÉATION DU LIEN (Association <-> Entité, sens indifférent)
+    const hideEntityPorts = () => {
+      if (!this.connecting) return;
+      this.connecting = false;
+      graph.getNodes().forEach(n => {
+        if (n.shape === 'merise-entity' && !graph.isSelected(n)) {
+          n.getPorts().forEach(port => {
+            n.setPortProp(port.id!, 'attrs/circle/style/visibility', 'hidden');
+          });
+        }
+      });
+    };
+
+    graph.on('edge:connected', ({ edge }) => {
+      hideEntityPorts();
       if (!this.mcd) return;
 
       const sourceNode = edge.getSourceNode();
@@ -448,23 +778,19 @@ export class McdEditorComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const assoc = sourceNode.getData<Association>();
-      const entity = targetNode.getData<Entity>();
+      // Déterminer quel nœud est l'association et lequel est l'entité,
+      // quel que soit le sens du drag
+      const assocNode = sourceNode.shape === 'merise-assoc' ? sourceNode : targetNode;
+      const entityNode = sourceNode.shape === 'merise-entity' ? sourceNode : targetNode;
+
+      const assoc = assocNode.getData<Association>();
+      const entity = entityNode.getData<Entity>();
 
       // Vérification de la validité de la connexion
       if (!assoc?.id || !entity?.id) {
         this.graph?.removeEdge(edge);
         return;
       }
-
-      edge.attr({
-        line: {
-          stroke: '#334155', // Gris sombre
-          strokeWidth: 2,
-          targetMarker: { name: 'classic', size: 8, fill: '#334155' },
-        },
-      });
-
 
       // On utilise la première cardinalité par défaut (ex: '1,1')
       const defaultCard = MERISE_CARDINALITIES[0];
@@ -485,8 +811,26 @@ export class McdEditorComponent implements OnInit, OnDestroy {
       this.autoSave();
     });
 
+    graph.on('node:port:mousedown', ({ node }) => {
+      if (node.shape !== 'merise-assoc') return;
+      this.connecting = true;
+      graph.getNodes().forEach(n => {
+        if (n.shape === 'merise-entity') {
+          n.getPorts().forEach(port => {
+            n.setPortProp(port.id!, 'attrs/circle/style/visibility', 'visible');
+          });
+        }
+      });
+    });
+
+    // Cacher les ports si le drag est abandonné (lâché dans le vide ou sur un lien)
+    graph.on('blank:mouseup', hideEntityPorts);
+    graph.on('node:mouseup', hideEntityPorts);
+    graph.on('edge:mouseup', hideEntityPorts);
+
+
     // ── Afficher le bouton de suppression au survol du lien ─────────────────
-    this.graph.on('edge:mouseenter', ({ edge }) => {
+    graph.on('edge:mouseenter', ({ edge }) => {
       edge.addTools([
         {
           name: 'button-remove',
@@ -527,10 +871,44 @@ export class McdEditorComponent implements OnInit, OnDestroy {
     });
 
     // ── Cacher le bouton quand la souris part ──────────────────────────────
-    this.graph.on('edge:mouseleave', ({ edge }) => {
+    graph.on('edge:mouseleave', ({ edge }) => {
       edge.attr('line/stroke', '#334155');
       edge.attr('line/strokeWidth', 2);
       edge.removeTools();
+    });
+
+    // Écouter l'événement de suppression du nœud ---
+    // On utilise { node }: any pour éviter l'erreur de binding
+    graph.on('node:delete', ({ node }: { node: any }) => {
+      // 1. Vérifications de sécurité (Stop les erreurs TS)
+      if (!this.graph || !this.mcd) return;
+
+      const data = node.getData();
+      if (!data) return;
+
+      const shape = node.getShape();
+
+      // 2. Logique métier : supprimer du modèle
+      if (shape === 'merise-entity') {
+        this.mcd.Entities = this.mcd.Entities.filter(e => e.id !== data.id);
+      } else if (shape === 'merise-assoc') {
+        this.mcd.Associations = this.mcd.Associations.filter(a => a.id !== data.id);
+      }
+
+      // 3. Supprimer les liens rattachés (Fix de l'erreur Ln 588)
+      const connectedEdges = this.graph.getConnectedEdges(node);
+      if (connectedEdges) {
+        connectedEdges.forEach(edge => {
+          const link = edge.getData();
+          if (link && this.mcd) {
+            this.mcd.Links = this.mcd.Links.filter(l => l.id !== link.id);
+          }
+        });
+      }
+
+      // 4. Logique visuelle
+      node.remove();
+      this.autoSave();
     });
   }
 
@@ -573,18 +951,23 @@ export class McdEditorComponent implements OnInit, OnDestroy {
 
     // ── Entités ───────────────────────────────────────────────────────────────
     this.mcd.Entities.forEach(entity => {
+      // 1. On crée le nœud avec ses propriétés de base uniquement
       const node = this.graph!.addNode({
         shape: 'merise-entity',
         x: entity.posX,
         y: entity.posY,
         width: entity.width,
-        height: entity.height,
+        // On laisse updateNodeDisplay gérer la hauteur (height)
         data: entity,
         attrs: {
-          label: { text: entity.name },
-          'fields-text': { text: this.formatFields(entity.fields) }
+          label: { text: entity.name }
+          // On ne met PAS 'fields-text' ici
         }
       });
+
+      // 2. On appelle ton "Bunker" qui va nettoyer les [x] et calculer la taille
+      this.updateNodeDisplay(node);
+
       nodeMap.set(entity.id, node);
     });
 
@@ -620,7 +1003,7 @@ export class McdEditorComponent implements OnInit, OnDestroy {
         data: link,
         labels: [{ attrs: { label: { text: link.cardinality } } }],
         attrs: {
-          line: { stroke: '#334155', strokeWidth: 2, targetMarker: null }
+          line: { stroke: '#334155', strokeWidth: 2, targetMarker: '', sourceMarker: '' }
         }
       });
     });
@@ -660,28 +1043,60 @@ export class McdEditorComponent implements OnInit, OnDestroy {
     // 2. Retrouver le nœud X6 correspondant et mettre à jour l'affichage des champs
     const node = this.graph.getNodes().find(n => n.getData()?.id === targetId);
     if (node) {
-      node.setAttrByPath('fields-text/text', this.formatFields(businessObj.fields));
-
-      // Agrandir automatiquement le nœud si besoin (28px header + 16px/field)
-      const neededHeight = 28 + 8 + businessObj.fields.length * 16 + 8;
-      const { height } = node.getSize();
-      if (neededHeight > height) {
-        node.setSize({ width: node.getSize().width, height: neededHeight });
-      }
+      this.updateNodeDisplay(node);
     }
 
     this.autoSave();
   }
 
-  /**
-   * Formate la liste de champs en texte SVG multi-lignes simulé.
-   * Chaque champ est préfixé par '# ' si c'est une clé primaire, sinon '- '.
-   */
-  private formatFields(fields: Field[]): string {
-    if (!fields?.length) return '';
-    return fields
-      .map(f => `${f.PrimaryKey ? '#' : '-'} ${f.name} : ${f.Type ?? ''}`)
-      .join('\n');
+  removeFieldFromEntity(node: any, index: number) {
+    const data = node.getData();
+    if (!data.fields) return;
+
+    console.log("Suppression du champ index :", index);
+
+    // 1. Mise à jour de la data locale au nœud
+    data.fields.splice(index, 1);
+    node.setData({ ...data }, { overwrite: true });
+
+    // 2. Mise à jour du modèle global (MCD) pour la sauvegarde
+    if (this.mcd) {
+      const entity = this.mcd.Entities.find(e => e.id === data.id)
+        || this.mcd.Associations.find(a => a.id === data.id);
+      if (entity) {
+        entity.fields = [...data.fields];
+      }
+    }
+
+    // 3. Rafraîchissement visuel
+    this.updateNodeDisplay(node);
+    node.removeTools();
+    this.autoSave();
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Picker de champs (ouvert via bouton + sur un nœud)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  closePicker(): void {
+    this.showPicker = false;
+    this.pickerNode = null;
+  }
+
+  // Mise à jour quand on valide le picker
+  onPickerSelectionChanged(selectedNames: string[]) {
+    if (!this.pickerNode) return;
+
+    const allFields = this.dictionaryService.load(this.slug);
+    const newFields = selectedNames.map(name =>
+      allFields.find(f => f.TechnicalName === name) || new Field(Date.now().toString(), name, name, 'VARCHAR')
+    );
+
+    this.pickerNode.setData({ fields: newFields }, { overwrite: true });
+
+    // Mise à jour visuelle propre (sans [x])
+    this.updateNodeDisplay(this.pickerNode);
+    this.autoSave();
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -694,7 +1109,7 @@ export class McdEditorComponent implements OnInit, OnDestroy {
     let newNode: Node;
 
     if (type === 'entity') {
-      const entity = new Entity('ENTITE_' + this.randomSuffix(), [], 0, 0, 160, 100);
+      const entity = new Entity('ENTITE' + this.randomSuffix(), [], 0, 0, 160, 100);
       this.mcd.Entities.push(entity);
 
       newNode = this.graph.createNode({

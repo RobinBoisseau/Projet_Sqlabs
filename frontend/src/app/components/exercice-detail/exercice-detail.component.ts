@@ -8,13 +8,15 @@ import { Observable, of } from 'rxjs';
 import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
 import { Mcd } from '../../models/mcd';
-import { Field } from '../../models/field'; 
+import { Field } from '../../models/field';
 import { DependenceLine } from '../../models/dependence-line.model';
+import { DictionaryService } from '../../services/dictionary.service';
 
 import { PanelComponent } from '../panel/panel.component';
 import { DictionaryTableComponent } from '../dictionary-table/dictionary-table.component';
 import { DependenceTableComponent } from '../dependence-table/dependence-table.component';
 import { McdEditorComponent } from '../mcd-editor/mcd-editor.component';
+import { DependenceService } from '../../services/dependence.service';
 
 @Component({
   selector: 'app-exercice-detail',
@@ -26,20 +28,23 @@ import { McdEditorComponent } from '../mcd-editor/mcd-editor.component';
 export class ExerciceDetailComponent implements OnInit, OnDestroy {
   exercice: Exercice | undefined;
   mcd: Mcd | undefined;
-  dictionary: Field[] = []; 
+  dictionary: Field[] = [];
+  private lastSavedDictionary: Field[] = [];
   dependencies: DependenceLine[] = [];
   technicalNames: string[] = [];
-  
+
   // Sécurité : empêche d'envoyer du vide si Laravel n'a pas encore répondu au début
-  isLoaded: boolean = false; 
+  isLoaded: boolean = false;
 
   @ViewChild(McdEditorComponent) mcdEditor!: McdEditorComponent;
 
   constructor(
-    private route: ActivatedRoute, 
+    private route: ActivatedRoute,
     private exerciceService: ExerciceService,
-    private cdr: ChangeDetectorRef 
-  ) {}
+    private dictionaryService: DictionaryService,
+    private dependenceService: DependenceService,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   // --- 1. SAUVEGARDE AUTOMATIQUE (Navigation et Fermeture) ---
 
@@ -66,9 +71,9 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
         dependencies: this.dependencies,
         model: {} // --- ON ENVOIE UN MCD VIDE ICI ---
       };
-      
+
       console.log("💾 [AUTO-SAVE] Données envoyées à Laravel :", data);
-      
+
       // On utilise emergencySave (fetch keepalive) pour passer outre l'erreur status: 0
       this.exerciceService.emergencySave(this.exercice.id, data);
 
@@ -91,19 +96,41 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
           this.exerciceService.getLastAttempt(this.exercice.id).subscribe((res: any) => {
             if (res && res.data) {
               const attempt = res.data;
-              console.log("📥 [LOAD] Données brutes lues en BD :", attempt);
-              
+
+              // 1. Dictionnaire
               this.dictionary = attempt.dictionary || attempt.dictionnaire || [];
-              this.dependencies = attempt.dependencies || attempt.dependance 
-                  ? (attempt.dependencies || attempt.dependance).map((d: any) => DependenceLine.fromJSON(d)) 
-                  : [];
-              
+              this.lastSavedDictionary = this.deepCopyFields(this.dictionary);
+
+              // 2. Dépendances — BD en priorité, localStorage en fallback
+              const rawDeps = attempt.dependencies || attempt.dependance;
+              console.log('📥 rawDeps depuis BD:', rawDeps);
+              console.log('📥 localStorage deps:', this.dependenceService.loadDependences(slug));
+              this.dependencies = rawDeps?.length
+                ? rawDeps.map((d: any) => DependenceLine.fromJSON(d))
+                : this.dependenceService.loadDependences(slug); // ✅ fallback
+
+              // 3. Nettoyage des noms obsolètes
+              const validNames = this.dictionary
+                .map((f: any) => f.TechnicalName)
+                .filter((n: string) => n && n.trim() !== '');
+
+              this.dependencies = this.dependencies.map(dep => ({
+                ...dep,
+                source: dep.source.filter(s => validNames.includes(s)),
+                cible: dep.cible.filter(c => validNames.includes(c))
+              }));
+
+              // 4. Sync localStorage
+              if (this.exercice?.slug) {
+                this.dictionaryService.save(this.exercice.slug, this.dictionary);
+                this.dependenceService.saveDependences(this.exercice.slug, this.dependencies);
+              }
+
               this.updateTechnicalNames();
-              console.log("✨ [LOAD] État restauré. Dico lignes :", this.dictionary.length);
             }
 
-            this.isLoaded = true; 
-            this.cdr.detectChanges(); 
+            this.isLoaded = true;
+            this.cdr.detectChanges();
           });
         }
       });
@@ -111,23 +138,72 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
   }
 
   // --- 3. SYNCHRONISATION ---
+  onDictionaryChanged(updatedLines: Field[]) {
+    this.syncDependenciesToDictionary(this.lastSavedDictionary, updatedLines);
+    this.dictionary = updatedLines;
+    this.lastSavedDictionary = this.deepCopyFields(updatedLines);
+    this.updateTechnicalNames();
 
-  onDictionaryChanged(event: Field[]) { 
-    this.dictionary = event; 
-    console.log("🔄 [SYNC] Dictionnaire mis à jour dans le parent.");
-    this.updateTechnicalNames(); 
-    this.cdr.detectChanges(); 
+    if (this.exercice && this.isLoaded) {
+      this.dictionaryService.save(this.exercice.slug!, this.dictionary);
+
+      const data = {
+        dictionary: this.dictionary,
+        dependencies: this.dependencies,
+        model: {}
+      };
+      this.exerciceService.saveAttempt(this.exercice.id, data).subscribe();
+    }
   }
 
-  onDependenciesChanged(event: DependenceLine[]) { 
-    this.dependencies = event; 
-    console.log("🔄 [SYNC] Dépendances mises à jour dans le parent.");
-    this.cdr.detectChanges(); 
+  private deepCopyFields(fields: Field[]): Field[] {
+    return fields.map(f => Field.fromJSON(f));
+  }
+
+  private syncDependenciesToDictionary(prevFields: Field[], newFields: Field[]) {
+    const newIds = new Set(newFields.map(f => f.id));
+
+    const deletedNames = new Set(
+      prevFields.filter(f => !newIds.has(f.id)).map(f => f.TechnicalName).filter(Boolean)
+    );
+
+    const renames = new Map<string, string>();
+    for (const prev of prevFields) {
+      const next = newFields.find(f => f.id === prev.id);
+      if (next && prev.TechnicalName && prev.TechnicalName !== next.TechnicalName) {
+        renames.set(prev.TechnicalName, next.TechnicalName);
+      }
+    }
+
+    if (deletedNames.size === 0 && renames.size === 0) return;
+
+    this.dependencies = this.dependencies.map(dep => ({
+      ...dep,
+      source: dep.source.filter(s => !deletedNames.has(s)).map(s => renames.get(s) ?? s),
+      cible: dep.cible.filter(c => !deletedNames.has(c)).map(c => renames.get(c) ?? c),
+    }));
+  }
+
+
+  onDependenciesChanged(event: DependenceLine[]) {
+    this.dependencies = event;
+
+    if (this.exercice && this.isLoaded) {
+      this.dependenceService.saveDependences(this.exercice.slug!, this.dependencies);
+
+      const data = {
+        dictionary: this.dictionary,
+        dependencies: this.dependencies,
+        model: {}
+      };
+      this.exerciceService.saveAttempt(this.exercice.id, data).subscribe();
+    }
+    this.cdr.detectChanges();
   }
 
   updateTechnicalNames() {
     this.technicalNames = this.dictionary
-      .map(l => l.TechnicalName) 
+      .map(l => l.TechnicalName)
       .filter(n => n && n.trim() !== '');
   }
 

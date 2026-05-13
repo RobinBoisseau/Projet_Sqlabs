@@ -15,7 +15,7 @@
             <input type="text" [(ngModel)]="line.name" (ngModelChange)="emitChanges()" placeholder="ex: Customer Name">
           </td>
           <td>
-            <input type="text" [(ngModel)]="line.TechnicalName" (ngModelChange)="emitChanges()" placeholder="ex: customer_name">
+            <input type="text" [(ngModel)]="line.TechnicalName" (blur)="emitChanges()" placeholder="ex: customer_name">
           </td>
           <td>
             <select [(ngModel)]="line.Type" (ngModelChange)="emitChanges()">
@@ -26,15 +26,15 @@
               <option value="DATE">DATE</option>
             </select>
           </td>
-           <div class="actions-column">
+          <td>
             <div class="dropdown">
               <button class="dots-btn">⋮</button>
               <div class="dropdown-content">
-                <a (click)="duplicateLine(i)">Dupliquer</a>
-                <a (click)="removeLine(i)" class="delete-text">Supprimer</a>
+                <button type="button" (click)="duplicateLine(i)" class="dropdown-item">Dupliquer</button>
+                <button type="button" (click)="removeLine(i)" class="dropdown-item delete-text">Supprimer</button>
               </div>
-           </div>
-      </div>
+            </div>
+          </td>
         </tr>
       </tbody>
     </table>
