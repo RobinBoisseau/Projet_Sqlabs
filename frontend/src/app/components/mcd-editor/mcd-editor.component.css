@@ -112,3 +112,16 @@
   max-height: 80vh;
   overflow-y: auto;
 }
+
+/* Cache le cadre de sélection pendant le drag */
+.x6-widget-dnd .x6-node {
+  opacity: 0.7;
+}
+
+.x6-widget-selection-box {
+  display: none !important;
+}
+
+.x6-node-selected .x6-graph-svg {
+  outline: none !important;
+}
