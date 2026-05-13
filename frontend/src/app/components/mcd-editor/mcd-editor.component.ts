@@ -130,10 +130,16 @@ export class McdEditorComponent implements OnInit, OnDestroy {
         const data = node.getData();
         if (!data?.fields) return;
 
-        const updatedFields = data.fields.map((f: any) => {
-          const dictField = fields.find((df: any) => df.TechnicalName === f.TechnicalName);
-          return dictField ? { ...f, Type: dictField.Type } : f;
-        });
+        const updatedFields = data.fields
+          .filter((f: any) => fields.some((df: any) => df.id === f.id)) // supprime si absent du dico
+          .map((f: any) => {
+            const dictField = fields.find((df: any) => df.id === f.id);
+            return dictField ? {
+              ...f,
+              TechnicalName: dictField.TechnicalName,
+              Type: dictField.Type
+            } : f;
+          });
 
         node.setData({ ...data, fields: updatedFields }, { overwrite: true });
         this.updateNodeDisplay(node);
@@ -1075,7 +1081,7 @@ export class McdEditorComponent implements OnInit, OnDestroy {
 
     const allFields = this.dictionaryService.load(this.slug);
     const newFields = selectedNames.map(name =>
-      allFields.find(f => f.name === name) || new Field(Date.now().toString(), name, name, 'VARCHAR')
+      allFields.find(f => f.TechnicalName === name) || new Field(Date.now().toString(), name, name, 'VARCHAR')
     );
 
     this.pickerNode.setData({ fields: newFields }, { overwrite: true });
@@ -1084,8 +1090,6 @@ export class McdEditorComponent implements OnInit, OnDestroy {
     this.updateNodeDisplay(this.pickerNode);
     this.autoSave();
   }
-
-
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Drag & Drop depuis la palette

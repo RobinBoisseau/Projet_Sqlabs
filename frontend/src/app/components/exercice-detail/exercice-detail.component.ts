@@ -16,6 +16,7 @@ import { PanelComponent } from '../panel/panel.component';
 import { DictionaryTableComponent } from '../dictionary-table/dictionary-table.component';
 import { DependenceTableComponent } from '../dependence-table/dependence-table.component';
 import { McdEditorComponent } from '../mcd-editor/mcd-editor.component';
+import { DependenceService } from '../../services/dependence.service';
 
 @Component({
   selector: 'app-exercice-detail',
@@ -40,6 +41,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private exerciceService: ExerciceService,
     private dictionaryService: DictionaryService,
+    private dependenceService: DependenceService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -93,15 +95,36 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
           this.exerciceService.getLastAttempt(this.exercice.id).subscribe((res: any) => {
             if (res && res.data) {
               const attempt = res.data;
-              console.log("📥 [LOAD] Données brutes lues en BD :", attempt);
 
+              // 1. Dictionnaire
               this.dictionary = attempt.dictionary || attempt.dictionnaire || [];
-              this.dependencies = attempt.dependencies || attempt.dependance
-                ? (attempt.dependencies || attempt.dependance).map((d: any) => DependenceLine.fromJSON(d))
-                : [];
+
+              // 2. Dépendances — BD en priorité, localStorage en fallback
+              const rawDeps = attempt.dependencies || attempt.dependance;
+              console.log('📥 rawDeps depuis BD:', rawDeps);
+              console.log('📥 localStorage deps:', this.dependenceService.loadDependences(slug));
+              this.dependencies = rawDeps?.length
+                ? rawDeps.map((d: any) => DependenceLine.fromJSON(d))
+                : this.dependenceService.loadDependences(slug); // ✅ fallback
+
+              // 3. Nettoyage des noms obsolètes
+              const validNames = this.dictionary
+                .map((f: any) => f.TechnicalName)
+                .filter((n: string) => n && n.trim() !== '');
+
+              this.dependencies = this.dependencies.map(dep => ({
+                ...dep,
+                source: dep.source.filter(s => validNames.includes(s)),
+                cible: dep.cible.filter(c => validNames.includes(c))
+              }));
+
+              // 4. Sync localStorage
+              if (this.exercice?.slug) {
+                this.dictionaryService.save(this.exercice.slug, this.dictionary);
+                this.dependenceService.saveDependences(this.exercice.slug, this.dependencies);
+              }
 
               this.updateTechnicalNames();
-              console.log("✨ [LOAD] État restauré. Dico lignes :", this.dictionary.length);
             }
 
             this.isLoaded = true;
@@ -114,23 +137,31 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
 
   // --- 3. SYNCHRONISATION ---
   onDictionaryChanged(updatedLines: Field[]) {
-    // On met à jour la variable locale
-    this.dictionary = [...updatedLines];
-
-    // On met à jour les noms techniques (pour les dépendances fonctionnelles)
+    this.dictionary = updatedLines;
     this.updateTechnicalNames();
 
-    // SAUVEGARDE CRUCIALE : On écrase l'ancien dictionnaire dans le localStorage
-    if (this.exercice?.slug) {
-      this.dictionaryService.save(this.exercice.slug, this.dictionary);
-      console.log("🗑️ Ligne supprimée et dictionnaire mis à jour pour :", this.exercice.slug);
+    if (this.exercice && this.isLoaded) {
+      this.dictionaryService.save(this.exercice.slug!, this.dictionary);
+
+      const data = {
+        dictionary: this.dictionary,
+        dependencies: this.dependencies,
+        model: {}
+      };
+      this.exerciceService.saveAttempt(this.exercice.id, data).subscribe();
     }
   }
 
 
   onDependenciesChanged(event: DependenceLine[]) {
     this.dependencies = event;
-    console.log("🔄 [SYNC] Dépendances mises à jour dans le parent.");
+    console.log('💾 deps à sauvegarder:', JSON.stringify(event));
+    console.log('📦 onDependenciesChanged appelé, isLoaded:', this.isLoaded, 'nb lignes:', event.length);
+
+    if (this.exercice && this.isLoaded) {
+      this.dependenceService.saveDependences(this.exercice.slug!, this.dependencies);
+      console.log('✅ Dépendances sauvegardées dans localStorage');
+    }
     this.cdr.detectChanges();
   }
 

@@ -34,6 +34,13 @@ export class DependenceTableComponent implements OnInit {
     if (this._lines.length === 0) this.remplirSiVide();
   }
 
+  majDep(index: number, side: 'source' | 'cible', newValues: string[]) {
+    const dep = this._lines[index];
+    if (side === 'source') dep.source = newValues;
+    else dep.cible = newValues;
+    this.emitChanges();
+  }
+
   emitChanges() {
     this.dependenciesChanged.emit(this._lines);
   }
@@ -54,23 +61,41 @@ export class DependenceTableComponent implements OnInit {
   }
 
   selectName(list: string[], nom: string, ligneId: string, side: 'source' | 'cible') {
-    if (!list.includes(nom)) {
-      list.push(nom);
+  if (!list.includes(nom)) {
+    // ✅ Nouvelle référence au lieu de push
+    const ligne = this._lines.find(l => l.id === ligneId);
+    if (ligne) {
+      if (side === 'source') {
+        ligne.source = [...ligne.source, nom];
+      } else {
+        ligne.cible = [...ligne.cible, nom];
+      }
+      this._lines = [...this._lines]; // ✅ Force la détection de changement
       this.emitChanges();
     }
-    if (side === 'source') {
-      this.searchSource[ligneId] = '';
-      this.showDropdownSource[ligneId] = false;
-    } else {
-      this.searchCible[ligneId] = '';
-      this.showDropdownCible[ligneId] = false;
-    }
   }
+  if (side === 'source') {
+    this.searchSource[ligneId] = '';
+    this.showDropdownSource[ligneId] = false;
+  } else {
+    this.searchCible[ligneId] = '';
+    this.showDropdownCible[ligneId] = false;
+  }
+}
 
-  removeAttribute(list: string[], index: number) {
-    list.splice(index, 1);
+removeAttribute(list: string[], index: number) {
+  // ✅ Trouve la ligne qui contient cette liste
+  const ligne = this._lines.find(l => l.source === list || l.cible === list);
+  if (ligne) {
+    if (ligne.source === list) {
+      ligne.source = ligne.source.filter((_, i) => i !== index);
+    } else {
+      ligne.cible = ligne.cible.filter((_, i) => i !== index);
+    }
+    this._lines = [...this._lines]; // ✅ Force la détection
     this.emitChanges();
   }
+}
 
   ajouterDependance() {
     this._lines.push(new DependenceLine(Date.now().toString(), [], []));
