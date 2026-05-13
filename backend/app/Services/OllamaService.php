@@ -15,23 +15,57 @@ class OllamaService
         $this->model = config('ollama.model');
     }
 
-    public function generate(string $prompt): string
+    public function generate(string $prompt, int $maxTokens = 300): string
     {
-        $response = Http::timeout(120)->post("{$this->url}/api/generate", [
-            'model'  => $this->model,
-            'prompt' => $prompt,
-            'stream' => false,
+        $response = Http::withOptions([
+            'curl' => [
+                CURLOPT_TIMEOUT         => 360,
+                CURLOPT_CONNECTTIMEOUT  => 10,
+            ],
+        ])->timeout(360)->post("{$this->url}/api/generate", [
+            'model'   => $this->model,
+            'prompt'  => $prompt,
+            'stream'  => false,
+            'options' => ['num_predict' => $maxTokens],
         ]);
 
         return $response->json('response') ?? '';
     }
 
-    public function chat(array $messages): string
+    public function generateJson(string $prompt, int $maxTokens = 400): mixed
     {
-        $response = Http::timeout(120)->post("{$this->url}/api/chat", [
+        $response = Http::withOptions([
+            'curl' => [
+                CURLOPT_TIMEOUT        => 360,
+                CURLOPT_CONNECTTIMEOUT => 10,
+            ],
+        ])->timeout(360)->post("{$this->url}/api/chat", [
+            'model'  => $this->model,
+            'stream' => false,
+            'format' => 'json',
+            'options' => ['num_predict' => $maxTokens],
+            'messages' => [
+                [
+                    'role'    => 'system',
+                    'content' => 'Tu es un expert Merise. Tu réponds UNIQUEMENT avec du JSON valide. Jamais de texte autour.',
+                ],
+                [
+                    'role'    => 'user',
+                    'content' => $prompt,
+                ],
+            ],
+        ]);
+
+        return json_decode($response->json('message.content') ?? '{}', true);
+    }
+
+    public function chat(array $messages, int $maxTokens = 300): string
+    {
+        $response = Http::timeout(300)->post("{$this->url}/api/chat", [
             'model'    => $this->model,
             'messages' => $messages,
             'stream'   => false,
+            'options'  => ['num_predict' => $maxTokens],
         ]);
 
         return $response->json('message.content') ?? '';
