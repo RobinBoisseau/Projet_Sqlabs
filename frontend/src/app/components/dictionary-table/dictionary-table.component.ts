@@ -22,11 +22,6 @@ export class DictionaryTableComponent implements OnChanges {
       // Si lines est vide ou non défini, on génère des lignes vides
       if (!this.lines || this.lines.length === 0) {
         this.lines = this.generateEmptyLines();
-        setTimeout(() => this.emitChanges());
-      }
-      // Si lines est rempli (chargement depuis la BD), on met à jour les noms techniques
-      else {
-        setTimeout(() => this.emitChanges());
       }
     }
   }
@@ -45,7 +40,8 @@ export class DictionaryTableComponent implements OnChanges {
   }
 
   removeLine(index: number) {
-    this.lines.splice(index, 1);
+    console.log("BOUTON SUPPRIMER CLIQUÉ ! Index:", index);
+    this.lines = this.lines.filter((_, i) => i !== index);
     this.emitChanges();
   }
 

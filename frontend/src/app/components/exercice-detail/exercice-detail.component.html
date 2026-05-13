@@ -16,9 +16,7 @@
         <!-- Dictionary -->
         <as-split-area [size]="50">
           <app-panel title="Dictionnaire des données">
-            <app-dictionary-table
-              [lines]="dictionary"
-              (dictionaryChanged)="onDictionaryChanged($event)">
+            <app-dictionary-table [lines]="dictionary" (dictionaryChanged)="onDictionaryChanged($event)">
             </app-dictionary-table>
           </app-panel>
         </as-split-area>
@@ -26,9 +24,7 @@
         <!-- Dépendances fonctionnelles -->
         <as-split-area [size]="50">
           <app-panel title="Dépendances fonctionnelles">
-            <app-dependence-table
-              [lines]="dependencies"
-              [technicalNames]="technicalNames"
+            <app-dependence-table [lines]="dependencies" [technicalNames]="technicalNames"
               (dependenciesChanged)="onDependenciesChanged($event)">
             </app-dependence-table>
           </app-panel>
@@ -40,9 +36,7 @@
     <!-- COLUMN 3: Modeling Zone -->
     <as-split-area [size]="45">
       <app-panel title="Zone de modélisation" [scrollable]="false">
-        <app-mcd-editor
-          [mcd]="mcd"
-          (saveRequested)="save()">
+        <app-mcd-editor [slug]="exercice.slug" [mcd]="mcd" (saveRequested)="save()">
         </app-mcd-editor>
       </app-panel>
     </as-split-area>

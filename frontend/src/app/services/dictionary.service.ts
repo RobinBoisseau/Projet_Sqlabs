@@ -1,32 +1,25 @@
 import { Injectable } from '@angular/core';
 import { Field } from '../models/field';
+import { Subject } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class DictionaryService {
-  private readonly STORAGE_KEY = 'mon_historique_travail';
+  
+  // ✅ Canal de notification
+  private updated$ = new Subject<{ slug: string, fields: Field[] }>();
+  onUpdated$ = this.updated$.asObservable();
 
-  // Sauvegarde brute en JSON
-  save(lines: Field[]): void {
-    try {
-      const data = JSON.stringify(lines);
-      localStorage.setItem(this.STORAGE_KEY, data);
-    } catch (e) {
-      console.error("Erreur localStorage", e);
-    }
+  private getStorageKey(slug: string): string {
+    return `dict_data_${slug}`;
   }
 
-  // Chargement
-  load(): Field[] {
-    const data = localStorage.getItem(this.STORAGE_KEY);
-    if (data) {
-      try {
-        return JSON.parse(data);
-      } catch (e) {
-        return [];
-      }
-    }
-    return [];
+  save(slug: string, lines: Field[]): void {
+    localStorage.setItem(this.getStorageKey(slug), JSON.stringify(lines));
+    this.updated$.next({ slug, fields: lines });
+  }
+
+  load(slug: string): Field[] {
+    const data = localStorage.getItem(this.getStorageKey(slug));
+    return data ? JSON.parse(data) : [];
   }
 }

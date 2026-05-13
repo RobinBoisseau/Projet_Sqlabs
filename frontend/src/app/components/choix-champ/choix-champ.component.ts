@@ -29,7 +29,7 @@ export class ChoixChampComponent {
 
   selectName(nom: string) {
     if (!this.champsSelectionnes.includes(nom)) {
-      this.champsSelectionnes.push(nom);
+      this.champsSelectionnes = [...this.champsSelectionnes, nom];
       this.selectionChanged.emit(this.champsSelectionnes);
     }
     this.searchText = '';
@@ -37,7 +37,7 @@ export class ChoixChampComponent {
   }
 
   removeAttribute(index: number) {
-    this.champsSelectionnes.splice(index, 1);
+    this.champsSelectionnes = this.champsSelectionnes.filter((_, i) => i !== index);
     this.selectionChanged.emit(this.champsSelectionnes);
   }
 
