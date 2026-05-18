@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { IaChatComponent } from './components/ia-chat/ia-chat.component';
 import { HomeComponent } from './components/home-page/home-page.component';
 import { ExerciceListComponent } from './components/exercice-list/exercice-list.component';
 import { ExerciceDetailComponent } from './components/exercice-detail/exercice-detail.component';
@@ -39,6 +40,7 @@ export const routes: Routes = [
   { path: 'cours/:id',      component: ExerciceListComponent,   canActivate: [authGuard] },
   { path: 'exercice/:slug', component: ExerciceDetailComponent, canActivate: [authGuard] },
   { path: 'profile',        component: ProfileComponent,        canActivate: [authGuard] },
+  { path: 'ia',             component: IaChatComponent,         canActivate: [authGuard] },
 
   // Routes admin
   { path: 'admin',                component: AdminDashboardComponent, canActivate: [adminGuard] },

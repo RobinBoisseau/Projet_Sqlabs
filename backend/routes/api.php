@@ -30,6 +30,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('tentatives', TentativeController::class);
 
     Route::apiResource('reponse-ia', ReponseIAController::class);
+    Route::post('ia/ask', [ReponseIAController::class, 'ask']);
+    Route::get('ia/analyze-mcd', [ReponseIAController::class, 'analyzeMcd']);
     Route::post('classe/join', [ClasseController::class, 'join']);
     Route::post('classe/{id}/teachers', [ClasseController::class, 'addTeacher']);
     Route::delete('classe/{id}/teachers', [ClasseController::class, 'removeTeacher']);
