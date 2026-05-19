@@ -80,6 +80,8 @@ export class McdEditorComponent implements OnInit, OnDestroy {
   private graph?: Graph;
   private dnd?: Dnd;
   private connecting = false;
+  private pendingDrops = new Map<string, Entity | Association>();
+  private isResettingGraph = false;
 
   showPicker = false;
   public pickerNode: Node | null = null;
@@ -101,11 +103,6 @@ export class McdEditorComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const savedMcd = this.mcdService.loadMcd(this.slug);
     if (savedMcd) this.mcd = savedMcd;
-
-    setTimeout(() => {
-      this.initGraph();
-      if (this.mcd) this.drawMcd();
-    }, 100);
 
     this.pickerSub = this.tableService.openPicker$.subscribe(({ node, currentFields, slug }) => {
       const activeSlug = slug || this.slug;
@@ -156,28 +153,17 @@ export class McdEditorComponent implements OnInit, OnDestroy {
   // À mettre dans mcd-editor.component.ts
 
   ngAfterViewInit(): void {
-    // On utilise un setTimeout pour s'assurer que le navigateur
-    // a fini d'appliquer le CSS (flexbox, grid, etc.) sur #container
     setTimeout(() => {
-      if (this.graph) {
-        // Sécurité : on nettoie les cellules fantômes (optionnel)
-        this.graph.clearCells();
+      this.initGraph();
 
-        // --- C'EST ICI QUE CA SE PASSE : LE RESIZE FORCÉ ---
-        // On récupère le conteneur HTML du graphe
-        const container = document.getElementById('container');
-
-        if (container) {
-          // On récupère sa taille RÉELLE calculée par le navigateur
-          const width = container.clientWidth;
-          const height = container.clientHeight;
-
-          // On force le graphe à s'adapter à cette taille
-          this.graph.resize(width, height);
-
-          console.log(`[MCD] Graphe redimensionné : ${width}x${height}`);
-        }
+      const container = this.containerRef.nativeElement;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      if (this.graph && width > 0 && height > 0) {
+        this.graph.resize(width, height);
       }
+
+      if (this.mcd) this.drawMcd();
     }, 100);
   }
 
@@ -232,7 +218,7 @@ export class McdEditorComponent implements OnInit, OnDestroy {
         .map((_: any, i: number) => {
           if (i === 0) return null;
           const y = START_Y + (i * LINE_HEIGHT);
-          return `M 0 ${y} L ${width} ${y}`; // ✅ au lieu de L 200
+          return `M 0 ${y} L ${width} ${y}`; //au lieu de L 200
         })
         .filter((p): p is string => p !== null)
         .join(' ');
@@ -248,15 +234,19 @@ export class McdEditorComponent implements OnInit, OnDestroy {
           text: fieldsContent,
           lineHeight: LINE_HEIGHT,
           refY: START_Y + 5,
-          refWidth: '95%', // ✅ AJOUTE ÇA
+          refWidth: '95%',
           textVerticalAnchor: 'top',
           fontSize: 12,
           fill: '#334155'
         }
       });
 
-      const dynamicHeight = START_Y + (fields.length * LINE_HEIGHT) + 10;
-      node.resize(200, Math.max(dynamicHeight, 60));
+
+      if (hasFields) {
+        const { width } = node.getSize(); // garde la largeur actuelle
+        const dynamicHeight = START_Y + (fields.length * LINE_HEIGHT) + 10;
+        node.resize(width, Math.max(dynamicHeight, 60)); // ne change que la hauteur
+      }
     }
   }
 
@@ -470,6 +460,7 @@ export class McdEditorComponent implements OnInit, OnDestroy {
   // ─────────────────────────────────────────────────────────────────────────────
 
   private bindGraphEvents(): void {
+
     const graph = this.graph; // On crée une référence stable pour TypeScript
     if (!graph) return;
 
@@ -479,6 +470,16 @@ export class McdEditorComponent implements OnInit, OnDestroy {
       node.getPorts().forEach(port => {
         node.setPortProp(port.id!, 'attrs/circle/style/visibility', 'visible');
       });
+
+      if (node.shape === 'merise-assoc') {
+        graph.getNodes().forEach(n => {
+          if (n.shape === 'merise-entity') {
+            n.getPorts().forEach(port => {
+              n.setPortProp(port.id!, 'attrs/circle/style/visibility', 'visible');
+            });
+          }
+        });
+      }
 
       const data = node.getData();
       const fields = data?.fields || [];
@@ -490,6 +491,12 @@ export class McdEditorComponent implements OnInit, OnDestroy {
             x: '100%',
             y: 0,
             offset: { x: -10, y: 10 },
+            onClick: ({ view }: { view: any }) => {
+              const target = view.cell as Node;
+              this.removeNodeFromModel(target);
+              target.remove();
+              this.autoSave();
+            }
           },
         },
         // Bouton renommer
@@ -518,6 +525,11 @@ export class McdEditorComponent implements OnInit, OnDestroy {
                 node.setData(data, { overwrite: true });
                 // Mise à jour visuelle du header
                 node.setAttrs({ label: { text: trimmed } });
+
+                const obj = this.mcd?.Entities.find(e => e.id === data.id)
+                  || this.mcd?.Associations.find(a => a.id === data.id);
+                if (obj) obj.name = trimmed;
+
                 this.autoSave();
               }
             }
@@ -672,11 +684,20 @@ export class McdEditorComponent implements OnInit, OnDestroy {
 
     graph.on('node:mouseleave', ({ node }) => {
       if (!graph.isSelected(node)) {
-        // Cache les ports de ce nœud seulement si pas en train de connecter
         if (!this.connecting) {
           node.getPorts().forEach(port => {
             node.setPortProp(port.id!, 'attrs/circle/style/visibility', 'hidden');
           });
+
+          if (node.shape === 'merise-assoc') {
+            graph.getNodes().forEach(n => {
+              if (n.shape === 'merise-entity' && !graph.isSelected(n)) {
+                n.getPorts().forEach(port => {
+                  n.setPortProp(port.id!, 'attrs/circle/style/visibility', 'hidden');
+                });
+              }
+            });
+          }
         }
         node.setAttrByPath('delete-group/visibility', 'hidden');
         node.setAttrByPath('delete-btn/visibility', 'hidden');
@@ -687,10 +708,19 @@ export class McdEditorComponent implements OnInit, OnDestroy {
 
     // SYNCHRONISATION GÉOMÉTRIE (Position & Taille)
     const syncGeometry = ({ node }: { node: Node }) => {
-      const obj = node.getData<Entity | Association>();
-      if (!obj) return;
+      if (!this.mcd) return;
+      const data = node.getData();
+      if (!data?.id) return;
+
       const { x, y } = node.getPosition();
       const { width, height } = node.getSize();
+
+      // Cherche l'objet dans le modèle par id au lieu d'utiliser getData()
+      const entity = this.mcd.Entities.find(e => e.id === data.id);
+      const assoc = this.mcd.Associations.find(a => a.id === data.id);
+      const obj = entity || assoc;
+
+      if (!obj) return;
       obj.posX = x;
       obj.posY = y;
       obj.width = width;
@@ -699,28 +729,35 @@ export class McdEditorComponent implements OnInit, OnDestroy {
     };
 
     graph.on('node:change:position', syncGeometry);
-    graph.on('node:resized', syncGeometry);
+    //graph.on('node:resized', syncGeometry);
+    graph.on('node:resizing', ({ node }) => {
+      if (node.shape === 'merise-entity') {
+        this.updateNodeDisplay(node);
+      }
+    });
 
     graph.on('node:resized', ({ node }) => {
       syncGeometry({ node });
 
       if (node.shape === 'merise-entity') {
+        this.updateNodeDisplay(node);
+
         const data = node.getData();
         const fields: any[] = data.fields || [];
-        const { width } = node.getSize(); // ✅ largeur actuelle après resize
+        const { width } = node.getSize(); //largeur actuelle après resize
 
         const separatorPath = fields
           .map((_: any, i: number) => {
             if (i === 0) return null;
             const y = START_Y + (i * LINE_HEIGHT);
-            return `M 0 ${y} L ${width} ${y}`; // ✅ suit la largeur
+            return `M 0 ${y} L ${width} ${y}`; //suit la largeur
           })
           .filter((p): p is string => p !== null)
           .join(' ');
 
         node.setAttrs({
           'field-separators': { d: separatorPath },
-          'fields-text': { refWidth: '90%' } // ✅ s'adapte à la largeur
+          'fields-text': { refWidth: '90%' } //s'adapte à la largeur
         });
       }
     });
@@ -740,6 +777,9 @@ export class McdEditorComponent implements OnInit, OnDestroy {
 
       // On enregistre dans l'objet Link
       link.modifyCardinality(nextCard as any);
+
+      const mcdLink = this.mcd?.Links.find(l => l.id === link.id);
+      if (mcdLink) mcdLink.cardinality = nextCard;
 
       // On change le texte sur le dessin
       edge.setLabels([{
@@ -811,7 +851,7 @@ export class McdEditorComponent implements OnInit, OnDestroy {
       this.autoSave();
     });
 
-    graph.on('node:port:mousedown', ({ node }) => {
+    graph.on('node:mousedown', ({ node }) => {
       if (node.shape !== 'merise-assoc') return;
       this.connecting = true;
       graph.getNodes().forEach(n => {
@@ -877,37 +917,50 @@ export class McdEditorComponent implements OnInit, OnDestroy {
       edge.removeTools();
     });
 
-    // Écouter l'événement de suppression du nœud ---
-    // On utilise { node }: any pour éviter l'erreur de binding
-    graph.on('node:delete', ({ node }: { node: any }) => {
-      // 1. Vérifications de sécurité (Stop les erreurs TS)
-      if (!this.graph || !this.mcd) return;
-
+    // Push dans le modèle seulement après un vrai drop.
+    // pendingDrops conserve les instances de classe (Entity/Association) d'avant le clone Dnd,
+    // ce qui préserve les méthodes (addField, etc.) perdues par la sérialisation JSON de X6.
+    graph.on('node:added', ({ node }) => {
+      if (!this.mcd) return;
       const data = node.getData();
-      if (!data) return;
+      if (!data?.id) return;
 
-      const shape = node.getShape();
+      const original = this.pendingDrops.get(data.id);
+      if (!original) return; // nœud issu de drawMcd : déjà dans this.mcd, rien à faire
 
-      // 2. Logique métier : supprimer du modèle
-      if (shape === 'merise-entity') {
-        this.mcd.Entities = this.mcd.Entities.filter(e => e.id !== data.id);
-      } else if (shape === 'merise-assoc') {
-        this.mcd.Associations = this.mcd.Associations.filter(a => a.id !== data.id);
+      // On remplace IMMÉDIATEMENT la donnée clonée (objet plat) par l'instance originale
+      // avec ses méthodes, et on l'ajoute au modèle. Ainsi, si node:change:position se
+      // déclenche après (déplacement post-drop), syncGeometry trouvera le bon objet.
+      node.setData(original, { overwrite: true });
+
+      if (node.shape === 'merise-entity') {
+        this.mcd.Entities.push(original as Entity);
+      } else if (node.shape === 'merise-assoc') {
+        this.mcd.Associations.push(original as Association);
       }
 
-      // 3. Supprimer les liens rattachés (Fix de l'erreur Ln 588)
-      const connectedEdges = this.graph.getConnectedEdges(node);
-      if (connectedEdges) {
-        connectedEdges.forEach(edge => {
-          const link = edge.getData();
-          if (link && this.mcd) {
-            this.mcd.Links = this.mcd.Links.filter(l => l.id !== link.id);
-          }
-        });
-      }
+      this.pendingDrops.delete(data.id);
 
-      // 4. Logique visuelle
-      node.remove();
+      // X6 Dnd ajoute le nœud PUIS fixe sa position finale : node:added se déclenche
+      // avec la position intermédiaire (souvent 0,0). On diffère la lecture de 50 ms
+      // pour capturer les vraies coordonnées du drop.
+      setTimeout(() => {
+        const { x, y } = node.getPosition();
+        const { width, height } = node.getSize();
+        original.posX = x;
+        original.posY = y;
+        original.width = width;
+        original.height = height;
+        this.autoSave();
+      }, 50);
+    });
+
+    // Filet de sécurité : si un nœud est retiré du graphe par un autre chemin
+    // (ex: graph.removeCell()), on s'assure que le modèle et le localStorage restent cohérents.
+    // Le garde isResettingGraph évite de déclencher un autoSave pendant drawMcd() → clearCells().
+    graph.on('node:removed', ({ node }: { node: Node }) => {
+      if (this.isResettingGraph || !this.mcd) return;
+      this.removeNodeFromModel(node);
       this.autoSave();
     });
   }
@@ -917,10 +970,11 @@ export class McdEditorComponent implements OnInit, OnDestroy {
   // ─────────────────────────────────────────────────────────────────────────────
 
   private removeNodeFromModel(node: Node): void {
+    console.log('removenode');
     if (!this.mcd) return;
     const obj = node.getData<Entity | Association>();
     if (!obj) return;
-
+    console.log(node.shape);
     if (node.shape === 'merise-entity') {
       const e = obj as Entity;
       this.mcd.Entities = this.mcd.Entities.filter(x => x.id !== e.id);
@@ -944,20 +998,45 @@ export class McdEditorComponent implements OnInit, OnDestroy {
   // ─────────────────────────────────────────────────────────────────────────────
 
   drawMcd(): void {
+
     if (!this.graph || !this.mcd) return;
+    this.isResettingGraph = true;
     this.graph.clearCells();
+    this.isResettingGraph = false;
+
+    const seenEntities = new Set<string>();
+    this.mcd.Entities = this.mcd.Entities.filter(e => {
+      if (seenEntities.has(e.id)) return false;
+      seenEntities.add(e.id);
+      return true;
+    });
+
+    const seenAssocs = new Set<string>();
+    this.mcd.Associations = this.mcd.Associations.filter(a => {
+      if (seenAssocs.has(a.id)) return false;
+      seenAssocs.add(a.id);
+      return true;
+    });
+
+    const seenLinks = new Set<string>();
+    this.mcd.Links = this.mcd.Links.filter(l => {
+      if (seenLinks.has(l.id)) return false;
+      seenLinks.add(l.id);
+      return true;
+    });
 
     const nodeMap = new Map<string, Node>();
 
     // ── Entités ───────────────────────────────────────────────────────────────
     this.mcd.Entities.forEach(entity => {
+      console.log(entity)
       // 1. On crée le nœud avec ses propriétés de base uniquement
       const node = this.graph!.addNode({
         shape: 'merise-entity',
         x: entity.posX,
         y: entity.posY,
         width: entity.width,
-        // On laisse updateNodeDisplay gérer la hauteur (height)
+        height: entity.height,
         data: entity,
         attrs: {
           label: { text: entity.name }
@@ -984,6 +1063,8 @@ export class McdEditorComponent implements OnInit, OnDestroy {
           label: { text: assoc.name }
         }
       });
+      this.updateNodeDisplay(node);
+
       nodeMap.set(assoc.id, node);
     });
 
@@ -1006,6 +1087,9 @@ export class McdEditorComponent implements OnInit, OnDestroy {
           line: { stroke: '#334155', strokeWidth: 2, targetMarker: '', sourceMarker: '' }
         }
       });
+    });
+    this.mcd.Entities.forEach(entity => {
+      console.log('Entity:', entity.name, 'pos:', entity.posX, entity.posY, 'width:', entity.width);
     });
   }
 
@@ -1092,7 +1176,19 @@ export class McdEditorComponent implements OnInit, OnDestroy {
       allFields.find(f => f.TechnicalName === name) || new Field(Date.now().toString(), name, name, 'VARCHAR')
     );
 
-    this.pickerNode.setData({ fields: newFields }, { overwrite: true });
+    // Mutation en place de l'objet data existant pour préserver la référence vers this.mcd.
+    // setData({ fields }, overwrite:true) avec un objet plat remplacerait l'instance Entity/Association
+    // entière, faisant perdre id/posX/posY. La suppression ultérieure échouerait (id === undefined).
+    const data = this.pickerNode.getData();
+    if (data) {
+      data.fields = newFields;
+      this.pickerNode.setData(data, { overwrite: true });
+    }
+    const obj = this.mcd?.Entities.find(e => e.id === data.id)
+      || this.mcd?.Associations.find(a => a.id === data.id);
+    console.log('obj trouvé:', obj, 'data.id:', data.id);
+    console.log('associations:', this.mcd?.Associations.map(a => a.id));
+    if (obj) obj.fields = newFields;
 
     // Mise à jour visuelle propre (sans [x])
     this.updateNodeDisplay(this.pickerNode);
@@ -1107,37 +1203,40 @@ export class McdEditorComponent implements OnInit, OnDestroy {
     if (!this.graph || !this.dnd || !this.mcd) return;
 
     let newNode: Node;
+    let pendingEntity: Entity | undefined;
+    let pendingAssoc: Association | undefined;
 
     if (type === 'entity') {
-      const entity = new Entity('ENTITE' + this.randomSuffix(), [], 0, 0, 160, 100);
-      this.mcd.Entities.push(entity);
+      pendingEntity = new Entity('ENTITE' + this.randomSuffix(), [], 0, 0, 160, 100);
+      this.pendingDrops.set(pendingEntity.id, pendingEntity);
 
       newNode = this.graph.createNode({
         shape: 'merise-entity',
         width: 160,
         height: 100,
-        data: entity,
+        data: pendingEntity,
         attrs: {
-          label: { text: entity.name },
+          label: { text: pendingEntity.name },
           'fields-text': { text: '' }
         }
       });
 
     } else {
-      const assoc = new Association('ASSOC_' + this.randomSuffix(), [], 0, 0, 120, 60);
-      this.mcd.Associations.push(assoc);
+      pendingAssoc = new Association('ASSOC_' + this.randomSuffix(), [], 0, 0, 120, 60);
+      this.pendingDrops.set(pendingAssoc.id, pendingAssoc);
 
       newNode = this.graph.createNode({
         shape: 'merise-assoc',
         width: 120,
         height: 60,
-        data: assoc,
-        attrs: { label: { text: assoc.name } }
+        data: pendingAssoc,
+        attrs: { label: { text: pendingAssoc.name } }
       });
     }
 
     // node:change:position se déclenchera après le drop et sync les coordonnées
     this.dnd.start(newNode, event);
+
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
