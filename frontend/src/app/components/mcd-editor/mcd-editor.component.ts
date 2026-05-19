@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, Input, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Graph, Node, Edge } from '@antv/x6';
 import { Selection } from '@antv/x6-plugin-selection';
@@ -72,7 +72,7 @@ const START_Y = 35;     // Position du premier champ
   templateUrl: './mcd-editor.component.html',
   styleUrls: ['./mcd-editor.component.css']
 })
-export class McdEditorComponent implements OnInit, OnDestroy {
+export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
   @ViewChild('container', { static: true }) containerRef!: ElementRef;
   @Input() slug: string = '';
   @Input() mcd: Mcd | undefined;
@@ -99,6 +99,17 @@ export class McdEditorComponent implements OnInit, OnDestroy {
   // Cycle de vie
   // ─────────────────────────────────────────────────────────────────────────────
 
+
+  ngOnChanges(changes: SimpleChanges): void {
+    const mcdChange = changes['mcd'];
+    if (mcdChange && mcdChange.currentValue) {
+      const incoming: Mcd = mcdChange.currentValue;
+      if (incoming.Entities.length > 0 || incoming.Associations.length > 0) {
+        this.mcd = incoming;
+        if (this.graph) this.drawMcd();
+      }
+    }
+  }
 
   ngOnInit(): void {
     const savedMcd = this.mcdService.loadMcd(this.slug);

@@ -11,6 +11,7 @@ import { Mcd } from '../../models/mcd';
 import { Field } from '../../models/field';
 import { DependenceLine } from '../../models/dependence-line.model';
 import { DictionaryService } from '../../services/dictionary.service';
+import { McdService } from '../../services/mcd.service';
 
 import { PanelComponent } from '../panel/panel.component';
 import { DictionaryTableComponent } from '../dictionary-table/dictionary-table.component';
@@ -43,6 +44,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
     private exerciceService: ExerciceService,
     private dictionaryService: DictionaryService,
     private dependenceService: DependenceService,
+    private mcdService: McdService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -64,23 +66,18 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
     this.runSilentSave();
   }
 
+  private getCurrentModel() {
+    return this.mcdEditor?.mcd ?? this.mcdService.getCurrentMcd() ?? {};
+  }
+
   private runSilentSave() {
     if (this.exercice && this.isLoaded) {
       const data = {
         dictionary: this.dictionary,
         dependencies: this.dependencies,
-        model: {} // --- ON ENVOIE UN MCD VIDE ICI ---
+        model: this.getCurrentModel()
       };
-
-      console.log("💾 [AUTO-SAVE] Données envoyées à Laravel :", data);
-
-      // On utilise emergencySave (fetch keepalive) pour passer outre l'erreur status: 0
       this.exerciceService.emergencySave(this.exercice.id, data);
-
-      // --- LOG DE CONFIRMATION ---
-      console.log("✅ [AUTO-SAVE] La structure MCD vide a bien été envoyée au service.");
-    } else {
-      console.warn("⚠️ [AUTO-SAVE] Annulée : les données n'étaient pas prêtes.");
     }
   }
 
@@ -120,7 +117,16 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
                 cible: dep.cible.filter(c => validNames.includes(c))
               }));
 
-              // 4. Sync localStorage
+              // 4. MCD depuis BD — priorité si non vide
+              const rawModel = attempt.model;
+              if (rawModel && (rawModel.Entities?.length > 0 || rawModel.Associations?.length > 0)) {
+                this.mcd = Mcd.fromJSON(rawModel);
+                if (this.exercice?.slug) {
+                  this.mcdService.saveMcd(this.exercice.slug, this.mcd);
+                }
+              }
+
+              // 5. Sync localStorage
               if (this.exercice?.slug) {
                 this.dictionaryService.save(this.exercice.slug, this.dictionary);
                 this.dependenceService.saveDependences(this.exercice.slug, this.dependencies);
@@ -150,7 +156,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
       const data = {
         dictionary: this.dictionary,
         dependencies: this.dependencies,
-        model: {}
+        model: this.getCurrentModel()
       };
       this.exerciceService.saveAttempt(this.exercice.id, data).subscribe();
     }
@@ -194,7 +200,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
       const data = {
         dictionary: this.dictionary,
         dependencies: this.dependencies,
-        model: {}
+        model: this.getCurrentModel()
       };
       this.exerciceService.saveAttempt(this.exercice.id, data).subscribe();
     }
@@ -215,7 +221,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
     const data = {
       dictionary: this.dictionary,
       dependencies: this.dependencies,
-      model: {}
+      model: this.getCurrentModel()
     };
 
     this.exerciceService.saveAttempt(this.exercice.id, data).subscribe();
