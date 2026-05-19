@@ -1,4 +1,3 @@
-
 services:
   # 1. Le Serveur API (Laravel)
   backend:
