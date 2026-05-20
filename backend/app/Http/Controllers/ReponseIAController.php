@@ -188,6 +188,118 @@ PROMPT;
         ]);
     }
 
+    public function analyzeDictionary(Request $request, OllamaService $ollama): JsonResponse
+    {
+        set_time_limit(0);
+        ini_set('default_socket_timeout', -1);
+
+        $dictionary = $request->input('dictionary');
+
+        if (!$dictionary || !is_array($dictionary) || count($dictionary) === 0) {
+            return response()->json(['error' => 'Dictionnaire manquant ou vide'], 422);
+        }
+
+        // Dictionnaire attendu — placeholder, sera remplacé par la solution de l'exercice
+        $attendu = array_column($dictionary, null, 'TechnicalName');
+
+        $erreurs = [];
+        $soumisNames = array_column($dictionary, 'TechnicalName');
+
+        foreach ($dictionary as $field) {
+            $technicalName = $field['TechnicalName'] ?? null;
+            if (!$technicalName) continue;
+
+            $erreursChamp  = [];
+            $attenduChamp  = $attendu[$technicalName] ?? null;
+
+            if (!$attenduChamp) {
+                $erreursChamp[] = "champ '$technicalName' non attendu";
+            } else {
+                if (strtoupper($field['Type'] ?? '') !== strtoupper($attenduChamp['Type'] ?? '')) {
+                    $erreursChamp[] = "type '{$field['Type']}' au lieu de '{$attenduChamp['Type']}'";
+                }
+                if ((bool)($field['PrimaryKey'] ?? false) !== (bool)($attenduChamp['PrimaryKey'] ?? false)) {
+                    $etat = $attenduChamp['PrimaryKey'] ? 'devrait être clé primaire' : 'ne devrait pas être clé primaire';
+                    $erreursChamp[] = $etat;
+                }
+            }
+
+            $erreurs[$technicalName] = $erreursChamp;
+        }
+
+        foreach ($attendu as $technicalName => $_) {
+            if (!in_array($technicalName, $soumisNames)) {
+                $erreurs[$technicalName] = ["champ '$technicalName' manquant"];
+            }
+        }
+
+        $avecErreurs = array_filter($erreurs, fn($e) => count($e) > 0);
+        $remarques   = [];
+
+        foreach ($erreurs as $nom => $liste) {
+            if (count($liste) === 0) {
+                $remarques[] = [
+                    'champ'   => $nom,
+                    'statut'  => 'valide',
+                    'message' => "Le champ $nom est correct, bien joué !",
+                ];
+            }
+        }
+
+        if (count($avecErreurs) > 0) {
+            $erreursAbstraites = [];
+            foreach ($avecErreurs as $nom => $liste) {
+                $categories = [];
+                foreach ($liste as $erreur) {
+                    if (str_contains($erreur, 'type'))           $categories[] = "un type d'attribut incorrect";
+                    elseif (str_contains($erreur, 'clé primaire')) $categories[] = 'une clé primaire incorrecte';
+                    elseif (str_contains($erreur, 'manquant'))   $categories[] = 'un champ manquant';
+                    elseif (str_contains($erreur, 'non attendu')) $categories[] = 'un champ en trop';
+                }
+                $erreursAbstraites[$nom] = [
+                    'type'       => 'champ',
+                    'categories' => array_unique($categories),
+                ];
+            }
+            $erreursJson = json_encode($erreursAbstraites, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+            $prompt = <<<PROMPT
+Rôle : Tu es un professeur de bases de données pour des étudiants de première année de BUT Informatique. Tu pratiques le dialogue socratique : tu ne donnes jamais directement la réponse, tu poses des questions bienveillantes qui amènent l'étudiant à trouver ses erreurs par lui-même.
+
+Voici les problèmes détectés dans le dictionnaire de données de l'étudiant :
+{$erreursJson}
+
+Pour chaque champ, génère une courte question socratique (une seule phrase).
+Le champ "type" indique que c'est un champ du dictionnaire — utilise "ce champ" dans ta question.
+Le champ "categories" liste les catégories de problèmes — oriente la question vers ces catégories.
+Règles :
+* Ne jamais mentionner de noms ou valeurs précises
+* Ne pas expliquer ce qui est faux
+* Utiliser "ce champ" pour désigner l'attribut
+* Exemples : "Avez-vous bien vérifié le type de ce champ ?", "Ce champ devrait-il être une clé primaire ?"
+
+Retourne uniquement cet objet JSON où les clés sont les noms techniques des champs :
+{"questions": {"NomTechnique": "question..."}}
+PROMPT;
+
+            $data = $ollama->generateJson($prompt, 300);
+            foreach ($avecErreurs as $nom => $_) {
+                $question    = $data['questions'][$nom] ?? "Avez-vous bien vérifié tous les éléments du champ $nom ?";
+                $remarques[] = [
+                    'champ'   => $nom,
+                    'statut'  => 'invalide',
+                    'message' => $question,
+                ];
+            }
+        }
+
+        return response()->json([
+            'dictionary' => $dictionary,
+            'erreurs'    => $erreurs,
+            'remarques'  => $remarques,
+        ]);
+    }
+
     public function index(): JsonResponse
     {
         return response()->json(ReponseIA::all());

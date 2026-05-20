@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { AngularSplitModule } from 'angular-split';
-import { of } from 'rxjs';
+import { of, forkJoin } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
 import { ExerciceService } from '../../services/exercice.service';
@@ -233,12 +233,16 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
     this.exerciceService.saveAttempt(this.exercice.id, data).pipe(
       switchMap((saved: any) => {
         const mcd = saved?.data?.model ?? saved?.model;
-        if (!mcd) return of(null);
-        return this.exerciceService.analyzeMcd(mcd);
+        const mcd$ = mcd ? this.exerciceService.analyzeMcd(mcd) : of(null);
+        const dict$ = data.dictionary?.length
+          ? this.exerciceService.analyzeDictionary(data.dictionary)
+          : of(null);
+        return forkJoin([mcd$, dict$]);
       })
     ).subscribe({
-      next: (iaResult) => {
-        console.log('[IA] Résultat analyse MCD :', iaResult);
+      next: ([mcdResult, dictResult]) => {
+        console.log('[IA] Résultat analyse MCD :', mcdResult);
+        console.log('[IA] Résultat analyse Dictionnaire :', dictResult);
         this.isSubmitting = false;
       },
       error: () => { this.isSubmitting = false; }

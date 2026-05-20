@@ -57,4 +57,8 @@ export class ExerciceService {
   analyzeMcd(mcd: any): Observable<any> {
     return this.http.post('http://localhost:8000/api/ia/analyze-mcd', { mcd });
   }
+
+  analyzeDictionary(dictionary: any[]): Observable<any> {
+    return this.http.post('http://localhost:8000/api/ia/analyze-dictionary', { dictionary });
+  }
 }
