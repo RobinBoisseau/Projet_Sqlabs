@@ -235,7 +235,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- 5. SAUVEGARDE MANUELLE ---
+  // --- 5. SAUVEGARDE LA TENTATIVE ---
 
   save(): void {
     if (!this.exercice || !this.isLoaded) return;
