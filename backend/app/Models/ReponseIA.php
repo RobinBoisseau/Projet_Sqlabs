@@ -13,6 +13,7 @@ class ReponseIA extends Model
     protected $table = 'reponse_ias';
 
     protected $fillable = [
+        'tentative_id',
         'element',
         'contenuJson',
         'reponseJson',

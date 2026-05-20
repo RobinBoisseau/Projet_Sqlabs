@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 use App\Models\Tentative;
+use App\Models\ReponseIA;
 use App\Http\Resources\TentativeResource;
 use Illuminate\Http\Request;
 
@@ -11,6 +12,20 @@ class TentativeController extends Controller
     }
 
     public function store(Request $request) {
+        $existing = Tentative::where('exercice_id', $request->exercice_id)
+            ->where('user_id', auth()->id())
+            ->first();
+
+        $hashDico = $this->hashData($request->dictionary);
+        $hashDep  = $this->hashData($request->dependencies);
+        $hashMcd  = $this->hashData($request->model);
+
+        $changed = [
+            'dictionary'   => $hashDico !== $existing?->hash_dico,
+            'dependencies' => $hashDep  !== $existing?->hash_dep,
+            'model'        => $hashMcd  !== $existing?->hash_mcd,
+        ];
+
         $tentative = Tentative::updateOrCreate(
             [
                 'exercice_id' => $request->exercice_id,
@@ -20,10 +35,43 @@ class TentativeController extends Controller
                 'dictionnaire' => $request->dictionary,
                 'dependance'   => $request->dependencies,
                 'modele'       => $request->model,
+                'hash_dico'    => $hashDico,
+                'hash_dep'     => $hashDep,
+                'hash_mcd'     => $hashMcd,
                 'dateHeureTentative' => now()
             ]
         );
-        return new TentativeResource($tentative);
+
+        // Récupérer les réponses IA en cache pour les parties inchangées
+        $cached = [];
+        $elementMap = ['model' => 'mcd', 'dictionary' => 'dico', 'dependencies' => 'dep'];
+        foreach ($elementMap as $key => $element) {
+            if (!$changed[$key]) {
+                $reponse = ReponseIA::where('tentative_id', $tentative->id)
+                    ->where('element', $element)
+                    ->latest()
+                    ->first();
+                if ($reponse) {
+                    $cached[$key] = $reponse->reponseJson;
+                }
+            }
+        }
+
+        return (new TentativeResource($tentative))->additional([
+            'changed' => $changed,
+            'cached'  => $cached,
+        ]);
+    }
+
+    private function hashData(mixed $data): string {
+        return hash('sha256', json_encode($this->normalizeForHash($data), JSON_UNESCAPED_UNICODE));
+    }
+
+    private function normalizeForHash(mixed $data): mixed {
+        if (!is_array($data)) return $data;
+        if (array_is_list($data)) return array_map(fn($item) => $this->normalizeForHash($item), $data);
+        ksort($data);
+        return array_map(fn($item) => $this->normalizeForHash($item), $data);
     }
 
     public function show($id) {
@@ -37,6 +85,9 @@ class TentativeController extends Controller
             'dictionnaire' => $request->dictionary,
             'dependance'   => $request->dependencies,
             'modele'       => $request->model,
+            'hash_dico'    => $this->hashData($request->dictionary),
+            'hash_dep'     => $this->hashData($request->dependencies),
+            'hash_mcd'     => $this->hashData($request->model),
             'dateHeureTentative' => now()
         ]);
         return new TentativeResource($tentative);
