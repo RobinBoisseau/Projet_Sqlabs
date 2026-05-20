@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { AngularSplitModule } from 'angular-split';
-import { Observable, of } from 'rxjs';
+import { of, forkJoin } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
@@ -229,13 +230,30 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
       model: this.getCurrentModel()
     };
 
-    this.exerciceService.saveAttempt(this.exercice.id, data).subscribe({
-      next: () => { this.isSubmitting = false; },
+    this.exerciceService.saveAttempt(this.exercice.id, data).pipe(
+      switchMap((saved: any) => {
+        const mcd = saved?.data?.model ?? saved?.model;
+        const mcd$  = mcd ? this.exerciceService.analyzeMcd(mcd) : of(null);
+        const dict$ = data.dictionary?.length
+          ? this.exerciceService.analyzeDictionary(data.dictionary)
+          : of(null);
+        const deps$ = data.dependencies?.length
+          ? this.exerciceService.analyzeDependencies(data.dependencies)
+          : of(null);
+        return forkJoin([mcd$, dict$, deps$]);
+      })
+    ).subscribe({
+      next: ([mcdResult, dictResult, depsResult]) => {
+        console.log('[IA] Résultat analyse MCD :', mcdResult);
+        console.log('[IA] Résultat analyse Dictionnaire :', dictResult);
+        console.log('[IA] Résultat analyse Dépendances :', depsResult);
+        this.isSubmitting = false;
+      },
       error: () => { this.isSubmitting = false; }
     });
   }
 
-  // --- 5. SAUVEGARDE LA TENTATIVE ---
+  // --- SAUVEGARDE LA TENTATIVE ---
 
   save(): void {
     if (!this.exercice || !this.isLoaded) return;
