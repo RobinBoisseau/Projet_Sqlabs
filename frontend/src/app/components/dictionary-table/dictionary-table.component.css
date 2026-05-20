@@ -32,8 +32,8 @@
 
 .dict-table thead th:nth-child(3),
 .dict-table tbody td:nth-child(3) {
-  width: 120px !important; /* On monte à 135px pour être large */
-  min-width: 120px;
+  width: 135px !important; /* On monte à 135px pour être large */
+  min-width: 135px;
 }
 
 /* On réduit la place des colonnes de texte pour compenser */
