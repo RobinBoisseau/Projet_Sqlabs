@@ -17,12 +17,13 @@ import { PanelComponent } from '../panel/panel.component';
 import { DictionaryTableComponent } from '../dictionary-table/dictionary-table.component';
 import { DependenceTableComponent } from '../dependence-table/dependence-table.component';
 import { McdEditorComponent } from '../mcd-editor/mcd-editor.component';
+import { TentativeButtonComponent } from '../tentative-button/tentative-button.component';
 import { DependenceService } from '../../services/dependence.service';
 
 @Component({
   selector: 'app-exercice-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, AngularSplitModule, PanelComponent, DictionaryTableComponent, DependenceTableComponent, McdEditorComponent],
+  imports: [CommonModule, FormsModule, AngularSplitModule, PanelComponent, DictionaryTableComponent, DependenceTableComponent, McdEditorComponent, TentativeButtonComponent],
   templateUrl: './exercice-detail.component.html',
   styleUrls: ['./exercice-detail.component.css']
 })
@@ -34,8 +35,9 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
   dependencies: DependenceLine[] = [];
   technicalNames: string[] = [];
 
-  // Sécurité : empêche d'envoyer du vide si Laravel n'a pas encore répondu au début
   isLoaded: boolean = false;
+  isTentativeDisabled: boolean = false;
+  isSubmitting: boolean = false;
 
   @ViewChild(McdEditorComponent) mcdEditor!: McdEditorComponent;
 
@@ -213,7 +215,27 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
       .filter(n => n && n.trim() !== '');
   }
 
-  // --- 4. SAUVEGARDE MANUELLE ---
+  // --- 4. SOUMISSION DE TENTATIVE ---
+
+  onTentativeSubmitted(): void {
+    if (!this.exercice || !this.isLoaded) return;
+
+    this.isTentativeDisabled = true;
+    this.isSubmitting = true;
+
+    const data = {
+      dictionary: this.dictionary,
+      dependencies: this.dependencies,
+      model: this.getCurrentModel()
+    };
+
+    this.exerciceService.saveAttempt(this.exercice.id, data).subscribe({
+      next: () => { this.isSubmitting = false; },
+      error: () => { this.isSubmitting = false; }
+    });
+  }
+
+  // --- 5. SAUVEGARDE MANUELLE ---
 
   save(): void {
     if (!this.exercice || !this.isLoaded) return;
