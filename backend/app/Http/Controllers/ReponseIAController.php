@@ -54,6 +54,15 @@ class ReponseIAController extends Controller
             $attendu['Associations'][$assoc['name']] = ['links' => $links];
         }
 
+        // TEST TEMPORAIRE : force une erreur sur le premier champ de la première entité
+        if (!empty($attendu['Entities'])) {
+            $firstEntity = array_key_first($attendu['Entities']);
+            if (!empty($attendu['Entities'][$firstEntity]['fields'])) {
+                $attendu['Entities'][$firstEntity]['fields'][0]['PrimaryKey'] =
+                    !(bool)($attendu['Entities'][$firstEntity]['fields'][0]['PrimaryKey'] ?? false);
+            }
+        }
+
         // Comparaison PHP — détection des erreurs exactes
         $erreurs = [];
 
@@ -202,6 +211,12 @@ PROMPT;
         // Dictionnaire attendu — placeholder, sera remplacé par la solution de l'exercice
         $attendu = array_column($dictionary, null, 'TechnicalName');
 
+        // TEST TEMPORAIRE : force une erreur sur le premier champ pour valider les questions socratiques
+        if (!empty($attendu)) {
+            $firstKey = array_key_first($attendu);
+            $attendu[$firstKey]['PrimaryKey'] = !(bool)($attendu[$firstKey]['PrimaryKey'] ?? false);
+        }
+
         $erreurs = [];
         $soumisNames = array_column($dictionary, 'TechnicalName');
 
@@ -319,6 +334,12 @@ PROMPT;
             sort($source);
             $cleSource = implode(',', $source);
             $attendu[$cleSource] = $dep['cible'] ?? [];
+        }
+
+        // TEST TEMPORAIRE : force une erreur sur la première dépendance pour valider les questions socratiques
+        if (!empty($attendu)) {
+            $firstKey = array_key_first($attendu);
+            $attendu[$firstKey][] = 'champ_test_fictif';
         }
 
         $erreurs = [];
