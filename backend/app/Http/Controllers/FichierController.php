@@ -27,10 +27,10 @@ class FichierController extends Controller
    public function show($id)
    {
        $fichier = Fichier::find($id);
-       if (!$fichierexercice) {
+       if (!$fichier) {
            return response()->json(['message' => 'Fichier non trouvé'], 404);
        }
-       return new Fichier($fichier);
+       return new FichierResource($fichier);
    }
 
 
@@ -42,7 +42,7 @@ class FichierController extends Controller
            return response()->json(['message' => 'Fichier non trouvé'], 404);
        }
        $fichier->update($request->all());
-       return new Fichier($fichier);
+       return new FichierResource($fichier);
    }
 
 

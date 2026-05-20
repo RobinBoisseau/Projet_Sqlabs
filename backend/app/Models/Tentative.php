@@ -11,6 +11,7 @@ class Tentative extends Model {
     protected $fillable = [
         'is_correction',
         'dictionnaire', 'dependance', 'modele',
+        'hash_dico', 'hash_dep', 'hash_mcd',
         'dictionnaireValide', 'dependanceValide', 'modeleValide',
         'dateHeureTentative', 'user_id', 'exercice_id',
     ];
