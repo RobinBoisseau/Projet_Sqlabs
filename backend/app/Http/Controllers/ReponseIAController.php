@@ -19,76 +19,40 @@ class ReponseIAController extends Controller
         return response()->json(['prompt' => $prompt, 'reponse' => $reponse]);
     }
 
-    public function analyzeMcd(OllamaService $ollama): JsonResponse
+    public function analyzeMcd(Request $request, OllamaService $ollama): JsonResponse
     {
         set_time_limit(0);
         ini_set('default_socket_timeout', -1);
 
-        // MCD soumis par l'étudiant — structure identique au modèle frontend (Mcd / Entity / Association / Link)
-        $mcd = [
-            'Entities' => [
-                [
-                    'id'     => 1,
-                    'name'   => 'Personne',
-                    'fields' => [
-                        ['name' => 'id',     'Type' => 'INT',     'PrimaryKey' => true],
-                        ['name' => 'nom',    'Type' => 'VARCHAR', 'PrimaryKey' => false],
-                        ['name' => 'prenom', 'Type' => 'VARCHAR', 'PrimaryKey' => false],
-                    ],
-                ],
-                [
-                    'id'     => 2,
-                    'name'   => 'Voiture',
-                    'fields' => [
-                        ['name' => 'id',     'Type' => 'INT',     'PrimaryKey' => true],
-                        ['name' => 'marque', 'Type' => 'VARCHAR', 'PrimaryKey' => false],
-                        ['name' => 'modele', 'Type' => 'VARCHAR', 'PrimaryKey' => false],
-                    ],
-                ],
-            ],
-            'Associations' => [
-                [
-                    'id'     => 1,
-                    'name'   => 'Conduire',
-                    'fields' => [],
-                ],
-            ],
-            'Links' => [
-                ['id' => 1, 'cardinality' => '1,N', 'assocId' => 1, 'entityId' => 1],
-                ['id' => 2, 'cardinality' => '1,N', 'assocId' => 1, 'entityId' => 2],
-            ],
-        ];
+        // MCD soumis — reçu depuis la BD (sauvegardé par le TentativeController)
+        $mcd = $request->input('mcd');
 
-        // MCD attendu (correction de référence) — même structure, sans positions
-        $attendu = [
-            'Entities' => [
-                'Personne' => [
-                    'fields' => [
-                        ['name' => 'id',     'Type' => 'INT',     'PrimaryKey' => true],
-                        ['name' => 'nom',    'Type' => 'VARCHAR', 'PrimaryKey' => false],
-                        ['name' => 'prenom', 'Type' => 'VARCHAR', 'PrimaryKey' => false],
-                    ],
-                ],
-                'Voiture' => [
-                    'fields' => [
-                        ['name' => 'id',     'Type' => 'INT',     'PrimaryKey' => true],
-                        ['name' => 'marque', 'Type' => 'VARCHAR', 'PrimaryKey' => false],
-                        ['name' => 'modele', 'Type' => 'VARCHAR', 'PrimaryKey' => false],
-                    ],
-                ],
-            ],
-            'Associations' => [
-                'Conduire' => [
-                    'links' => [
-                        ['entityName' => 'Personne', 'cardinality' => '1,N'],
-                        ['entityName' => 'Voiture',  'cardinality' => '1,N'],
-                    ],
-                ],
-            ],
-        ];
+        if (!$mcd || empty($mcd['Entities'])) {
+            return response()->json(['error' => 'MCD manquant ou vide'], 422);
+        }
 
         // Table de correspondance id → name pour les entités soumises
         $entityIdToName = array_column($mcd['Entities'], 'name', 'id');
+
+        // MCD attendu construit dynamiquement depuis le MCD soumis
+        // (placeholder : sera remplacé par le MCD solution de l'exercice)
+        $attendu = ['Entities' => [], 'Associations' => []];
+
+        foreach ($mcd['Entities'] as $entity) {
+            $attendu['Entities'][$entity['name']] = ['fields' => $entity['fields'] ?? []];
+        }
+
+        foreach ($mcd['Associations'] as $assoc) {
+            $links = [];
+            foreach ($mcd['Links'] as $link) {
+                if ($link['assocId'] !== $assoc['id']) continue;
+                $entityName = $entityIdToName[$link['entityId']] ?? null;
+                if ($entityName) {
+                    $links[] = ['entityName' => $entityName, 'cardinality' => $link['cardinality']];
+                }
+            }
+            $attendu['Associations'][$assoc['name']] = ['links' => $links];
+        }
 
         // Comparaison PHP — détection des erreurs exactes
         $erreurs = [];

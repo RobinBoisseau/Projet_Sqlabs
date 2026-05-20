@@ -53,4 +53,8 @@ export class ExerciceService {
     console.log('🔍 URL appelée :', `${this.tentativesUrl}/exercice/${exerciceId}`);
     return this.http.get(`${this.tentativesUrl}/exercice/${exerciceId}`);
   }
+
+  analyzeMcd(mcd: any): Observable<any> {
+    return this.http.post('http://localhost:8000/api/ia/analyze-mcd', { mcd });
+  }
 }

@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { AngularSplitModule } from 'angular-split';
-import { Observable, of } from 'rxjs';
+import { of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
@@ -229,13 +230,22 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
       model: this.getCurrentModel()
     };
 
-    this.exerciceService.saveAttempt(this.exercice.id, data).subscribe({
-      next: () => { this.isSubmitting = false; },
+    this.exerciceService.saveAttempt(this.exercice.id, data).pipe(
+      switchMap((saved: any) => {
+        const mcd = saved?.data?.model ?? saved?.model;
+        if (!mcd) return of(null);
+        return this.exerciceService.analyzeMcd(mcd);
+      })
+    ).subscribe({
+      next: (iaResult) => {
+        console.log('[IA] Résultat analyse MCD :', iaResult);
+        this.isSubmitting = false;
+      },
       error: () => { this.isSubmitting = false; }
     });
   }
 
-  // --- 5. SAUVEGARDE MANUELLE ---
+  // --- SAUVEGARDE LA TENTATIVE ---
 
   save(): void {
     if (!this.exercice || !this.isLoaded) return;
