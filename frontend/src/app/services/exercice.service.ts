@@ -61,4 +61,8 @@ export class ExerciceService {
   analyzeDictionary(dictionary: any[]): Observable<any> {
     return this.http.post('http://localhost:8000/api/ia/analyze-dictionary', { dictionary });
   }
+
+  analyzeDependencies(dependencies: any[]): Observable<any> {
+    return this.http.post('http://localhost:8000/api/ia/analyze-dependencies', { dependencies });
+  }
 }

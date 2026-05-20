@@ -233,16 +233,20 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
     this.exerciceService.saveAttempt(this.exercice.id, data).pipe(
       switchMap((saved: any) => {
         const mcd = saved?.data?.model ?? saved?.model;
-        const mcd$ = mcd ? this.exerciceService.analyzeMcd(mcd) : of(null);
+        const mcd$  = mcd ? this.exerciceService.analyzeMcd(mcd) : of(null);
         const dict$ = data.dictionary?.length
           ? this.exerciceService.analyzeDictionary(data.dictionary)
           : of(null);
-        return forkJoin([mcd$, dict$]);
+        const deps$ = data.dependencies?.length
+          ? this.exerciceService.analyzeDependencies(data.dependencies)
+          : of(null);
+        return forkJoin([mcd$, dict$, deps$]);
       })
     ).subscribe({
-      next: ([mcdResult, dictResult]) => {
+      next: ([mcdResult, dictResult, depsResult]) => {
         console.log('[IA] Résultat analyse MCD :', mcdResult);
         console.log('[IA] Résultat analyse Dictionnaire :', dictResult);
+        console.log('[IA] Résultat analyse Dépendances :', depsResult);
         this.isSubmitting = false;
       },
       error: () => { this.isSubmitting = false; }

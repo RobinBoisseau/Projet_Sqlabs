@@ -300,6 +300,132 @@ PROMPT;
         ]);
     }
 
+    public function analyzeDependencies(Request $request, OllamaService $ollama): JsonResponse
+    {
+        set_time_limit(0);
+        ini_set('default_socket_timeout', -1);
+
+        $dependencies = $request->input('dependencies');
+
+        if (!$dependencies || !is_array($dependencies) || count($dependencies) === 0) {
+            return response()->json(['error' => 'Dépendances manquantes ou vides'], 422);
+        }
+
+        // Dépendances attendues — placeholder, sera remplacé par la solution de l'exercice
+        // On indexe par la clé source (triée et concaténée) pour identifier chaque DFE
+        $attendu = [];
+        foreach ($dependencies as $dep) {
+            $source = $dep['source'] ?? [];
+            sort($source);
+            $cleSource = implode(',', $source);
+            $attendu[$cleSource] = $dep['cible'] ?? [];
+        }
+
+        $erreurs = [];
+
+        foreach ($dependencies as $dep) {
+            $source = $dep['source'] ?? [];
+            $cible  = $dep['cible']  ?? [];
+            sort($source);
+            $cleSource     = implode(',', $source);
+            $erreursDep    = [];
+            $cibleAttendue = $attendu[$cleSource] ?? null;
+
+            if ($cibleAttendue === null) {
+                $erreursDep[] = 'dépendance non attendue';
+            } else {
+                $manquants = array_diff($cibleAttendue, $cible);
+                $enTrop    = array_diff($cible, $cibleAttendue);
+                foreach ($manquants as $champ) {
+                    $erreursDep[] = "attribut cible '$champ' manquant";
+                }
+                foreach ($enTrop as $champ) {
+                    $erreursDep[] = "attribut cible '$champ' en trop";
+                }
+            }
+
+            $erreurs[$cleSource] = $erreursDep;
+        }
+
+        // Dépendances attendues non soumises
+        $sourcesSoumises = [];
+        foreach ($dependencies as $dep) {
+            $s = $dep['source'] ?? [];
+            sort($s);
+            $sourcesSoumises[] = implode(',', $s);
+        }
+        foreach ($attendu as $cleSource => $_) {
+            if (!in_array($cleSource, $sourcesSoumises)) {
+                $erreurs[$cleSource] = ["dépendance fonctionnelle manquante"];
+            }
+        }
+
+        $avecErreurs = array_filter($erreurs, fn($e) => count($e) > 0);
+        $remarques   = [];
+
+        foreach ($erreurs as $cleSource => $liste) {
+            if (count($liste) === 0) {
+                $remarques[] = [
+                    'source'  => $cleSource,
+                    'statut'  => 'valide',
+                    'message' => "La dépendance $cleSource est correcte, bien joué !",
+                ];
+            }
+        }
+
+        if (count($avecErreurs) > 0) {
+            $erreursAbstraites = [];
+            foreach ($avecErreurs as $cleSource => $liste) {
+                $categories = [];
+                foreach ($liste as $erreur) {
+                    if (str_contains($erreur, 'manquant'))     $categories[] = 'un ou plusieurs attributs cibles manquants';
+                    elseif (str_contains($erreur, 'en trop'))  $categories[] = 'un ou plusieurs attributs cibles en trop';
+                    elseif (str_contains($erreur, 'non attendue')) $categories[] = 'une dépendance non attendue';
+                }
+                $erreursAbstraites[$cleSource] = [
+                    'type'       => 'dépendance',
+                    'categories' => array_unique($categories),
+                ];
+            }
+            $erreursJson = json_encode($erreursAbstraites, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+            $prompt = <<<PROMPT
+Rôle : Tu es un professeur de bases de données pour des étudiants de première année de BUT Informatique. Tu pratiques le dialogue socratique : tu ne donnes jamais directement la réponse, tu poses des questions bienveillantes qui amènent l'étudiant à trouver ses erreurs par lui-même.
+
+Voici les problèmes détectés dans les dépendances fonctionnelles élémentaires de l'étudiant :
+{$erreursJson}
+
+Pour chaque dépendance (identifiée par sa source), génère une courte question socratique (une seule phrase).
+Le champ "type" vaut "dépendance" — utilise "cette dépendance" dans ta question.
+Le champ "categories" liste les catégories de problèmes — oriente la question vers ces catégories.
+Règles :
+* Ne jamais mentionner de noms ou valeurs précises
+* Ne pas expliquer ce qui est faux
+* Utiliser "cette dépendance" pour désigner la DFE
+* Exemples : "Avez-vous bien vérifié les attributs cibles de cette dépendance ?", "Tous les attributs déterminés par cette source sont-ils présents ?"
+
+Retourne uniquement cet objet JSON où les clés sont les sources (telles que fournies) :
+{"questions": {"source1,source2": "question..."}}
+PROMPT;
+
+            $data = $ollama->generateJson($prompt, 300);
+            foreach ($avecErreurs as $cleSource => $_) {
+                $question    = $data['questions'][$cleSource] ?? "Avez-vous bien vérifié tous les attributs de cette dépendance ?";
+                $remarques[] = [
+                    'source'  => $cleSource,
+                    'statut'  => 'invalide',
+                    'message' => $question,
+                ];
+            }
+        }
+
+        return response()->json([
+            'dependencies' => $dependencies,
+            'erreurs'      => $erreurs,
+            'remarques'    => $remarques,
+        ]);
+    }
+
     public function index(): JsonResponse
     {
         return response()->json(ReponseIA::all());
