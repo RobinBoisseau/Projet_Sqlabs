@@ -42,9 +42,9 @@ class ReponseIAController extends Controller
             $attendu['Entities'][$entity['name']] = ['fields' => $entity['fields'] ?? []];
         }
 
-        foreach ($mcd['Associations'] as $assoc) {
+        foreach ($mcd['Associations'] ?? [] as $assoc) {
             $links = [];
-            foreach ($mcd['Links'] as $link) {
+            foreach ($mcd['Links'] ?? [] as $link) {
                 if ($link['assocId'] !== $assoc['id']) continue;
                 $entityName = $entityIdToName[$link['entityId']] ?? null;
                 if ($entityName) {
@@ -52,15 +52,6 @@ class ReponseIAController extends Controller
                 }
             }
             $attendu['Associations'][$assoc['name']] = ['links' => $links];
-        }
-
-        // TEST TEMPORAIRE : force une erreur sur le premier champ de la première entité
-        if (!empty($attendu['Entities'])) {
-            $firstEntity = array_key_first($attendu['Entities']);
-            if (!empty($attendu['Entities'][$firstEntity]['fields'])) {
-                $attendu['Entities'][$firstEntity]['fields'][0]['PrimaryKey'] =
-                    !(bool)($attendu['Entities'][$firstEntity]['fields'][0]['PrimaryKey'] ?? false);
-            }
         }
 
         // Comparaison PHP — détection des erreurs exactes
@@ -190,11 +181,16 @@ PROMPT;
             }
         }
 
-        return response()->json([
-            'mcd'      => $mcd,
-            'erreurs'  => $erreurs,
-            'remarques' => $remarques,
-        ]);
+        $reponseJson = ['erreurs' => $erreurs, 'remarques' => $remarques];
+
+        if ($request->input('tentative_id')) {
+            ReponseIA::updateOrCreate(
+                ['tentative_id' => $request->input('tentative_id'), 'element' => 'mcd'],
+                ['contenuJson' => $mcd, 'reponseJson' => $reponseJson, 'dateHeureReponse' => now()]
+            );
+        }
+
+        return response()->json(array_merge(['mcd' => $mcd], $reponseJson));
     }
 
     public function analyzeDictionary(Request $request, OllamaService $ollama): JsonResponse
@@ -210,12 +206,6 @@ PROMPT;
 
         // Dictionnaire attendu — placeholder, sera remplacé par la solution de l'exercice
         $attendu = array_column($dictionary, null, 'TechnicalName');
-
-        // TEST TEMPORAIRE : force une erreur sur le premier champ pour valider les questions socratiques
-        if (!empty($attendu)) {
-            $firstKey = array_key_first($attendu);
-            $attendu[$firstKey]['PrimaryKey'] = !(bool)($attendu[$firstKey]['PrimaryKey'] ?? false);
-        }
 
         $erreurs = [];
         $soumisNames = array_column($dictionary, 'TechnicalName');
@@ -308,11 +298,16 @@ PROMPT;
             }
         }
 
-        return response()->json([
-            'dictionary' => $dictionary,
-            'erreurs'    => $erreurs,
-            'remarques'  => $remarques,
-        ]);
+        $reponseJson = ['erreurs' => $erreurs, 'remarques' => $remarques];
+
+        if ($request->input('tentative_id')) {
+            ReponseIA::updateOrCreate(
+                ['tentative_id' => $request->input('tentative_id'), 'element' => 'dico'],
+                ['contenuJson' => $dictionary, 'reponseJson' => $reponseJson, 'dateHeureReponse' => now()]
+            );
+        }
+
+        return response()->json(array_merge(['dictionary' => $dictionary], $reponseJson));
     }
 
     public function analyzeDependencies(Request $request, OllamaService $ollama): JsonResponse
@@ -334,12 +329,6 @@ PROMPT;
             sort($source);
             $cleSource = implode(',', $source);
             $attendu[$cleSource] = $dep['cible'] ?? [];
-        }
-
-        // TEST TEMPORAIRE : force une erreur sur la première dépendance pour valider les questions socratiques
-        if (!empty($attendu)) {
-            $firstKey = array_key_first($attendu);
-            $attendu[$firstKey][] = 'champ_test_fictif';
         }
 
         $erreurs = [];
@@ -440,11 +429,16 @@ PROMPT;
             }
         }
 
-        return response()->json([
-            'dependencies' => $dependencies,
-            'erreurs'      => $erreurs,
-            'remarques'    => $remarques,
-        ]);
+        $reponseJson = ['erreurs' => $erreurs, 'remarques' => $remarques];
+
+        if ($request->input('tentative_id')) {
+            ReponseIA::updateOrCreate(
+                ['tentative_id' => $request->input('tentative_id'), 'element' => 'dep'],
+                ['contenuJson' => $dependencies, 'reponseJson' => $reponseJson, 'dateHeureReponse' => now()]
+            );
+        }
+
+        return response()->json(array_merge(['dependencies' => $dependencies], $reponseJson));
     }
 
     public function index(): JsonResponse

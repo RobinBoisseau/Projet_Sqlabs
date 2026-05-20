@@ -54,15 +54,15 @@ export class ExerciceService {
     return this.http.get(`${this.tentativesUrl}/exercice/${exerciceId}`);
   }
 
-  analyzeMcd(mcd: any): Observable<any> {
-    return this.http.post('http://localhost:8000/api/ia/analyze-mcd', { mcd });
+  analyzeMcd(mcd: any, tentativeId?: number): Observable<any> {
+    return this.http.post('http://localhost:8000/api/ia/analyze-mcd', { mcd, tentative_id: tentativeId });
   }
 
-  analyzeDictionary(dictionary: any[]): Observable<any> {
-    return this.http.post('http://localhost:8000/api/ia/analyze-dictionary', { dictionary });
+  analyzeDictionary(dictionary: any[], tentativeId?: number): Observable<any> {
+    return this.http.post('http://localhost:8000/api/ia/analyze-dictionary', { dictionary, tentative_id: tentativeId });
   }
 
-  analyzeDependencies(dependencies: any[]): Observable<any> {
-    return this.http.post('http://localhost:8000/api/ia/analyze-dependencies', { dependencies });
+  analyzeDependencies(dependencies: any[], tentativeId?: number): Observable<any> {
+    return this.http.post('http://localhost:8000/api/ia/analyze-dependencies', { dependencies, tentative_id: tentativeId });
   }
 }

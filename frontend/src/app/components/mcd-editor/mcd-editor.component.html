@@ -8,7 +8,21 @@
     <div class="tool-drag-item" (mousedown)="startDrag($event, 'association')">
       <app-toll-button icon="⬭" label="Association"></app-toll-button>
     </div>
+
     <div class="spacer"></div>
+
+    <div class="toolbar-separator"></div>
+
+
+    <button class="toolbar-btn" (click)="onUndo()" [disabled]="!caretaker.canUndo()" title="Annuler (Ctrl+Z)">
+      ←
+    </button>
+
+    <button class="toolbar-btn" (click)="onRedo()" [disabled]="!caretaker.canRedo()" title="Rétablir (Ctrl+Y)">
+      →
+    </button>
+
+
   </div>
 
   <!-- Conteneur X6 -->
