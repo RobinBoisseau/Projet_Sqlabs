@@ -79,6 +79,10 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
 
   private graph?: Graph;
   private dnd?: Dnd;
+
+  getGraphJson(): any {
+    return this.graph?.toJSON() ?? null;
+  }
   private connecting = false;
   private pendingDrops = new Map<string, Entity | Association>();
   private isResettingGraph = false;

@@ -13,8 +13,11 @@
   flex-direction: column;
 }
 
-as-split {
-  height: 100% !important;
+/* Le split prend tout l'espace restant après la barre de tentative */
+.main-split {
+  flex: 1 !important;
+  height: auto !important;
+  min-height: 0 !important;
 }
 
 /* FORCE LES ZONES DU SPLIT A ETRE DES BOITES FLEXIBLES */
@@ -56,4 +59,44 @@ app-panel {
 ::ng-deep .as-split-gutter {
   background-color: #e2e8f0 !important;
   flex-basis: 8px !important;
+}
+
+/* --- OVERLAY SOUMISSION IA --- */
+.submission-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  pointer-events: all;
+}
+
+.overlay-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.overlay-spinner {
+  width: 52px;
+  height: 52px;
+  border: 5px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: overlay-spin 0.75s linear infinite;
+}
+
+@keyframes overlay-spin {
+  to { transform: rotate(360deg); }
+}
+
+.overlay-text {
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  margin: 0;
 }

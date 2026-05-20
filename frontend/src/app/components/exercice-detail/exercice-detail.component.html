@@ -1,5 +1,5 @@
 <div class="workbench-wrapper" *ngIf="exercice">
-  <as-split direction="horizontal" unit="percent" gutterSize="8" style="height: 95vh;">
+  <as-split direction="horizontal" unit="percent" gutterSize="8" class="main-split">
 
     <!-- COLUMN 1: Énoncé -->
     <as-split-area [size]="25">
@@ -42,8 +42,21 @@
     </as-split-area>
 
   </as-split>
+
+  <app-tentative-button
+    [isDisabled]="isTentativeDisabled"
+    (submitted)="onTentativeSubmitted()">
+  </app-tentative-button>
 </div>
 
 <div *ngIf="!exercice" class="loading-overlay">
   <p>Loading exercise...</p>
+</div>
+
+<!-- Overlay IA -->
+<div class="submission-overlay" *ngIf="isSubmitting">
+  <div class="overlay-content">
+    <div class="overlay-spinner"></div>
+    <p class="overlay-text">Analyse de la tentative par l'IA...</p>
+  </div>
 </div>
