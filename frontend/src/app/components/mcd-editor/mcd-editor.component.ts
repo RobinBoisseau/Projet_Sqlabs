@@ -16,6 +16,8 @@ import { TableService } from '../../services/table.service';
 import { DictionaryService } from '../../services/dictionary.service';
 import { ChoixChampComponent } from '../choix-champ/choix-champ.component';
 import { ToolButtonComponent } from '../toll-button/toll-button.component';
+import { McdCaretakerService } from '../../services/mcd-caretaker.service';
+import { McdMemento } from '../../models/mcd-memento';
 
 // ─── Configuration des ports réutilisable ────────────────────────────────────
 
@@ -86,6 +88,8 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
   private connecting = false;
   private pendingDrops = new Map<string, Entity | Association>();
   private isResettingGraph = false;
+  private resizingSaved = false;
+  private isResizing = false;
 
   showPicker = false;
   public pickerNode: Node | null = null;
@@ -97,8 +101,10 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
   constructor(
     private mcdService: McdService,
     private tableService: TableService,
-    private dictionaryService: DictionaryService
+    private dictionaryService: DictionaryService,
+    public caretaker: McdCaretakerService
   ) { }
+
   // ─────────────────────────────────────────────────────────────────────────────
   // Cycle de vie
   // ─────────────────────────────────────────────────────────────────────────────
@@ -118,6 +124,30 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
   ngOnInit(): void {
     const savedMcd = this.mcdService.loadMcd(this.slug);
     if (savedMcd) this.mcd = savedMcd;
+
+    setTimeout(() => {
+      const fields = this.dictionaryService.load(this.slug);
+      if (fields.length > 0 && this.graph) {
+        this.graph.getNodes().forEach(node => {
+          const data = node.getData();
+          if (!data?.fields) return;
+
+          const updatedFields = data.fields
+            .filter((f: any) => fields.some((df: any) => df.id === f.id))
+            .map((f: any) => {
+              const dictField = fields.find((df: any) => df.id === f.id);
+              return dictField ? {
+                ...f,
+                TechnicalName: dictField.TechnicalName,
+                Type: dictField.Type
+              } : f;
+            });
+
+          node.setData({ ...data, fields: updatedFields }, { overwrite: true });
+          this.updateNodeDisplay(node);
+        });
+      }
+    }, 200);
 
     this.pickerSub = this.tableService.openPicker$.subscribe(({ node, currentFields, slug }) => {
       const activeSlug = slug || this.slug;
@@ -257,10 +287,10 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
       });
 
 
-      if (hasFields) {
-        const { width } = node.getSize(); // garde la largeur actuelle
+      if (hasFields && !this.isResizing) {
+        const { width } = node.getSize();
         const dynamicHeight = START_Y + (fields.length * LINE_HEIGHT) + 10;
-        node.resize(width, Math.max(dynamicHeight, 60)); // ne change que la hauteur
+        node.resize(width, Math.max(dynamicHeight, 60));
       }
     }
   }
@@ -282,13 +312,50 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
     const selectedCells = this.graph?.getSelectedCells() ?? [];
     if (selectedCells.length === 0) return;
 
+    this.saveToHistory();
     selectedCells.forEach(cell => {
       if (cell.isNode()) this.removeNodeFromModel(cell as Node);
       else if (cell.isEdge()) this.removeEdgeFromModel(cell as Edge);
     });
 
     this.graph?.removeCells(selectedCells);
+
     this.autoSave();
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Gestion de l'historique (Ctrl Z / Ctrl Y)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  @HostListener('document:keydown.control.z', ['$event'])
+  onUndo(event?: KeyboardEvent) {
+    event?.preventDefault();
+    if (!this.mcd) return;
+
+
+    // Vérifie qu'on peut vraiment undo avant
+    if (!this.caretaker.canUndo()) return;
+
+    const previous = this.caretaker.undo(this.mcd);
+    if (previous) {
+      this.mcd = previous;
+      this.drawMcd();
+    }
+  }
+
+  @HostListener('document:keydown.control.y', ['$event'])
+  onRedo(event?: KeyboardEvent) {
+    event?.preventDefault();
+    if (!this.mcd) return;
+
+    // Vérifie qu'on peut vraiment redo avant  
+    if (!this.caretaker.canRedo()) return;
+
+    const next = this.caretaker.redo(this.mcd);
+    if (next) {
+      this.mcd = next;
+      this.drawMcd();
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -380,11 +447,11 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
     this.graph.use(new Transform({
       resizing: {
         enabled: (node: Node) => node.shape !== 'merise-assoc', // ✅
-        orthogonal: false,
+        orthogonal: true,
         restrict: false,
         preserveAspectRatio: false,
         minWidth: 80,
-        minHeight: 40
+        minHeight: 40,
       },
       rotating: false
     }));
@@ -508,6 +575,7 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
             offset: { x: -10, y: 10 },
             onClick: ({ view }: { view: any }) => {
               const target = view.cell as Node;
+              this.saveToHistory();
               this.removeNodeFromModel(target);
               target.remove();
               this.autoSave();
@@ -535,7 +603,7 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
 
               if (newName && newName.trim() !== "") {
                 const trimmed = newName.trim();
-                // Mise à jour en place pour conserver la référence vers this.mcd
+                this.saveToHistory();
                 data.name = trimmed;
                 node.setData(data, { overwrite: true });
                 // Mise à jour visuelle du header
@@ -633,7 +701,7 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
                 const node = view.cell;
                 const data = node.getData();
 
-                // 1. On supprime la donnée
+                this.saveToHistory();
                 data.fields.splice(index, 1);
                 node.setData({ ...data }, { overwrite: true });
 
@@ -678,6 +746,7 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
               onClick: ({ view }: { view: any }) => {
                 const n = view.cell;
                 const d = n.getData();
+                this.saveToHistory();
                 d.fields.splice(index, 1);
                 n.setData({ ...d }, { overwrite: true });
                 n.removeTools();
@@ -743,15 +812,25 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
       this.autoSave();
     };
 
-    graph.on('node:change:position', syncGeometry);
-    //graph.on('node:resized', syncGeometry);
+    graph.on('node:moved', ({ node }) => {
+      this.caretaker.save(this.mcd!); // snapshot quand on lâche
+      syncGeometry({ node });
+    });
+
     graph.on('node:resizing', ({ node }) => {
+      if (!this.resizingSaved && this.mcd) {
+        this.caretaker.save(this.mcd);
+        this.resizingSaved = true;
+      }
+      this.isResizing = true;
       if (node.shape === 'merise-entity') {
         this.updateNodeDisplay(node);
       }
     });
 
     graph.on('node:resized', ({ node }) => {
+      this.isResizing = false;
+      this.resizingSaved = false;
       syncGeometry({ node });
 
       if (node.shape === 'merise-entity') {
@@ -790,7 +869,7 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
       const nextIndex = (currentIndex + 1) % MERISE_CARDINALITIES.length;
       const nextCard = MERISE_CARDINALITIES[nextIndex];
 
-      // On enregistre dans l'objet Link
+      this.saveToHistory();
       link.modifyCardinality(nextCard as any);
 
       const mcdLink = this.mcd?.Links.find(l => l.id === link.id);
@@ -852,6 +931,7 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
 
       // Création du lien métier
       const link = new Link(defaultCard, assoc.id, entity.id);
+      this.saveToHistory();
       this.mcd.Links.push(link);
 
       // Attribution des données au lien visuel
@@ -912,6 +992,7 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
               const link = edge.getData ? (edge.getData() as any) : null;
 
               if (link && this.mcd) {
+                this.saveToHistory();
                 // Suppression dans le tableau métier
                 this.mcd.Links = this.mcd.Links.filter(l => l.id !== link.id);
               }
@@ -943,6 +1024,7 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
       const original = this.pendingDrops.get(data.id);
       if (!original) return; // nœud issu de drawMcd : déjà dans this.mcd, rien à faire
 
+      this.saveToHistory();
       // On remplace IMMÉDIATEMENT la donnée clonée (objet plat) par l'instance originale
       // avec ses méthodes, et on l'ajoute au modèle. Ainsi, si node:change:position se
       // déclenche après (déplacement post-drop), syncGeometry trouvera le bon objet.
@@ -1154,6 +1236,7 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
 
     console.log("Suppression du champ index :", index);
 
+    this.saveToHistory();
     // 1. Mise à jour de la data locale au nœud
     data.fields.splice(index, 1);
     node.setData({ ...data }, { overwrite: true });
@@ -1196,6 +1279,7 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
     // entière, faisant perdre id/posX/posY. La suppression ultérieure échouerait (id === undefined).
     const data = this.pickerNode.getData();
     if (data) {
+      this.saveToHistory();
       data.fields = newFields;
       this.pickerNode.setData(data, { overwrite: true });
     }
@@ -1267,6 +1351,10 @@ export class McdEditorComponent implements OnInit, OnChanges, OnDestroy {
     if (this.mcd && this.slug) {
       this.mcdService.saveMcd(this.slug, this.mcd);
     }
+  }
+
+  private saveToHistory(): void {
+    if (this.mcd) this.caretaker.save(this.mcd);
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

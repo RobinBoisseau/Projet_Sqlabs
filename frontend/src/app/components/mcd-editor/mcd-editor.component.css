@@ -125,3 +125,36 @@
 .x6-node-selected .x6-graph-svg {
   outline: none !important;
 }
+
+.toolbar-separator {
+  width: 1px;
+  height: 24px;
+  background: #e2e8f0;
+  margin: 0 8px;
+}
+
+.toolbar-btn {
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 16px;
+  cursor: pointer;
+  color: #334155;
+  transition: all 0.15s;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #0061d5;
+  color: #0061d5;
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.spacer {
+  flex: 1;
+}
