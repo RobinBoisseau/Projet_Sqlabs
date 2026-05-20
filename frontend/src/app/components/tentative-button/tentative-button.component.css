@@ -1,18 +1,18 @@
 .submit-bar {
-  padding: 8px 16px;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: flex-end;
   background-color: #f8fafc;
   border-top: 1px solid #e2e8f0;
   flex-shrink: 0;
 }
 
 .submit-btn {
-  background-color: #0061d5;
+  background-color: #00d535;
   color: white;
   border: none;
-  padding: 7px 18px;
+  padding: 10px 25px;
   border-radius: 5px;
   font-size: 0.85rem;
   font-weight: 600;
@@ -22,7 +22,7 @@
 }
 
 .submit-btn:hover:not(:disabled) {
-  background-color: #0052b3;
+  background-color: #00d535;
 }
 
 .submit-btn:disabled {
