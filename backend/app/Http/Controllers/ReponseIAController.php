@@ -151,21 +151,24 @@ class ReponseIAController extends Controller
             }
             $erreursJson = json_encode($erreursAbstraites, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
-            $prompt = <<<PROMPT
-Rôle : Tu es un professeur de bases de données pour des étudiants de première année de BUT Informatique. Tu pratiques le dialogue socratique : tu ne donnes jamais directement la réponse, tu poses des questions bienveillantes qui amènent l'étudiant à trouver ses erreurs par lui-même.
+            $systemPrompt = <<<SYSTEM
+Tu es un professeur de bases de données bienveillant, spécialisé en modélisation Merise, qui enseigne à des étudiants de première année de BUT Informatique.
+Tu pratiques exclusivement le dialogue socratique : tu ne donnes jamais la réponse, tu poses une courte question qui amène l'étudiant à trouver son erreur par lui-même.
+Ton ton est pédagogique, encourageant et positif.
+Tu ne réponds qu'aux questions liées à la correction de MCD (entités, associations, cardinalités, attributs).
+Tu réponds UNIQUEMENT en JSON valide, sans aucun texte autour.
+SYSTEM;
 
+            $prompt = <<<PROMPT
 Voici les problèmes détectés dans le MCD de l'étudiant :
 {$erreursJson}
 
 Pour chaque élément, génère une courte question socratique (une seule phrase).
 Le champ "type" indique si c'est une entité ou une association — utilise le bon mot dans ta question.
-Le champ "categories" liste les catégories de problèmes — oriente la question vers ces catégories.
-Règles :
-* Ne jamais mentionner de noms ou valeurs précises
-* Ne pas expliquer ce qui est faux
-* Utiliser "cette entité" ou "cette association" selon le type
+Le champ "categories" liste les catégories de problèmes — oriente ta question vers ces catégories.
+Ne mentionne jamais de noms ou valeurs précises. Utilise "cette entité" ou "cette association" selon le type.
 
-Exemples de questions selon la catégorie d'erreur :
+Exemples :
 - "un ou plusieurs attributs manquants" → "Avez-vous bien listé tous les attributs nécessaires pour cette entité ?"
 - "un ou plusieurs attributs en trop" → "Tous les attributs de cette entité sont-ils vraiment nécessaires ?"
 - "un type d'attribut incorrect" → "Quel type de données est le plus adapté pour représenter cette information dans cette entité ?"
@@ -177,7 +180,7 @@ Retourne uniquement cet objet JSON où les clés sont les noms des entités/asso
 {"questions": {"NomEntite": "question...", "NomAssociation": "question..."}}
 PROMPT;
 
-            $data = $ollama->generateJson($prompt, 300);
+            $data = $ollama->generateJson($prompt, 300, $systemPrompt);
             foreach ($avecErreurs as $nom => $_) {
                 $question    = $data['questions'][$nom] ?? "Avez-vous bien vérifié tous les éléments de $nom ?";
                 $remarques[] = [
@@ -275,21 +278,24 @@ PROMPT;
             }
             $erreursJson = json_encode($erreursAbstraites, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
-            $prompt = <<<PROMPT
-Rôle : Tu es un professeur de bases de données pour des étudiants de première année de BUT Informatique. Tu pratiques le dialogue socratique : tu ne donnes jamais directement la réponse, tu poses des questions bienveillantes qui amènent l'étudiant à trouver ses erreurs par lui-même.
+            $systemPrompt = <<<SYSTEM
+Tu es un professeur de bases de données bienveillant, spécialisé en modélisation Merise, qui enseigne à des étudiants de première année de BUT Informatique.
+Tu pratiques exclusivement le dialogue socratique : tu ne donnes jamais la réponse, tu poses une courte question qui amène l'étudiant à trouver son erreur par lui-même.
+Ton ton est pédagogique, encourageant et positif.
+Tu ne réponds qu'aux questions liées à la correction de dictionnaires de données (type, clé primaire, attributs manquants ou en trop).
+Tu réponds UNIQUEMENT en JSON valide, sans aucun texte autour.
+SYSTEM;
 
+            $prompt = <<<PROMPT
 Voici les problèmes détectés dans le dictionnaire de données de l'étudiant :
 {$erreursJson}
 
 Pour chaque champ, génère une courte question socratique (une seule phrase).
 Le champ "type" indique que c'est un champ du dictionnaire — utilise "ce champ" dans ta question.
-Le champ "categories" liste les catégories de problèmes — oriente la question vers ces catégories.
-Règles :
-* Ne jamais mentionner de noms ou valeurs précises
-* Ne pas expliquer ce qui est faux
-* Utiliser "ce champ" pour désigner l'attribut
+Le champ "categories" liste les catégories de problèmes — oriente ta question vers ces catégories.
+Ne mentionne jamais de noms ou valeurs précises. Utilise toujours "ce champ" pour désigner l'attribut.
 
-Exemples de questions selon la catégorie d'erreur :
+Exemples :
 - "un type d'attribut incorrect" → "Le type choisi pour ce champ correspond-il bien à la nature des données qu'il doit stocker ?"
 - "une clé primaire incorrecte" → "Ce champ est-il vraiment celui qui identifie de façon unique chaque enregistrement ?"
 - "un champ manquant" → "Avez-vous bien recensé tous les attributs nécessaires dans votre dictionnaire ?"
@@ -299,7 +305,7 @@ Retourne uniquement cet objet JSON où les clés sont les noms techniques des ch
 {"questions": {"NomTechnique": "question..."}}
 PROMPT;
 
-            $data = $ollama->generateJson($prompt, 300);
+            $data = $ollama->generateJson($prompt, 300, $systemPrompt);
             foreach ($avecErreurs as $nom => $_) {
                 $question    = $data['questions'][$nom] ?? "Avez-vous bien vérifié tous les éléments du champ $nom ?";
                 $remarques[] = [
@@ -411,21 +417,24 @@ PROMPT;
             }
             $erreursJson = json_encode($erreursAbstraites, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
-            $prompt = <<<PROMPT
-Rôle : Tu es un professeur de bases de données pour des étudiants de première année de BUT Informatique. Tu pratiques le dialogue socratique : tu ne donnes jamais directement la réponse, tu poses des questions bienveillantes qui amènent l'étudiant à trouver ses erreurs par lui-même.
+            $systemPrompt = <<<SYSTEM
+Tu es un professeur de bases de données bienveillant, spécialisé en modélisation Merise, qui enseigne à des étudiants de première année de BUT Informatique.
+Tu pratiques exclusivement le dialogue socratique : tu ne donnes jamais la réponse, tu poses une courte question qui amène l'étudiant à trouver son erreur par lui-même.
+Ton ton est pédagogique, encourageant et positif.
+Tu ne réponds qu'aux questions liées à la correction de dépendances fonctionnelles élémentaires (attributs cibles manquants, en trop, ou dépendance non attendue).
+Tu réponds UNIQUEMENT en JSON valide, sans aucun texte autour.
+SYSTEM;
 
+            $prompt = <<<PROMPT
 Voici les problèmes détectés dans les dépendances fonctionnelles élémentaires de l'étudiant :
 {$erreursJson}
 
 Pour chaque dépendance (identifiée par sa source), génère une courte question socratique (une seule phrase).
 Le champ "type" vaut "dépendance" — utilise "cette dépendance" dans ta question.
-Le champ "categories" liste les catégories de problèmes — oriente la question vers ces catégories.
-Règles :
-* Ne jamais mentionner de noms ou valeurs précises
-* Ne pas expliquer ce qui est faux
-* Utiliser "cette dépendance" pour désigner la DFE
+Le champ "categories" liste les catégories de problèmes — oriente ta question vers ces catégories.
+Ne mentionne jamais de noms ou valeurs précises. Utilise toujours "cette dépendance" pour désigner la DFE.
 
-Exemples de questions selon la catégorie d'erreur :
+Exemples :
 - "un ou plusieurs attributs cibles manquants" → "Avez-vous bien identifié tous les attributs qui dépendent fonctionnellement de cette source ?"
 - "un ou plusieurs attributs cibles en trop" → "Chacun des attributs cibles de cette dépendance est-il vraiment déterminé uniquement par cette source ?"
 - "une dépendance non attendue" → "Cette dépendance est-elle vraiment élémentaire, ou peut-elle être déduite d'une autre ?"
@@ -434,7 +443,7 @@ Retourne uniquement cet objet JSON où les clés sont les sources (telles que fo
 {"questions": {"source1,source2": "question..."}}
 PROMPT;
 
-            $data = $ollama->generateJson($prompt, 300);
+            $data = $ollama->generateJson($prompt, 300, $systemPrompt);
             foreach ($avecErreurs as $cleSource => $_) {
                 $question    = $data['questions'][$cleSource] ?? "Avez-vous bien vérifié tous les attributs de cette dépendance ?";
                 $remarques[] = [

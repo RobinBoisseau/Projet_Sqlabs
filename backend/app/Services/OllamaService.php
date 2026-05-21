@@ -32,8 +32,10 @@ class OllamaService
         return $response->json('response') ?? '';
     }
 
-    public function generateJson(string $prompt, int $maxTokens = 400): mixed
+    public function generateJson(string $prompt, int $maxTokens = 400, string $systemPrompt = ''): mixed
     {
+        $system = $systemPrompt ?: 'Tu es un expert Merise. Tu réponds UNIQUEMENT avec du JSON valide. Jamais de texte autour.';
+
         $response = Http::withOptions([
             'curl' => [
                 CURLOPT_TIMEOUT        => 360,
@@ -47,7 +49,7 @@ class OllamaService
             'messages' => [
                 [
                     'role'    => 'system',
-                    'content' => 'Tu es un expert Merise. Tu réponds UNIQUEMENT avec du JSON valide. Jamais de texte autour.',
+                    'content' => $system,
                 ],
                 [
                     'role'    => 'user',
