@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { DependenceLine } from '../../models/dependence-line.model';
 import { AddButtonComponent } from '../add-button/add-button.component';
 import { ChoixChampComponent } from '../choix-champ/choix-champ.component';
+import { InfoTooltipComponent } from '../info-tooltip/info-tooltip.component';
 
 @Component({
   selector: 'app-dependence-table',
   standalone: true,
-  imports: [CommonModule, FormsModule, AddButtonComponent, ChoixChampComponent],
+  imports: [CommonModule, FormsModule, AddButtonComponent, ChoixChampComponent, InfoTooltipComponent],
   templateUrl: './dependence-table.component.html',
   styleUrls: ['./dependence-table.component.css']
 })

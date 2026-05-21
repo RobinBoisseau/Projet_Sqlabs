@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Field } from '../../models/field';
 import { AddButtonComponent } from '../add-button/add-button.component';
+import { InfoTooltipComponent } from '../info-tooltip/info-tooltip.component';
 
 @Component({
   selector: 'app-dictionary-table',
   standalone: true,
-  imports: [CommonModule, FormsModule, AddButtonComponent],
+  imports: [CommonModule, FormsModule, AddButtonComponent, InfoTooltipComponent],
   templateUrl: './dictionary-table.component.html',
   styleUrls: ['./dictionary-table.component.css']
 })
