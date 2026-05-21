@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy,AfterViewInit, HostListener, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -28,7 +28,7 @@ import { DependenceService } from '../../services/dependence.service';
   templateUrl: './exercice-detail.component.html',
   styleUrls: ['./exercice-detail.component.css']
 })
-export class ExerciceDetailComponent implements OnInit, OnDestroy {
+export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   exercice: Exercice | undefined;
   mcd: Mcd | undefined;
   dictionary: Field[] = [];
@@ -69,6 +69,14 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
     this.runSilentSave();
   }
 
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      document.querySelectorAll('as-split-area').forEach(el => {
+        el.removeAttribute('title');
+      });
+    }, 500);
+  }
+
   private getCurrentModel() {
     return this.mcdEditor?.mcd ?? this.mcdService.getCurrentMcd() ?? {};
   }
@@ -97,17 +105,18 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
             if (res && res.data) {
               const attempt = res.data;
 
-              // 1. Dictionnaire
-              this.dictionary = attempt.dictionary || attempt.dictionnaire || [];
+              // 1. Dictionnaire — BD en priorité, localStorage en fallback
+              const rawDict = attempt.dictionary || attempt.dictionnaire;
+              this.dictionary = rawDict?.length
+                ? rawDict
+                : this.dictionaryService.load(slug);
               this.lastSavedDictionary = this.deepCopyFields(this.dictionary);
 
               // 2. Dépendances — BD en priorité, localStorage en fallback
               const rawDeps = attempt.dependencies || attempt.dependance;
-              console.log('📥 rawDeps depuis BD:', rawDeps);
-              console.log('📥 localStorage deps:', this.dependenceService.loadDependences(slug));
               this.dependencies = rawDeps?.length
                 ? rawDeps.map((d: any) => DependenceLine.fromJSON(d))
-                : this.dependenceService.loadDependences(slug); // ✅ fallback
+                : this.dependenceService.loadDependences(slug);
 
               // 3. Nettoyage des noms obsolètes
               const validNames = this.dictionary
@@ -120,13 +129,15 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
                 cible: dep.cible.filter(c => validNames.includes(c))
               }));
 
-              // 4. MCD depuis BD — priorité si non vide
+              // 4. MCD depuis BD — priorité si non vide, sinon localStorage
               const rawModel = attempt.model;
               if (rawModel && (rawModel.Entities?.length > 0 || rawModel.Associations?.length > 0)) {
                 this.mcd = Mcd.fromJSON(rawModel);
                 if (this.exercice?.slug) {
                   this.mcdService.saveMcd(this.exercice.slug, this.mcd);
                 }
+              } else {
+                this.mcd = this.mcdService.loadMcd(slug);
               }
 
               // 5. Sync localStorage
@@ -134,10 +145,15 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
                 this.dictionaryService.save(this.exercice.slug, this.dictionary);
                 this.dependenceService.saveDependences(this.exercice.slug, this.dependencies);
               }
-
-              this.updateTechnicalNames();
+            } else {
+              // Aucune tentative en BD — charger depuis localStorage
+              this.dictionary = this.dictionaryService.load(slug);
+              this.lastSavedDictionary = this.deepCopyFields(this.dictionary);
+              this.dependencies = this.dependenceService.loadDependences(slug);
+              this.mcd = this.mcdService.loadMcd(slug);
             }
 
+            this.updateTechnicalNames();
             this.isLoaded = true;
             this.cdr.detectChanges();
           });
@@ -232,12 +248,12 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy {
 
     this.exerciceService.saveAttempt(this.exercice.id, data).pipe(
       switchMap((saved: any) => {
-        const changed     = saved?.changed ?? { model: true, dictionary: true, dependencies: true };
-        const cached      = saved?.cached  ?? {};
+        const changed = saved?.changed ?? { model: true, dictionary: true, dependencies: true };
+        const cached = saved?.cached ?? {};
         const tentativeId = saved?.data?.id;
-        const mcd         = saved?.data?.model ?? saved?.model;
+        const mcd = saved?.data?.model ?? saved?.model;
 
-        const mcd$  = changed.model && mcd
+        const mcd$ = changed.model && mcd
           ? this.exerciceService.analyzeMcd(mcd, tentativeId)
           : of(cached.model ?? null);
         const dict$ = changed.dictionary && data.dictionary?.length

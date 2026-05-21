@@ -3,9 +3,9 @@
     <table class="dict-table">
       <thead>
         <tr>
-          <th>Nom Métier</th>
-          <th>Nom Technique</th>
-          <th style="width: 100px;">Type</th>
+          <th>Nom Métier <app-info-tooltip text="Nom utilisé en langage courant (ex: Identifiant du client)"></app-info-tooltip> </th>
+          <th>Nom Technique<app-info-tooltip text="Nom utilisé en base de données (ex: id_Client)"></app-info-tooltip></th>
+          <th style="width: 100px;">Type<app-info-tooltip text="Nature définissant les valeurs qu'elle peut contenir (ex: entier, date...)"></app-info-tooltip></th>
           <th style="width: 40px;"></th>
         </tr>
       </thead>
@@ -22,10 +22,9 @@
               <option value=""></option>
               <option value="INT">Entier</option>
               <option value="VARCHAR2">AlphaNumérique</option>
-              <option value="NUMBER">Décimal</option>
+              <option value="FLOAT">Décimal</option>
               <option value="BOOL">Booléen</option>
               <option value="DATE">Date</option>
-
             </select>
           </td>
           <td>
