@@ -70,11 +70,9 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   ngAfterViewInit(): void {
-    setTimeout(() => {
-      document.querySelectorAll('as-split-area').forEach(el => {
-        el.removeAttribute('title');
-      });
-    }, 500);
+    document.querySelectorAll('as-split-area, as-split').forEach(el => {
+      el.removeAttribute('title');
+    });
   }
 
   private getCurrentModel() {
