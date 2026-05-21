@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -6,57 +6,61 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <span class="tooltip-wrapper">
-      <span class="tooltip-icon">ℹ</span>
-      <span class="tooltip-box">{{ text }}</span>
+    <span class="info-wrapper"
+          (mouseenter)="showTooltip()"
+          (mouseleave)="isVisible = false">
+      <span class="info-star">*</span>
+      <span class="info-bubble" *ngIf="isVisible" [ngStyle]="tooltipStyle">{{ text }}</span>
     </span>
   `,
   styles: [`
-    .tooltip-wrapper {
-      position: relative;
+    .info-wrapper {
       display: inline-flex;
       align-items: center;
-      margin-left: 5px;
-      cursor: help;
+      margin-left: 4px;
+      cursor: pointer;
     }
-    .tooltip-icon {
-      font-size: 12px;
-      color: #94a3b8;
-      border: 1px solid #94a3b8;
-      border-radius: 50%;
-      width: 14px;
-      height: 14px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
+    .info-star {
+      color: #fff;
+      font-weight: bold;
+      font-size: 14px;
     }
-    .tooltip-box {
-      visibility: hidden;
-      opacity: 0;
-      background: #1e293b;
-      color: #f8fafc;
-      font-size: 11px;
-      font-weight: normal;
-      text-align: left;
-      border-radius: 6px;
+    .info-bubble {
+      position: fixed;
+      transform: translate(-50%, -100%);
+      background: rgba(30, 41, 59, 0.85); 
+      color: #fff;
       padding: 6px 10px;
-      position: absolute;
-      bottom: calc(100% + 6px);
-      left: 50%;
-      transform: translateX(-50%);
-      white-space: normal;
-      width: 220px;
-      z-index: 1000;
-      transition: opacity 0.15s;
+      border-radius: 8px;
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 9999;
       pointer-events: none;
     }
-    .tooltip-wrapper:hover .tooltip-box {
-      visibility: visible;
-      opacity: 1;
+    .info-bubble::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: #1e293b;
     }
   `]
 })
 export class InfoTooltipComponent {
   @Input() text: string = '';
+  isVisible = false;
+  tooltipStyle: { [key: string]: string } = {};
+
+  constructor(private el: ElementRef) {}
+
+  showTooltip(): void {
+    const rect = (this.el.nativeElement as HTMLElement).getBoundingClientRect();
+    this.tooltipStyle = {
+      top: `${rect.top - 6}px`,
+      left: `${rect.left + rect.width / 2}px`,
+    };
+    this.isVisible = true;
+  }
 }
