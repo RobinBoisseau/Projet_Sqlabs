@@ -29,5 +29,5 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0; /* CRUCIAL : force les enfants à scroller au lieu de pousser les murs */
+  min-height: 0;
 }
