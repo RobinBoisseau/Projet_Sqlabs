@@ -164,7 +164,14 @@ Règles :
 * Ne jamais mentionner de noms ou valeurs précises
 * Ne pas expliquer ce qui est faux
 * Utiliser "cette entité" ou "cette association" selon le type
-* Exemples : "Avez-vous bien vérifié les attributs de cette entité ?", "Avez vous bien défini tous les liens pour cette association ?"
+
+Exemples de questions selon la catégorie d'erreur :
+- "un ou plusieurs attributs manquants" → "Avez-vous bien listé tous les attributs nécessaires pour cette entité ?"
+- "un ou plusieurs attributs en trop" → "Tous les attributs de cette entité sont-ils vraiment nécessaires ?"
+- "un type d'attribut incorrect" → "Quel type de données est le plus adapté pour représenter cette information dans cette entité ?"
+- "une clé primaire incorrecte" → "Quel attribut permet d'identifier de manière unique chaque occurrence de cette entité ?"
+- "un ou plusieurs liens manquants entre cette association et ses entités" → "Cette association est-elle bien reliée à toutes les entités concernées ?"
+- "une ou plusieurs cardinalités incorrectes" → "Combien d'occurrences de chaque entité peuvent participer à cette association ?"
 
 Retourne uniquement cet objet JSON où les clés sont les noms des entités/associations :
 {"questions": {"NomEntite": "question...", "NomAssociation": "question..."}}
@@ -281,7 +288,12 @@ Règles :
 * Ne jamais mentionner de noms ou valeurs précises
 * Ne pas expliquer ce qui est faux
 * Utiliser "ce champ" pour désigner l'attribut
-* Exemples : "Avez-vous bien vérifié le type de ce champ ?", "Ce champ devrait-il être une clé primaire ?"
+
+Exemples de questions selon la catégorie d'erreur :
+- "un type d'attribut incorrect" → "Le type choisi pour ce champ correspond-il bien à la nature des données qu'il doit stocker ?"
+- "une clé primaire incorrecte" → "Ce champ est-il vraiment celui qui identifie de façon unique chaque enregistrement ?"
+- "un champ manquant" → "Avez-vous bien recensé tous les attributs nécessaires dans votre dictionnaire ?"
+- "un champ en trop" → "Ce champ est-il vraiment utile et demandé dans le contexte de cet exercice ?"
 
 Retourne uniquement cet objet JSON où les clés sont les noms techniques des champs :
 {"questions": {"NomTechnique": "question..."}}
@@ -412,7 +424,11 @@ Règles :
 * Ne jamais mentionner de noms ou valeurs précises
 * Ne pas expliquer ce qui est faux
 * Utiliser "cette dépendance" pour désigner la DFE
-* Exemples : "Avez-vous bien vérifié les attributs cibles de cette dépendance ?", "Tous les attributs déterminés par cette source sont-ils présents ?"
+
+Exemples de questions selon la catégorie d'erreur :
+- "un ou plusieurs attributs cibles manquants" → "Avez-vous bien identifié tous les attributs qui dépendent fonctionnellement de cette source ?"
+- "un ou plusieurs attributs cibles en trop" → "Chacun des attributs cibles de cette dépendance est-il vraiment déterminé uniquement par cette source ?"
+- "une dépendance non attendue" → "Cette dépendance est-elle vraiment élémentaire, ou peut-elle être déduite d'une autre ?"
 
 Retourne uniquement cet objet JSON où les clés sont les sources (telles que fournies) :
 {"questions": {"source1,source2": "question..."}}
