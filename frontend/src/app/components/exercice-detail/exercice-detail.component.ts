@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { AngularSplitModule } from 'angular-split';
-import { of, forkJoin } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { of, concat } from 'rxjs';
+import { switchMap, toArray } from 'rxjs/operators';
 
 import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
@@ -260,7 +260,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
         const deps$ = changed.dependencies && data.dependencies?.length
           ? this.exerciceService.analyzeDependencies(data.dependencies, tentativeId)
           : of(cached.dependencies ?? null);
-        return forkJoin([mcd$, dict$, deps$]);
+        return concat(mcd$, dict$, deps$).pipe(toArray());
       })
     ).subscribe({
       next: ([mcdResult, dictResult, depsResult]) => {

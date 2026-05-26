@@ -15,6 +15,14 @@ use App\Http\Controllers\CoursController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
 
+// Token de dev local uniquement
+if (app()->environment('local')) {
+    Route::get('/dev-token', function () {
+        $user = \App\Models\User::where('email', 'admin@sqlabs.fr')->first();
+        return response()->json(['token' => $user->createToken('dev')->plainTextToken]);
+    });
+}
+
 // Routes protégées
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
