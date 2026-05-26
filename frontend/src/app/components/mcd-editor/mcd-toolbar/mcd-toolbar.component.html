@@ -1,0 +1,14 @@
+<div class="canvas-toolbar">
+  <div class="tool-drag-item" (mousedown)="onDragStart($event, 'entity')">
+    <app-toll-button icon="□" label="Entité"></app-toll-button>
+  </div>
+  <div class="tool-drag-item" (mousedown)="onDragStart($event, 'association')">
+    <app-toll-button icon="⬭" label="Association"></app-toll-button>
+  </div>
+
+  <div class="spacer"></div>
+  <div class="toolbar-separator"></div>
+
+  <button class="toolbar-btn" (click)="onUndo()" [disabled]="!canUndo" title="Annuler (Ctrl+Z)">↩</button>
+  <button class="toolbar-btn" (click)="onRedo()" [disabled]="!canRedo" title="Rétablir (Ctrl+Y)">↪</button>
+</div>

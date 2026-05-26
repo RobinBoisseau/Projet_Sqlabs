@@ -1,0 +1,59 @@
+<div class="ia-bar">
+
+  <div class="ia-header">
+    <span class="ia-title">Analyse IA de ta tentative</span>
+    <button class="ia-close" (click)="closed.emit()">✕</button>
+  </div>
+
+  <div class="ia-panels">
+
+    <!-- Dictionnaire -->
+    <div class="ia-panel" *ngIf="results.dictionary">
+      <div class="ia-panel-title">Analyse du Dictionnaire des données</div>
+      <div class="ia-list">
+        <div *ngFor="let r of results.dictionary.remarques"
+             class="ia-item"
+             [ngClass]="r.statut === 'valide' ? 'ia-item--ok' : 'ia-item--warn'">
+          <span class="ia-icon">{{ r.statut === 'valide' ? '✓' : '?' }}</span>
+          <div class="ia-content">
+            <span class="ia-nom">{{ r.champ }}</span>
+            <span class="ia-msg">{{ r.message }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dépendances -->
+    <div class="ia-panel" *ngIf="results.dependencies">
+      <div class="ia-panel-title">Analyse du Dépendances fonctionnelles</div>
+      <div class="ia-list">
+        <div *ngFor="let r of results.dependencies.remarques"
+             class="ia-item"
+             [ngClass]="r.statut === 'valide' ? 'ia-item--ok' : 'ia-item--warn'">
+          <span class="ia-icon">{{ r.statut === 'valide' ? '✓' : '?' }}</span>
+          <div class="ia-content">
+            <span class="ia-nom">{{ r.source }}</span>
+            <span class="ia-msg">{{ r.message }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+     <!-- MCD -->
+    <div class="ia-panel" *ngIf="results.mcd">
+      <div class="ia-panel-title">Analyse du MCD</div>
+      <div class="ia-list">
+        <div *ngFor="let r of results.mcd.remarques"
+             class="ia-item"
+             [ngClass]="r.statut === 'valide' ? 'ia-item--ok' : 'ia-item--warn'">
+          <span class="ia-icon">{{ r.statut === 'valide' ? '✓' : '?' }}</span>
+          <div class="ia-content">
+            <span class="ia-nom">{{ r.entite }}</span>
+            <span class="ia-msg">{{ r.message }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
