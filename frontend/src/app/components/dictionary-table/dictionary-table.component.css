@@ -42,11 +42,14 @@
   width: auto; /* Laisse le navigateur répartir le reste */
 }
 .dict-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   background-color: #0061d5;
   color: white;
-  padding: 12px 8px; /* On réduit un peu le padding latéral */
+  padding: 12px 8px;
   font-size: 0.85rem;
-  white-space: nowrap; /* Évite que le titre "NOM TECHNIQUE" passe sur 2 lignes */
+  white-space: nowrap;
 }
 
 .dict-table td {

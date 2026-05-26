@@ -10,7 +10,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let line of lines; let i = index; trackBy: trackByFn">
+        <tr #tableRow *ngFor="let line of lines; let i = index; trackBy: trackByFn">
           <td>
             <input type="text" [(ngModel)]="line.name" (ngModelChange)="emitChanges()" placeholder="ex: Customer Name">
           </td>

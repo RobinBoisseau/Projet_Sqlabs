@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, Input, OnInit, Output, EventEmitter, ViewChildren, QueryList, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DependenceLine } from '../../models/dependence-line.model';
@@ -15,6 +15,8 @@ import { InfoTooltipComponent } from '../info-tooltip/info-tooltip.component';
 })
 export class DependenceTableComponent implements OnInit {
   private _lines: DependenceLine[] = [];
+
+  @ViewChildren('depRow') depRows!: QueryList<ElementRef>;
 
   @Input() set lines(value: DependenceLine[]) {
     if (value && value.length > 0) this._lines = value;
@@ -101,6 +103,12 @@ removeAttribute(list: string[], index: number) {
   ajouterDependance() {
     this._lines.push(new DependenceLine(Date.now().toString(), [], []));
     this.emitChanges();
+    setTimeout(() => {
+      const rows = this.depRows.toArray();
+      if (rows.length > 0) {
+        rows[rows.length - 1].nativeElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 50);
   }
 
   supprimerLigne(index: number) {

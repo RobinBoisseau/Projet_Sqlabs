@@ -1,0 +1,14 @@
+<div class="picker-overlay" *ngIf="isVisible" (click)="onClose()">
+  <div class="picker-panel" (click)="$event.stopPropagation()">
+    <div class="picker-header">
+      <span>Choisir un champ pour l'entité : {{ nodeName }}</span>
+      <button class="picker-close" (click)="onClose()">×</button>
+    </div>
+    <app-choix-champ
+      [champsDisponibles]="availableNames"
+      [champsSelectionnes]="currentNames"
+      placeholder="Rechercher un champ..."
+      (selectionChanged)="onSelectionChanged($event)">
+    </app-choix-champ>
+  </div>
+</div>
