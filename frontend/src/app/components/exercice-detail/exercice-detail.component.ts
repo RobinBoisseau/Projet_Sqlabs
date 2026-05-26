@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy,AfterViewInit, HostListener, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, HostListener, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -20,11 +20,12 @@ import { DependenceTableComponent } from '../dependence-table/dependence-table.c
 import { McdEditorComponent } from '../mcd-editor/mcd-editor.component';
 import { TentativeButtonComponent } from '../tentative-button/tentative-button.component';
 import { DependenceService } from '../../services/dependence.service';
+import { ReturnIaComponent, IaResults } from '../return-ia/return-ia.component';
 
 @Component({
   selector: 'app-exercice-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, AngularSplitModule, PanelComponent, DictionaryTableComponent, DependenceTableComponent, McdEditorComponent, TentativeButtonComponent],
+  imports: [CommonModule, FormsModule, AngularSplitModule, PanelComponent, DictionaryTableComponent, DependenceTableComponent, McdEditorComponent, TentativeButtonComponent, ReturnIaComponent],
   templateUrl: './exercice-detail.component.html',
   styleUrls: ['./exercice-detail.component.css']
 })
@@ -39,6 +40,9 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
   isLoaded: boolean = false;
   isTentativeDisabled: boolean = false;
   isSubmitting: boolean = false;
+  iaResults: IaResults | null = null;
+  showIaResults = false;
+  hasChangedSinceSubmit = true;
 
   @ViewChild(McdEditorComponent) mcdEditor!: McdEditorComponent;
 
@@ -166,16 +170,11 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
     this.dictionary = updatedLines;
     this.lastSavedDictionary = this.deepCopyFields(updatedLines);
     this.updateTechnicalNames();
+    this.hasChangedSinceSubmit = true;
+    this.isTentativeDisabled = false;
 
     if (this.exercice && this.isLoaded) {
       this.dictionaryService.save(this.exercice.slug!, this.dictionary);
-
-      const data = {
-        dictionary: this.dictionary,
-        dependencies: this.dependencies,
-        model: this.getCurrentModel()
-      };
-      this.exerciceService.saveAttempt(this.exercice.id, data).subscribe();
     }
   }
 
@@ -210,16 +209,11 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
 
   onDependenciesChanged(event: DependenceLine[]) {
     this.dependencies = event;
+    this.hasChangedSinceSubmit = true;
+    this.isTentativeDisabled = false;
 
     if (this.exercice && this.isLoaded) {
       this.dependenceService.saveDependences(this.exercice.slug!, this.dependencies);
-
-      const data = {
-        dictionary: this.dictionary,
-        dependencies: this.dependencies,
-        model: this.getCurrentModel()
-      };
-      this.exerciceService.saveAttempt(this.exercice.id, data).subscribe();
     }
     this.cdr.detectChanges();
   }
@@ -233,44 +227,58 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
   // --- 4. SOUMISSION DE TENTATIVE ---
 
   onTentativeSubmitted(): void {
+    console.log('onTentativeSubmitted appelé', this.exercice, this.isLoaded);
     if (!this.exercice || !this.isLoaded) return;
 
+    this.hasChangedSinceSubmit = false;
     this.isTentativeDisabled = true;
     this.isSubmitting = true;
 
     const data = {
-      dictionary: this.dictionary,
-      dependencies: this.dependencies,
+      dictionary: this.dictionary.filter(f =>
+        f.TechnicalName && f.TechnicalName.trim() !== ''
+      ),
+      dependencies: this.dependencies.filter(d =>
+        d.source.length > 0 && d.cible.length > 0
+      ),
       model: this.getCurrentModel()
     };
 
     this.exerciceService.saveAttempt(this.exercice.id, data).pipe(
       switchMap((saved: any) => {
-        const changed = saved?.changed ?? { model: true, dictionary: true, dependencies: true };
-        const cached = saved?.cached ?? {};
         const tentativeId = saved?.data?.id;
         const mcd = saved?.data?.model ?? saved?.model;
 
-        const mcd$ = changed.model && mcd
+        const mcd$ = mcd
           ? this.exerciceService.analyzeMcd(mcd, tentativeId)
-          : of(cached.model ?? null);
-        const dict$ = changed.dictionary && data.dictionary?.length
+          : of(null);
+
+        const dict$ = data.dictionary?.length
           ? this.exerciceService.analyzeDictionary(data.dictionary, tentativeId)
-          : of(cached.dictionary ?? null);
-        const deps$ = changed.dependencies && data.dependencies?.length
+          : of(null);
+
+        const deps$ = data.dependencies?.length
           ? this.exerciceService.analyzeDependencies(data.dependencies, tentativeId)
-          : of(cached.dependencies ?? null);
+          : of(null);
+
         return forkJoin([mcd$, dict$, deps$]);
       })
     ).subscribe({
       next: ([mcdResult, dictResult, depsResult]) => {
-        console.log('[IA] Résultat analyse MCD :', mcdResult);
-        console.log('[IA] Résultat analyse Dictionnaire :', dictResult);
-        console.log('[IA] Résultat analyse Dépendances :', depsResult);
+        console.log('mcdResult', mcdResult);
+        console.log('dictResult', dictResult);
+        console.log('depsResult', depsResult);
+        this.iaResults = { mcd: mcdResult, dictionary: dictResult, dependencies: depsResult };
+        this.showIaResults = true;
         this.isSubmitting = false;
+        this.isTentativeDisabled = true;
+        this.cdr.detectChanges();
       },
-      error: () => { this.isSubmitting = false; }
-    });
+      error: () => {
+        this.isSubmitting = false;
+        this.isTentativeDisabled = true;
+      }
+    })
   }
 
   // --- SAUVEGARDE LA TENTATIVE ---
@@ -278,11 +286,16 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
   save(): void {
     if (!this.exercice || !this.isLoaded) return;
 
+    this.hasChangedSinceSubmit = true;
+    this.isTentativeDisabled = false;
+
     const data = {
       dictionary: this.dictionary,
+
       dependencies: this.dependencies,
       model: this.getCurrentModel()
     };
+
 
     this.exerciceService.saveAttempt(this.exercice.id, data).subscribe();
   }

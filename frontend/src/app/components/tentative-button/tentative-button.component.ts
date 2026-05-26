@@ -12,8 +12,11 @@ export class TentativeButtonComponent {
   @Output() submitted = new EventEmitter<void>();
 
   onSend() {
+    console.log('isDisabled:', this.isDisabled); 
     if (!this.isDisabled) {
+      console.log('test');
       this.submitted.emit();
+      console.log('après emit')
     }
   }
 }

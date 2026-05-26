@@ -1,4 +1,4 @@
-import {Component, OnInit, OnChanges, AfterViewInit, OnDestroy,Input, ViewChild, ElementRef, HostListener, SimpleChanges} from '@angular/core';
+import { Component, OnInit, OnChanges, AfterViewInit, OnDestroy, Input, Output, ViewChild, EventEmitter, ElementRef, HostListener, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Node, Edge } from '@antv/x6';
 import { Subscription } from 'rxjs';
@@ -20,6 +20,9 @@ import { McdEventsService, McdGraphCallbacks } from '../../services/mcd-events.s
 import { McdToolbarComponent } from './mcd-toolbar/mcd-toolbar.component';
 import { McdPickerModalComponent } from './mcd-picker-modal/mcd-picker-modal.component';
 
+
+
+
 @Component({
   selector: 'app-mcd-editor',
   standalone: true,
@@ -32,6 +35,8 @@ export class McdEditorComponent implements OnInit, OnChanges, AfterViewInit, OnD
   @ViewChild('container', { static: true }) containerRef!: ElementRef;
   @Input() slug = '';
   @Input() mcd: Mcd | undefined;
+  @Output() saveRequested = new EventEmitter<void>();
+
 
   // State variables kept here so services can read/write them via callbacks
   connecting = false;
@@ -57,7 +62,7 @@ export class McdEditorComponent implements OnInit, OnChanges, AfterViewInit, OnD
     private graphService: McdGraphService,
     private nodeService: McdNodeService,
     private eventsService: McdEventsService,
-  ) {}
+  ) { }
 
   get graph() { return this.graphService.graph; }
 
@@ -104,10 +109,10 @@ export class McdEditorComponent implements OnInit, OnChanges, AfterViewInit, OnD
       const allFields = this.dictionaryService.load(activeSlug);
       const actualFields = node.getData().fields || [];
       this.pickerAvailableNames = allFields.map(f => f.TechnicalName);
-      this.pickerCurrentNames   = actualFields.map((f: any) => f.TechnicalName);
-      this.pickerNode     = node;
+      this.pickerCurrentNames = actualFields.map((f: any) => f.TechnicalName);
+      this.pickerNode = node;
       this.pickerNodeName = node.attr('label/text') ?? '';
-      this.showPicker     = true;
+      this.showPicker = true;
     });
 
     this.dictSub = this.dictionaryService.onUpdated$.subscribe(({ slug, fields }) => {
@@ -136,21 +141,21 @@ export class McdEditorComponent implements OnInit, OnChanges, AfterViewInit, OnD
       if (w > 0 && h > 0) graph.resize(w, h);
 
       const callbacks: McdGraphCallbacks = {
-        getMcd:              () => this.mcd,
-        saveToHistory:       () => this.saveToHistory(),
-        autoSave:            () => this.autoSave(),
-        updateNodeDisplay:   (node) => this.nodeService.updateNodeDisplay(node, this.isResizing),
+        getMcd: () => this.mcd,
+        saveToHistory: () => this.saveToHistory(),
+        autoSave: () => this.autoSave(),
+        updateNodeDisplay: (node) => this.nodeService.updateNodeDisplay(node, this.isResizing),
         removeNodeFromModel: (node) => { if (this.mcd) this.nodeService.removeNodeFromModel(node, this.mcd); },
-        triggerPicker:       (node, fields, slug) => this.tableService.triggerPicker(node, fields, slug),
-        getSlug:             () => this.slug,
-        isConnecting:        () => this.connecting,
-        setConnecting:       (v) => this.connecting = v,
-        isResettingGraph:    () => this.isResettingGraph,
-        getPendingDrops:     () => this.pendingDrops,
-        isResizingSaved:     () => this.resizingSaved,
-        setResizingSaved:    (v) => this.resizingSaved = v,
-        setIsResizing:       (v) => this.isResizing = v,
-        getIsResizing:       () => this.isResizing,
+        triggerPicker: (node, fields, slug) => this.tableService.triggerPicker(node, fields, slug),
+        getSlug: () => this.slug,
+        isConnecting: () => this.connecting,
+        setConnecting: (v) => this.connecting = v,
+        isResettingGraph: () => this.isResettingGraph,
+        getPendingDrops: () => this.pendingDrops,
+        isResizingSaved: () => this.resizingSaved,
+        setResizingSaved: (v) => this.resizingSaved = v,
+        setIsResizing: (v) => this.isResizing = v,
+        getIsResizing: () => this.isResizing,
       };
 
       this.eventsService.bindGraphEvents(graph, callbacks);
@@ -243,18 +248,20 @@ export class McdEditorComponent implements OnInit, OnChanges, AfterViewInit, OnD
       allFields.find(f => f.TechnicalName === name) || new Field(Date.now().toString(), name, name, 'VARCHAR')
     );
 
-    // Mutate existing data object to preserve the reference to this.mcd
     const data = this.pickerNode.getData();
+    const targetNode = this.pickerNode;
+    this.closePicker();
+
     if (data) {
       this.saveToHistory();
-      data.fields = newFields;
-      this.pickerNode.setData(data, { overwrite: true });
-    }
-    const obj = this.mcd?.Entities.find(e => e.id === data.id) || this.mcd?.Associations.find(a => a.id === data.id);
-    if (obj) obj.fields = newFields;
+      targetNode.setData({ ...data, fields: newFields }, { overwrite: true });
 
-    this.nodeService.updateNodeDisplay(this.pickerNode);
-    this.autoSave();
+      const obj = this.mcd?.Entities.find(e => e.id === data.id) || this.mcd?.Associations.find(a => a.id === data.id);
+      if (obj) obj.fields = newFields;
+
+      this.nodeService.updateNodeDisplay(targetNode);
+      this.autoSave();
+    }
   }
 
   // ── Draw ───────────────────────────────────────────────────────────────────
@@ -268,9 +275,9 @@ export class McdEditorComponent implements OnInit, OnChanges, AfterViewInit, OnD
     this.isResettingGraph = false;
 
     // Remove duplicates (guard against corrupted state)
-    this.mcd.Entities     = [...new Map(this.mcd.Entities.map(e => [e.id, e])).values()];
+    this.mcd.Entities = [...new Map(this.mcd.Entities.map(e => [e.id, e])).values()];
     this.mcd.Associations = [...new Map(this.mcd.Associations.map(a => [a.id, a])).values()];
-    this.mcd.Links        = [...new Map(this.mcd.Links.map(l => [l.id, l])).values()];
+    this.mcd.Links = [...new Map(this.mcd.Links.map(l => [l.id, l])).values()];
 
     const nodeMap = new Map<string, Node>();
 
@@ -321,6 +328,7 @@ export class McdEditorComponent implements OnInit, OnChanges, AfterViewInit, OnD
 
   private autoSave(): void {
     if (this.mcd && this.slug) this.mcdService.saveMcd(this.slug, this.mcd);
+    this.saveRequested.emit();
   }
 
   private saveToHistory(): void {
