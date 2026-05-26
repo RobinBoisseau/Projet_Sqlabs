@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, ViewChildren, QueryList, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Field } from '../../models/field';
@@ -17,6 +17,8 @@ export class DictionaryTableComponent implements OnChanges {
   @Input() lines: Field[] = [];
   @Output() technicalNamesChanged = new EventEmitter<string[]>();
   @Output() dictionaryChanged = new EventEmitter<Field[]>();
+
+  @ViewChildren('tableRow') tableRows!: QueryList<ElementRef>;
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['lines']) {
@@ -38,6 +40,12 @@ export class DictionaryTableComponent implements OnChanges {
   addLine() {
     this.lines.push(new Field(Date.now().toString(), '', '', ''));
     this.emitChanges();
+    setTimeout(() => {
+      const rows = this.tableRows.toArray();
+      if (rows.length > 0) {
+        rows[rows.length - 1].nativeElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 50);
   }
 
   removeLine(index: number) {

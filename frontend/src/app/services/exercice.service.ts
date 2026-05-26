@@ -24,7 +24,8 @@ export class ExerciceService {
       exercice_id: exerciceId,
       dictionary: data.dictionary,
       dependencies: data.dependencies,
-      model: data.model
+      model: data.model,
+      toto: 3
     };
     return this.http.post(this.tentativesUrl, payload);
   }
@@ -36,7 +37,7 @@ export class ExerciceService {
       exercice_id: exerciceId,
       dictionary: data.dictionary,
       dependencies: data.dependencies,
-      model: data.model
+      model: data.model,
     });
     return fetch(this.tentativesUrl, {
       method: 'POST',

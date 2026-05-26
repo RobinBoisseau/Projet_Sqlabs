@@ -9,7 +9,7 @@
 
   <!-- Zone de scroll -->
   <div class="rows-scroll-area">
-    <div class="dep-row" *ngFor="let ligne of lines; let i = index">
+    <div class="dep-row" #depRow *ngFor="let ligne of lines; let i = index">
 
       <!-- ZONE SOURCES -->
       <app-choix-champ [champsSelectionnes]="ligne.source" [champsDisponibles]="technicalNames"

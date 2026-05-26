@@ -5,7 +5,7 @@ import { Subject } from 'rxjs';
 @Injectable({ providedIn: 'root' })
 export class DictionaryService {
   
-  // ✅ Canal de notification
+  // Canal de notification
   private updated$ = new Subject<{ slug: string, fields: Field[] }>();
   onUpdated$ = this.updated$.asObservable();
 

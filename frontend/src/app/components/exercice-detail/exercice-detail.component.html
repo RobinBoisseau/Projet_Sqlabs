@@ -1,4 +1,5 @@
 <div class="workbench-wrapper" *ngIf="exercice">
+
   <as-split direction="horizontal" unit="percent" gutterSize="8" class="main-split">
 
     <!-- COLUMN 1: Énoncé -->
@@ -43,9 +44,10 @@
 
   </as-split>
 
-  <app-tentative-button
-    [isDisabled]="isTentativeDisabled"
-    (submitted)="onTentativeSubmitted()">
+  <app-return-ia *ngIf="showIaResults && iaResults" [results]="iaResults!" (closed)="showIaResults = false">
+  </app-return-ia>
+
+  <app-tentative-button [isDisabled]="isTentativeDisabled" (submitted)="onTentativeSubmitted()">
   </app-tentative-button>
 </div>
 
