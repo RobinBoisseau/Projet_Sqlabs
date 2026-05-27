@@ -1,0 +1,7 @@
+$kind: http-request
+url: http://localhost:8000/api/exercices
+method: POST
+body:
+  type: json
+  content: ""
+order: 1620263344298015
