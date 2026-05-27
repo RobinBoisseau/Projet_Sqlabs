@@ -17,10 +17,49 @@ class ExerciceController extends Controller
 
     // POST /api/exercices
     public function store(Request $request)
-    {
-        $exercice = Exercice::create($request->all());
-        return new ExerciceResource($exercice);
+{
+    $validated = $request->validate([
+        'titre'    => 'required|string|max:100',
+        'enonce'   => 'required|string|max:1000',
+        'type'     => 'required|in:SQL,BPMN',
+        'etat'     => 'sometimes|string|max:10',
+        'dictionary'   => 'nullable|array',
+        'dependencies' => 'nullable|array',
+        'model'        => 'nullable|array',
+    ]);
+
+    // Génération du slug
+    $slug = \Str::slug($validated['titre']);
+    $base = $slug;
+    $i = 1;
+    while (Exercice::where('slug', $slug)->exists()) {
+        $slug = $base . '-' . $i++;
     }
+
+    $exercice = Exercice::create([
+        'titre'  => $validated['titre'],
+        'slug'   => $slug,
+        'enonce' => $validated['enonce'],
+        'type'   => $validated['type'],
+        'etat'   => $validated['etat'] ?? 'Non fini',
+        'user_id' => auth()->id(),
+    ]);
+
+    // Créer la tentative correction si dico/deps/MCD fournis
+    if (!empty($validated['dictionary']) || !empty($validated['model'])) {
+        Tentative::create([
+            'exercice_id'    => $exercice->id,
+            'user_id'        => auth()->id(),
+            'is_correction'  => true,
+            'dictionnaire'   => $validated['dictionary'] ?? [],
+            'dependance'     => $validated['dependencies'] ?? [],
+            'modele'         => $validated['model'] ?? [],
+            'dateHeureTentative' => now(),
+        ]);
+    }
+
+    return new ExerciceResource($exercice);
+}
 
     // GET /api/exercices/{slug}
     // CORRIGÉ : Recherche par slug sans erreur de syntaxe
