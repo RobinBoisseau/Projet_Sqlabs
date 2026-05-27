@@ -30,22 +30,31 @@ export class ExerciceService {
     return this.http.post(this.tentativesUrl, payload);
   }
 
-  // Sauvegarde d'urgence (keepalive) pour la fermeture du navigateur
-  async emergencySave(exerciceId: number, data: any) {
-    const token = localStorage.getItem('auth_token');
-    const payload = JSON.stringify({
-      exercice_id: exerciceId,
+  updateAttempt(id: number, data: any): Observable<any> {
+    return this.http.put(`${this.tentativesUrl}/${id}`, {
       dictionary: data.dictionary,
       dependencies: data.dependencies,
       model: data.model,
     });
-    return fetch(this.tentativesUrl, {
-      method: 'POST',
+  }
+
+  // Sauvegarde d'urgence (keepalive) — POST si pas d'ID, PUT sinon
+  async emergencySave(exerciceId: number, data: any, tentativeId?: number | null) {
+    const token = localStorage.getItem('auth_token');
+    const body = JSON.stringify({
+      ...(tentativeId ? {} : { exercice_id: exerciceId }),
+      dictionary: data.dictionary,
+      dependencies: data.dependencies,
+      model: data.model,
+    });
+    const url = tentativeId ? `${this.tentativesUrl}/${tentativeId}` : this.tentativesUrl;
+    return fetch(url, {
+      method: tentativeId ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
       },
-      body: payload,
+      body,
       keepalive: true
     });
   }

@@ -47,15 +47,11 @@ class OllamaService
             ],
         ];
 
-        ob_start(); var_dump($payload); file_put_contents('php://stderr', "\n=== ENVOI À MISTRAL ===\n" . ob_get_clean());
-
         $response = Http::withToken($apiKey)
             ->timeout(60)
             ->post('https://api.mistral.ai/v1/chat/completions', $payload);
 
         $result = json_decode($response->json('choices.0.message.content') ?? '{}', true);
-
-        ob_start(); var_dump($result); file_put_contents('php://stderr', "\n=== RÉPONSE DE MISTRAL ===\n" . ob_get_clean());
 
         return $result;
     }

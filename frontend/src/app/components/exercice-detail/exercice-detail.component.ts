@@ -43,6 +43,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
   iaResults: IaResults | null = null;
   showIaResults = false;
   hasChangedSinceSubmit = true;
+  private currentTentativeId: number | null = null;
 
   @ViewChild(McdEditorComponent) mcdEditor!: McdEditorComponent;
 
@@ -90,7 +91,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
         dependencies: this.dependencies,
         model: this.getCurrentModel()
       };
-      this.exerciceService.emergencySave(this.exercice.id, data);
+      this.exerciceService.emergencySave(this.exercice.id, data, this.currentTentativeId);
     }
   }
 
@@ -141,6 +142,9 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
               } else {
                 this.mcd = this.mcdService.loadMcd(slug);
               }
+
+              // ID de la tentative courante — les saves suivants feront un PUT
+              this.currentTentativeId = attempt.id ?? null;
 
               // 5. Sync localStorage
               if (this.exercice?.slug) {
@@ -247,6 +251,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
     this.exerciceService.saveAttempt(this.exercice.id, data).pipe(
       switchMap((saved: any) => {
         const tentativeId = saved?.data?.id;
+        this.currentTentativeId = tentativeId ?? this.currentTentativeId;
         const mcd = saved?.data?.model ?? saved?.model;
 
         const mcd$ = mcd
@@ -291,12 +296,19 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
 
     const data = {
       dictionary: this.dictionary,
-
       dependencies: this.dependencies,
       model: this.getCurrentModel()
     };
 
-
-    this.exerciceService.saveAttempt(this.exercice.id, data).subscribe();
+    if (this.currentTentativeId) {
+      this.exerciceService.updateAttempt(this.currentTentativeId, data).subscribe({
+        error: () => {}
+      });
+    } else {
+      this.exerciceService.saveAttempt(this.exercice.id, data).subscribe({
+        next: (res: any) => { this.currentTentativeId = res?.data?.id ?? null; },
+        error: () => {}
+      });
+    }
   }
 }
