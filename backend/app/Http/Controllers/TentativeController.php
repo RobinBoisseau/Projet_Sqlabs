@@ -31,6 +31,7 @@ class TentativeController extends Controller
         // Chercher dans toutes les tentatives précédentes si un hash identique existe
         $precedentes = Tentative::where('exercice_id', $request->exercice_id)
             ->where('user_id', auth()->id())
+            ->where('is_correction', false)
             ->where('id', '!=', $tentative->id)
             ->get();
 
@@ -106,6 +107,7 @@ class TentativeController extends Controller
     public function getByExercice($exercice_id) {
         $tentative = Tentative::where('exercice_id', $exercice_id)
             ->where('user_id', auth()->id())
+            ->where('is_correction', false)
             ->latest()
             ->first();
 

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Graph, Node, Edge } from '@antv/x6';
+import { Graph, Node } from '@antv/x6';
 import { Mcd } from '../models/mcd';
 import { Entity } from '../models/entity';
 import { Association } from '../models/association';
@@ -188,6 +188,11 @@ export class McdEventsService {
           n.setData({ ...d }, { overwrite: true });
           n.removeTools();
           cb.updateNodeDisplay(n);
+          // Mise à jour du modèle MCD en mémoire (d peut être une copie selon X6)
+          const mcd = cb.getMcd();
+          const obj = mcd?.Entities.find(e => e.id === d.id) || mcd?.Associations.find(a => a.id === d.id);
+          if (obj) obj.fields = [...d.fields];
+          cb.autoSave();
         },
       },
     };
@@ -212,6 +217,10 @@ export class McdEventsService {
           n.setData({ ...d }, { overwrite: true });
           n.removeTools();
           cb.updateNodeDisplay(n);
+          // Mise à jour du modèle MCD en mémoire
+          const mcd = cb.getMcd();
+          const obj = mcd?.Entities.find(e => e.id === d.id) || mcd?.Associations.find(a => a.id === d.id);
+          if (obj) obj.fields = [...d.fields];
           cb.autoSave();
         },
       },
