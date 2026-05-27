@@ -33,4 +33,9 @@ class Exercice extends Model
                     ->withPivot('order')
                     ->withTimestamps();
     }
+
+    public function fichiers()
+    {
+        return $this->hasMany(Fichier::class);
+    }
 }

@@ -10,8 +10,14 @@ class Fichier extends Model
     use HasFactory;
 
     protected $fillable = [
+        'exercice_id',
         'type',
         'nom',
         'contenu',
     ];
+
+    public function exercice()
+    {
+        return $this->belongsTo(Exercice::class);
+    }
 }
