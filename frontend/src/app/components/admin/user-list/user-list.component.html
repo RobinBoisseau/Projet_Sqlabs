@@ -77,9 +77,9 @@
               <span
                 class="badge badge-lg font-semibold"
                 [ngClass]="{
-                  'badge-success text-green-800':  user.role === 'etudiant',
-                  'badge-info text-blue-800':      user.role === 'professeur',
-                  'badge-error text-red-800':      user.role === 'admin'
+                  'bg-green-100 text-green-700':  user.role === 'etudiant',
+                  'bg-blue-100 text-blue-700':      user.role === 'professeur',
+                  'bg-red-100 text-red-700':      user.role === 'admin'
                 }"
               >
                 {{ roleLabel(user.role) }}

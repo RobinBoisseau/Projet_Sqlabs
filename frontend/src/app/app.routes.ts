@@ -28,6 +28,8 @@ import { ClassDeleteComponent } from './components/classes/class-delete/class-de
 import { authGuard } from './guards/auth.guard';
 import { adminGuard } from './guards/admin.guard';
 import { teacherGuard } from './guards/teacher.guard';
+import { ExerciceAdminListComponent } from './components/admin/exercice-list/exercice-admin-list.component';
+import { ExerciceCreateComponent } from './components/admin/exercice-create/exercice-create.component';
 
 export const routes: Routes = [
   // Routes publiques
@@ -47,6 +49,8 @@ export const routes: Routes = [
   { path: 'admin/users',          component: UserListComponent,       canActivate: [adminGuard] },
   { path: 'admin/users/:id/edit', component: UserEditComponent,       canActivate: [adminGuard] },
   { path: 'admin/cours',          component: CoursListComponent,      canActivate: [adminGuard] },
+  { path: 'admin/exercices', component: ExerciceAdminListComponent, canActivate: [adminGuard] },
+  { path: 'admin/exercices/create', component: ExerciceCreateComponent, canActivate: [adminGuard] },
   {
     path: 'admin/cours/:id',
     component: CoursLayoutComponent,

@@ -66,4 +66,12 @@ export class ExerciceService {
   analyzeDependencies(dependencies: any[], tentativeId?: number): Observable<any> {
     return this.http.post('http://localhost:8000/api/ia/analyze-dependencies', { dependencies, tentative_id: tentativeId });
   }
+
+  createExercice(data: any): Observable<any> {
+    return this.http.post(this.apiUrl, data);
+  }
+
+  deleteExercice(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
+  }
 }
