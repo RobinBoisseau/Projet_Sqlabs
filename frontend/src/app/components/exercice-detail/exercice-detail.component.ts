@@ -44,6 +44,13 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
   showIaResults = false;
   hasChangedSinceSubmit = true;
 
+  sizes = { enonce: 25, dictionnaire: 30, modelisation: 45 };
+  previousSizes = { enonce: 25, dictionnaire: 30, modelisation: 45 };
+  isCollapsed = { enonce: false, dictionnaire: false, modelisation: false, dictionnaireV: false, dependancesV: false };
+
+  sizesVertical = { dictionnaire: 50, dependances: 50 };
+  previousSizesVertical = { dictionnaire: 50, dependances: 50 };
+
   @ViewChild(McdEditorComponent) mcdEditor!: McdEditorComponent;
 
   constructor(
@@ -298,5 +305,67 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
 
 
     this.exerciceService.saveAttempt(this.exercice.id, data).subscribe();
+  }
+
+  // --- COLLAPSE PANELS ---
+
+  readonly COLLAPSED_SIZE = 4;
+
+  private bestPanelFor(
+    exclude: 'enonce' | 'dictionnaire' | 'modelisation'
+  ): 'enonce' | 'dictionnaire' | 'modelisation' | null {
+    const allPanels: Array<'enonce' | 'dictionnaire' | 'modelisation'> =
+      this.exercice?.type === 'SQL'
+        ? ['enonce', 'dictionnaire', 'modelisation']
+        : ['enonce', 'modelisation'];
+
+    const candidates = allPanels.filter(p => p !== exclude && !this.isCollapsed[p]);
+    if (candidates.length === 0) return null;
+    return candidates.reduce((best, p) => this.sizes[p] > this.sizes[best] ? p : best);
+  }
+
+  togglePanel(panel: 'enonce' | 'dictionnaire' | 'modelisation'): void {
+    if (this.isCollapsed[panel]) {
+      const toRestore = this.previousSizes[panel];
+      const donor = this.bestPanelFor(panel);
+      const newSizes = { ...this.sizes, [panel]: toRestore };
+      if (donor) newSizes[donor] = this.sizes[donor] - (toRestore - this.COLLAPSED_SIZE);
+      this.sizes = newSizes;
+      this.isCollapsed = { ...this.isCollapsed, [panel]: false };
+    } else {
+      const freed = this.sizes[panel] - this.COLLAPSED_SIZE;
+      const recipient = this.bestPanelFor(panel);
+      this.previousSizes = { ...this.previousSizes, [panel]: this.sizes[panel] };
+      const newSizes = { ...this.sizes, [panel]: this.COLLAPSED_SIZE };
+      if (recipient) newSizes[recipient] = this.sizes[recipient] + freed;
+      this.sizes = newSizes;
+      this.isCollapsed = { ...this.isCollapsed, [panel]: true };
+    }
+  }
+
+  toggleVerticalPanel(panel: 'dictionnaire' | 'dependances'): void {
+    const key: 'dictionnaireV' | 'dependancesV' =
+      panel === 'dictionnaire' ? 'dictionnaireV' : 'dependancesV';
+    const partner: 'dictionnaire' | 'dependances' =
+      panel === 'dictionnaire' ? 'dependances' : 'dictionnaire';
+
+    if (this.isCollapsed[key]) {
+      const toRestore = this.previousSizesVertical[panel];
+      this.sizesVertical = {
+        ...this.sizesVertical,
+        [panel]: toRestore,
+        [partner]: this.sizesVertical[partner] - (toRestore - this.COLLAPSED_SIZE)
+      };
+      this.isCollapsed = { ...this.isCollapsed, [key]: false };
+    } else {
+      const freed = this.sizesVertical[panel] - this.COLLAPSED_SIZE;
+      this.previousSizesVertical = { ...this.previousSizesVertical, [panel]: this.sizesVertical[panel] };
+      this.sizesVertical = {
+        ...this.sizesVertical,
+        [panel]: this.COLLAPSED_SIZE,
+        [partner]: this.sizesVertical[partner] + freed
+      };
+      this.isCollapsed = { ...this.isCollapsed, [key]: true };
+    }
   }
 }
