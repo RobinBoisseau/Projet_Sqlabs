@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, map, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { User } from '../models/user';
@@ -58,7 +58,9 @@ export class AuthService {
     if (!this.getToken()) return;
     this.http.get<{ data: User }>(`${this.API}/me`).subscribe({
       next: res => this.currentUserSubject.next(res.data),
-      error: () => this.clearSession()
+      error: (err: HttpErrorResponse) => {
+        if (err.status === 401) this.clearSession();
+      }
     });
   }
 

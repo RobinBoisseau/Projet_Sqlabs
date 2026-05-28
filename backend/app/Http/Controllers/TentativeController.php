@@ -12,18 +12,33 @@ class TentativeController extends Controller
     }
 
     public function store(Request $request) {
-        $existing = Tentative::where('exercice_id', $request->exercice_id)
-            ->where('user_id', auth()->id())
-            ->first();
-
         $hashDico = $this->hashData($request->dictionary);
         $hashDep  = $this->hashData($request->dependencies);
         $hashMcd  = $this->hashData($request->model);
 
-        $changed = [
-            'dictionary'   => $hashDico !== $existing?->hash_dico,
-            'dependencies' => $hashDep  !== $existing?->hash_dep,
-            'model'        => $hashMcd  !== $existing?->hash_mcd,
+        $tentative = Tentative::create([
+            'exercice_id'        => $request->exercice_id,
+            'user_id'            => auth()->id(),
+            'dictionnaire'       => $request->dictionary,
+            'dependance'         => $request->dependencies,
+            'modele'             => $request->model,
+            'hash_dico'          => $hashDico,
+            'hash_dep'           => $hashDep,
+            'hash_mcd'           => $hashMcd,
+            'dateHeureTentative' => now()
+        ]);
+
+        // Chercher dans toutes les tentatives précédentes si un hash identique existe
+        $precedentes = Tentative::where('exercice_id', $request->exercice_id)
+            ->where('user_id', auth()->id())
+            ->where('is_correction', false)
+            ->where('id', '!=', $tentative->id)
+            ->get();
+
+        $hashMap = [
+            'model'        => ['hash' => $hashMcd,  'col' => 'hash_mcd',  'element' => 'mcd'],
+            'dictionary'   => ['hash' => $hashDico, 'col' => 'hash_dico', 'element' => 'dico'],
+            'dependencies' => ['hash' => $hashDep,  'col' => 'hash_dep',  'element' => 'dep'],
         ];
 
         $tentative = Tentative::updateOrCreate(
@@ -52,9 +67,14 @@ class TentativeController extends Controller
                     ->where('element', $element)
                     ->latest()
                     ->first();
-                if ($reponse) {
-                    $cached[$key] = $reponse->reponseJson;
-                }
+                if ($reponse) break;
+            }
+
+            if ($reponse) {
+                $changed[$key] = false;
+                $cached[$key]  = $reponse->reponseJson;
+            } else {
+                $changed[$key] = true;
             }
         }
 

@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { AngularSplitModule } from 'angular-split';
-import { of, forkJoin } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { of, concat } from 'rxjs';
+import { switchMap, toArray } from 'rxjs/operators';
 
 import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
@@ -43,6 +43,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
   iaResults: IaResults | null = null;
   showIaResults = false;
   hasChangedSinceSubmit = true;
+  private currentTentativeId: number | null = null;
 
   sizes = { enonce: 25, dictionnaire: 30, modelisation: 45 };
   previousSizes = { enonce: 25, dictionnaire: 30, modelisation: 45 };
@@ -100,7 +101,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
         dependencies: this.dependencies,
         model: this.getCurrentModel()
       };
-      this.exerciceService.emergencySave(this.exercice.id, data);
+      this.exerciceService.emergencySave(this.exercice.id, data, this.currentTentativeId);
     }
   }
 
@@ -151,6 +152,9 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
               } else {
                 this.mcd = this.mcdService.loadMcd(slug);
               }
+
+              // ID de la tentative courante — les saves suivants feront un PUT
+              this.currentTentativeId = attempt.id ?? null;
 
               // 5. Sync localStorage
               if (this.exercice?.slug) {
@@ -257,6 +261,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
     this.exerciceService.saveAttempt(this.exercice.id, data).pipe(
       switchMap((saved: any) => {
         const tentativeId = saved?.data?.id;
+        this.currentTentativeId = tentativeId ?? this.currentTentativeId;
         const mcd = saved?.data?.model ?? saved?.model;
 
         const mcd$ = mcd
@@ -271,7 +276,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
           ? this.exerciceService.analyzeDependencies(data.dependencies, tentativeId)
           : of(null);
 
-        return forkJoin([mcd$, dict$, deps$]);
+        return concat(mcd$, dict$, deps$).pipe(toArray());
       })
     ).subscribe({
       next: ([mcdResult, dictResult, depsResult]) => {
@@ -301,13 +306,20 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
 
     const data = {
       dictionary: this.dictionary,
-
       dependencies: this.dependencies,
       model: this.getCurrentModel()
     };
 
-
-    this.exerciceService.saveAttempt(this.exercice.id, data).subscribe();
+    if (this.currentTentativeId) {
+      this.exerciceService.updateAttempt(this.currentTentativeId, data).subscribe({
+        error: () => {}
+      });
+    } else {
+      this.exerciceService.saveAttempt(this.exercice.id, data).subscribe({
+        next: (res: any) => { this.currentTentativeId = res?.data?.id ?? null; },
+        error: () => {}
+      });
+    }
   }
 
   // --- COLLAPSE PANELS ---

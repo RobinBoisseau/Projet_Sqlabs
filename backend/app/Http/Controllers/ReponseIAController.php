@@ -1,469 +1,269 @@
 <?php
-// app/Http/Controllers/ReponseIAController.php
 
 namespace App\Http\Controllers;
 
 use App\Models\ReponseIA;
+use App\Models\Tentative;
 use App\Services\OllamaService;
+use App\Services\PromptService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class ReponseIAController extends Controller
 {
-    public function ask(Request $request, OllamaService $ollama): JsonResponse
+    public function __construct(private PromptService $prompts) {}
+
+    // --- Helpers ---
+
+    private function buildSemanticMcd(array $mcd): array
     {
-        set_time_limit(0);
-        ini_set('default_socket_timeout', -1);
-        $prompt = $request->input('prompt', 'Est-ce qu\'il fait beau aujourd\'hui ?');
-        $reponse = $ollama->generate($prompt);
-        return response()->json(['prompt' => $prompt, 'reponse' => $reponse]);
+        $entityIdToName = array_column($mcd['Entities'] ?? [], 'name', 'id');
+
+        $entities = [];
+        foreach ($mcd['Entities'] ?? [] as $entity) {
+            $fields = array_map(fn($f) => [
+                'TechnicalName' => $f['TechnicalName'] ?? '',
+                'Type'          => $f['Type'] ?? '',
+                'PrimaryKey'    => $f['PrimaryKey'] ?? false,
+            ], $entity['fields'] ?? []);
+            usort($fields, fn($a, $b) => strcmp($a['TechnicalName'], $b['TechnicalName']));
+            $entities[] = ['name' => $entity['name'] ?? '', 'fields' => $fields];
+        }
+        usort($entities, fn($a, $b) => strcmp($a['name'], $b['name']));
+
+        $associations = [];
+        foreach ($mcd['Associations'] ?? [] as $assoc) {
+            $links = [];
+            foreach ($mcd['Links'] ?? [] as $link) {
+                if ($link['assocId'] !== $assoc['id']) continue;
+                $links[] = [
+                    'entity'      => $entityIdToName[$link['entityId']] ?? '',
+                    'cardinality' => $link['cardinality'] ?? '',
+                ];
+            }
+            usort($links, fn($a, $b) => strcmp($a['entity'], $b['entity']));
+
+            $fields = array_map(fn($f) => [
+                'TechnicalName' => $f['TechnicalName'] ?? '',
+                'Type'          => $f['Type'] ?? '',
+            ], $assoc['fields'] ?? []);
+            usort($fields, fn($a, $b) => strcmp($a['TechnicalName'], $b['TechnicalName']));
+
+            $associations[] = ['name' => $assoc['name'] ?? '', 'fields' => $fields, 'links' => $links];
+        }
+        usort($associations, fn($a, $b) => strcmp($a['name'], $b['name']));
+
+        return ['entities' => $entities, 'associations' => $associations];
     }
+
+    private function semanticHashMcd(array $mcd): string
+    {
+        return hash('sha256', json_encode($this->buildSemanticMcd($mcd), JSON_UNESCAPED_UNICODE));
+    }
+
+    private function semanticHashDictionary(array $dictionary): string
+    {
+        $data = array_map(fn($f) => [
+            'TechnicalName' => $f['TechnicalName'] ?? '',
+            'Type'          => $f['Type'] ?? '',
+            'PrimaryKey'    => $f['PrimaryKey'] ?? false,
+        ], $dictionary);
+        usort($data, fn($a, $b) => strcmp($a['TechnicalName'], $b['TechnicalName']));
+        return hash('sha256', json_encode($data, JSON_UNESCAPED_UNICODE));
+    }
+
+    private function semanticHashDependencies(array $dependencies): string
+    {
+        $data = array_map(function ($dep) {
+            $source = $dep['source'] ?? [];
+            $cible  = $dep['cible']  ?? [];
+            sort($source);
+            sort($cible);
+            return ['source' => $source, 'cible' => $cible];
+        }, $dependencies);
+        usort($data, fn($a, $b) => json_encode($a['source']) <=> json_encode($b['source']));
+        return hash('sha256', json_encode($data, JSON_UNESCAPED_UNICODE));
+    }
+
+    private function loadContext(?int $tentativeId): array
+    {
+        if (!$tentativeId) return [null, null];
+
+        $tentative  = Tentative::with('exercice')->find($tentativeId);
+        $enonce     = $tentative?->exercice?->enonce;
+        $exerciceId = $tentative?->exercice_id;
+
+        $correction = $exerciceId
+            ? Tentative::where('exercice_id', $exerciceId)->where('is_correction', true)->first()
+            : null;
+
+        return [$enonce, $correction];
+    }
+
+    private function saveReponse(?int $tentativeId, string $element, mixed $contenu, array $reponseJson): void
+    {
+        if (!$tentativeId) return;
+        ReponseIA::updateOrCreate(
+            ['tentative_id' => $tentativeId, 'element' => $element],
+            ['contenuJson' => $contenu, 'reponseJson' => $reponseJson, 'dateHeureReponse' => now()]
+        );
+    }
+
+    // --- Analyse MCD ---
 
     public function analyzeMcd(Request $request, OllamaService $ollama): JsonResponse
     {
         set_time_limit(0);
         ini_set('default_socket_timeout', -1);
 
-        // MCD soumis — reçu depuis la BD (sauvegardé par le TentativeController)
+        // Récupération et validation du MCD envoyé par l'étudiant
         $mcd = $request->input('mcd');
-
         if (!$mcd || empty($mcd['Entities'])) {
             return response()->json(['error' => 'MCD manquant ou vide'], 422);
         }
 
-        // Table de correspondance id → name pour les entités soumises
-        $entityIdToName = array_column($mcd['Entities'], 'name', 'id');
+        // Chargement de l'énoncé et de la tentative-corrigé liés à la tentative courante
+        [$enonce, $correctionTentative] = $this->loadContext($request->input('tentative_id'));
+        $correction = $correctionTentative?->modele;
 
-        // MCD attendu construit dynamiquement depuis le MCD soumis
-        // (placeholder : sera remplacé par le MCD solution de l'exercice)
-        $attendu = ['Entities' => [], 'Associations' => []];
-
-        foreach ($mcd['Entities'] as $entity) {
-            $attendu['Entities'][$entity['name']] = ['fields' => $entity['fields'] ?? []];
+        // Auto-validation : pas de corrigé disponible, ou le hash sémantique de l'étudiant
+        // correspond exactement à celui du corrigé → tout est valide, sans appel IA
+        if (!$correction || $this->semanticHashMcd($mcd) === $this->semanticHashMcd($correction)) {
+            $remarques = [];
+            foreach ($mcd['Entities'] ?? [] as $entity) {
+                $remarques[] = ['id' => $entity['id'], 'statut' => 'valide', 'message' => 'Parfait !'];
+            }
+            foreach ($mcd['Associations'] ?? [] as $assoc) {
+                $remarques[] = ['id' => $assoc['id'], 'statut' => 'valide', 'message' => 'Parfait !'];
+            }
+            $reponseJson = ['remarques' => $remarques];
+            $this->saveReponse($request->input('tentative_id'), 'mcd', $mcd, $reponseJson);
+            return response()->json(array_merge(['mcd' => $mcd], $reponseJson));
         }
 
-        foreach ($mcd['Associations'] ?? [] as $assoc) {
-            $links = [];
-            foreach ($mcd['Links'] ?? [] as $link) {
-                if ($link['assocId'] !== $assoc['id']) continue;
-                $entityName = $entityIdToName[$link['entityId']] ?? null;
-                if ($entityName) {
-                    $links[] = ['entityName' => $entityName, 'cardinality' => $link['cardinality']];
-                }
-            }
-            $attendu['Associations'][$assoc['name']] = ['links' => $links];
-        }
+        // Le MCD diffère du corrigé : on demande à l'IA de comparer et de produire des remarques
+        $contexte = $enonce ?? 'Contexte de l\'exercice non disponible.';
+        $prompt   = $this->prompts->userPrompt(
+            'mcd',
+            $contexte,
+            json_encode($mcd,        JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+            json_encode($correction,  JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+        );
 
-        // Comparaison PHP — détection des erreurs exactes
-        $erreurs = [];
-
-        // Comparaison des entités
-        foreach ($mcd['Entities'] as $entity) {
-            $nom           = $entity['name'];
-            $erreursEntite = [];
-            $attenduFields = array_column($attendu['Entities'][$nom]['fields'] ?? [], null, 'name');
-            $soumisFields  = array_column($entity['fields'], null, 'name');
-
-            foreach ($attenduFields as $fieldName => $fieldAttendu) {
-                if (!isset($soumisFields[$fieldName])) {
-                    $erreursEntite[] = "attribut '$fieldName' manquant";
-                } else {
-                    if (strtoupper($soumisFields[$fieldName]['Type']) !== strtoupper($fieldAttendu['Type'])) {
-                        $erreursEntite[] = "attribut '$fieldName' : type '{$soumisFields[$fieldName]['Type']}' au lieu de '{$fieldAttendu['Type']}'";
-                    }
-                    if ((bool)$soumisFields[$fieldName]['PrimaryKey'] !== (bool)$fieldAttendu['PrimaryKey']) {
-                        $etat = $fieldAttendu['PrimaryKey'] ? 'devrait être clé primaire' : 'ne devrait pas être clé primaire';
-                        $erreursEntite[] = "attribut '$fieldName' : $etat";
-                    }
-                }
-            }
-            foreach ($soumisFields as $fieldName => $_) {
-                if (!isset($attenduFields[$fieldName])) {
-                    $erreursEntite[] = "attribut '$fieldName' en trop (non demandé)";
-                }
-            }
-
-            $erreurs[$nom] = $erreursEntite;
-        }
-
-        // Comparaison des associations via les Links
-        foreach ($mcd['Associations'] as $assoc) {
-            $nom          = $assoc['name'];
-            $erreursAssoc = [];
-
-            // Construire la map entityName → cardinality depuis les links soumis
-            $soumisLinks = array_filter($mcd['Links'], fn($l) => $l['assocId'] === $assoc['id']);
-            $soumisCards = [];
-            foreach ($soumisLinks as $link) {
-                $entityName = $entityIdToName[$link['entityId']] ?? null;
-                if ($entityName) {
-                    $soumisCards[$entityName] = $link['cardinality'];
-                }
-            }
-
-            foreach ($attendu['Associations'][$nom]['links'] ?? [] as $linkAttendu) {
-                $entityName   = $linkAttendu['entityName'];
-                $cardAttendue = $linkAttendu['cardinality'];
-                if (!isset($soumisCards[$entityName])) {
-                    $erreursAssoc[] = "lien avec '$entityName' manquant";
-                } elseif ($soumisCards[$entityName] !== $cardAttendue) {
-                    $erreursAssoc[] = "cardinalité de '$entityName' : '{$soumisCards[$entityName]}' au lieu de '$cardAttendue'";
-                }
-            }
-
-            $erreurs[$nom] = $erreursAssoc;
-        }
-
-        // PHP gère les messages "correct" directement
-        // L'IA ne reçoit que les entités avec des erreurs pour générer les questions socratiques
-        $avecErreurs = array_filter($erreurs, fn($e) => count($e) > 0);
-        $remarques   = [];
-
-        foreach ($erreurs as $nom => $liste) {
-            if (count($liste) === 0) {
-                $type = isset($attendu['Associations'][$nom]) ? "L'association" : "L'entité";
-                $remarques[] = [
-                    'entite'  => $nom,
-                    'statut'  => 'valide',
-                    'message' => "$type $nom est correcte, bien joué !",
-                ];
-            }
-        }
-
-        if (count($avecErreurs) > 0) {
-            // Abstraire les erreurs : on envoie uniquement la catégorie, jamais les noms précis
-            $erreursAbstraites = [];
-            foreach ($avecErreurs as $nom => $liste) {
-                $categories = [];
-                foreach ($liste as $erreur) {
-                    if (str_contains($erreur, 'lien') && str_contains($erreur, 'manquant')) $categories[] = 'un ou plusieurs liens manquants entre cette association et ses entités';
-                    elseif (str_contains($erreur, 'cardinalité'))  $categories[] = 'une ou plusieurs cardinalités incorrectes';
-                    elseif (str_contains($erreur, 'clé primaire')) $categories[] = 'une clé primaire incorrecte';
-                    elseif (str_contains($erreur, 'type'))         $categories[] = 'un type d\'attribut incorrect';
-                    elseif (str_contains($erreur, 'manquant'))     $categories[] = 'un ou plusieurs attributs manquants';
-                    elseif (str_contains($erreur, 'en trop'))      $categories[] = 'un ou plusieurs attributs en trop';
-                }
-                $estAssociation = isset($attendu['Associations'][$nom]);
-                $erreursAbstraites[$nom] = [
-                    'type'       => $estAssociation ? 'association' : 'entité',
-                    'categories' => array_unique($categories),
-                ];
-            }
-            $erreursJson = json_encode($erreursAbstraites, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
-            $systemPrompt = <<<SYSTEM
-Tu es un professeur de bases de données bienveillant, spécialisé en modélisation Merise, qui enseigne à des étudiants de première année de BUT Informatique.
-Tu pratiques exclusivement le dialogue socratique : tu ne donnes jamais la réponse, tu poses une courte question qui amène l'étudiant à trouver son erreur par lui-même.
-Ton ton est pédagogique, encourageant et positif.
-Tu ne réponds qu'aux questions liées à la correction de MCD (entités, associations, cardinalités, attributs).
-Tu réponds UNIQUEMENT en JSON valide, sans aucun texte autour.
-SYSTEM;
-
-            $prompt = <<<PROMPT
-Voici les problèmes détectés dans le MCD de l'étudiant :
-{$erreursJson}
-
-Pour chaque élément, génère une courte question socratique (une seule phrase).
-Le champ "type" indique si c'est une entité ou une association — utilise le bon mot dans ta question.
-Le champ "categories" liste les catégories de problèmes — oriente ta question vers ces catégories.
-Ne mentionne jamais de noms ou valeurs précises. Utilise "cette entité" ou "cette association" selon le type.
-
-Exemples :
-- "un ou plusieurs attributs manquants" → "Avez-vous bien listé tous les attributs nécessaires pour cette entité ?"
-- "un ou plusieurs attributs en trop" → "Tous les attributs de cette entité sont-ils vraiment nécessaires ?"
-- "un type d'attribut incorrect" → "Quel type de données est le plus adapté pour représenter cette information dans cette entité ?"
-- "une clé primaire incorrecte" → "Quel attribut permet d'identifier de manière unique chaque occurrence de cette entité ?"
-- "un ou plusieurs liens manquants entre cette association et ses entités" → "Cette association est-elle bien reliée à toutes les entités concernées ?"
-- "une ou plusieurs cardinalités incorrectes" → "Combien d'occurrences de chaque entité peuvent participer à cette association ?"
-
-Retourne uniquement cet objet JSON où les clés sont les noms des entités/associations :
-{"questions": {"NomEntite": "question...", "NomAssociation": "question..."}}
-PROMPT;
-
-            $data = $ollama->generateJson($prompt, 300, $systemPrompt);
-            foreach ($avecErreurs as $nom => $_) {
-                $question    = $data['questions'][$nom] ?? "Avez-vous bien vérifié tous les éléments de $nom ?";
-                $remarques[] = [
-                    'entite'  => $nom,
-                    'statut'  => 'invalide',
-                    'message' => $question,
-                ];
-            }
-        }
-
-        $reponseJson = ['erreurs' => $erreurs, 'remarques' => $remarques];
-
-        if ($request->input('tentative_id')) {
-            ReponseIA::updateOrCreate(
-                ['tentative_id' => $request->input('tentative_id'), 'element' => 'mcd'],
-                ['contenuJson' => $mcd, 'reponseJson' => $reponseJson, 'dateHeureReponse' => now()]
-            );
-        }
-
+        $data        = $ollama->generateJson($prompt, 500, $this->prompts->systemPrompt('mcd'));
+        $reponseJson = ['remarques' => $data['remarques'] ?? []];
+        // Sauvegarde de la réponse IA en base pour la mise en cache (évite de rappeler l'IA si le MCD n'a pas changé)
+        $this->saveReponse($request->input('tentative_id'), 'mcd', $mcd, $reponseJson);
         return response()->json(array_merge(['mcd' => $mcd], $reponseJson));
     }
+
+    // --- Analyse Dictionnaire ---
 
     public function analyzeDictionary(Request $request, OllamaService $ollama): JsonResponse
     {
         set_time_limit(0);
         ini_set('default_socket_timeout', -1);
 
+        // Récupération et validation du dictionnaire envoyé par l'étudiant
         $dictionary = $request->input('dictionary');
-
         if (!$dictionary || !is_array($dictionary) || count($dictionary) === 0) {
             return response()->json(['error' => 'Dictionnaire manquant ou vide'], 422);
         }
 
-        // Dictionnaire attendu — placeholder, sera remplacé par la solution de l'exercice
-        $attendu = array_column($dictionary, null, 'TechnicalName');
+        // Chargement de l'énoncé et du corrigé liés à la tentative courante
+        [$enonce, $correctionTentative] = $this->loadContext($request->input('tentative_id'));
+        $correction = $correctionTentative?->dictionnaire;
 
-        $erreurs = [];
-        $soumisNames = array_column($dictionary, 'TechnicalName');
-
-        foreach ($dictionary as $field) {
-            $technicalName = $field['TechnicalName'] ?? null;
-            if (!$technicalName) continue;
-
-            $erreursChamp  = [];
-            $attenduChamp  = $attendu[$technicalName] ?? null;
-
-            if (!$attenduChamp) {
-                $erreursChamp[] = "champ '$technicalName' non attendu";
-            } else {
-                if (strtoupper($field['Type'] ?? '') !== strtoupper($attenduChamp['Type'] ?? '')) {
-                    $erreursChamp[] = "type '{$field['Type']}' au lieu de '{$attenduChamp['Type']}'";
-                }
-                if ((bool)($field['PrimaryKey'] ?? false) !== (bool)($attenduChamp['PrimaryKey'] ?? false)) {
-                    $etat = $attenduChamp['PrimaryKey'] ? 'devrait être clé primaire' : 'ne devrait pas être clé primaire';
-                    $erreursChamp[] = $etat;
-                }
+        // Auto-validation : pas de corrigé ou hash identique → tout valide, sans appel IA
+        if (!$correction || $this->semanticHashDictionary($dictionary) === $this->semanticHashDictionary($correction)) {
+            $remarques = [];
+            foreach ($dictionary as $field) {
+                $nom = $field['TechnicalName'] ?? $field['technicalName'] ?? '?';
+                $remarques[] = ['champ' => $nom, 'statut' => 'valide', 'message' => 'Parfait !'];
             }
-
-            $erreurs[$technicalName] = $erreursChamp;
+            $reponseJson = ['remarques' => $remarques];
+            $this->saveReponse($request->input('tentative_id'), 'dico', $dictionary, $reponseJson);
+            return response()->json(array_merge(['dictionary' => $dictionary], $reponseJson));
         }
 
-        foreach ($attendu as $technicalName => $_) {
-            if (!in_array($technicalName, $soumisNames)) {
-                $erreurs[$technicalName] = ["champ '$technicalName' manquant"];
-            }
-        }
+        // Le dictionnaire diffère du corrigé : analyse par l'IA
+        $contexte = $enonce ?? 'Contexte de l\'exercice non disponible.';
+        $prompt   = $this->prompts->userPrompt(
+            'dictionary',
+            $contexte,
+            json_encode($dictionary, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+            json_encode($correction,  JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+        );
 
-        $avecErreurs = array_filter($erreurs, fn($e) => count($e) > 0);
-        $remarques   = [];
-
-        foreach ($erreurs as $nom => $liste) {
-            if (count($liste) === 0) {
-                $remarques[] = [
-                    'champ'   => $nom,
-                    'statut'  => 'valide',
-                    'message' => "Le champ $nom est correct, bien joué !",
-                ];
-            }
-        }
-
-        if (count($avecErreurs) > 0) {
-            $erreursAbstraites = [];
-            foreach ($avecErreurs as $nom => $liste) {
-                $categories = [];
-                foreach ($liste as $erreur) {
-                    if (str_contains($erreur, 'type'))           $categories[] = "un type d'attribut incorrect";
-                    elseif (str_contains($erreur, 'clé primaire')) $categories[] = 'une clé primaire incorrecte';
-                    elseif (str_contains($erreur, 'manquant'))   $categories[] = 'un champ manquant';
-                    elseif (str_contains($erreur, 'non attendu')) $categories[] = 'un champ en trop';
-                }
-                $erreursAbstraites[$nom] = [
-                    'type'       => 'champ',
-                    'categories' => array_unique($categories),
-                ];
-            }
-            $erreursJson = json_encode($erreursAbstraites, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
-            $systemPrompt = <<<SYSTEM
-Tu es un professeur de bases de données bienveillant, spécialisé en modélisation Merise, qui enseigne à des étudiants de première année de BUT Informatique.
-Tu pratiques exclusivement le dialogue socratique : tu ne donnes jamais la réponse, tu poses une courte question qui amène l'étudiant à trouver son erreur par lui-même.
-Ton ton est pédagogique, encourageant et positif.
-Tu ne réponds qu'aux questions liées à la correction de dictionnaires de données (type, clé primaire, attributs manquants ou en trop).
-Tu réponds UNIQUEMENT en JSON valide, sans aucun texte autour.
-SYSTEM;
-
-            $prompt = <<<PROMPT
-Voici les problèmes détectés dans le dictionnaire de données de l'étudiant :
-{$erreursJson}
-
-Pour chaque champ, génère une courte question socratique (une seule phrase).
-Le champ "type" indique que c'est un champ du dictionnaire — utilise "ce champ" dans ta question.
-Le champ "categories" liste les catégories de problèmes — oriente ta question vers ces catégories.
-Ne mentionne jamais de noms ou valeurs précises. Utilise toujours "ce champ" pour désigner l'attribut.
-
-Exemples :
-- "un type d'attribut incorrect" → "Le type choisi pour ce champ correspond-il bien à la nature des données qu'il doit stocker ?"
-- "une clé primaire incorrecte" → "Ce champ est-il vraiment celui qui identifie de façon unique chaque enregistrement ?"
-- "un champ manquant" → "Avez-vous bien recensé tous les attributs nécessaires dans votre dictionnaire ?"
-- "un champ en trop" → "Ce champ est-il vraiment utile et demandé dans le contexte de cet exercice ?"
-
-Retourne uniquement cet objet JSON où les clés sont les noms techniques des champs :
-{"questions": {"NomTechnique": "question..."}}
-PROMPT;
-
-            $data = $ollama->generateJson($prompt, 300, $systemPrompt);
-            foreach ($avecErreurs as $nom => $_) {
-                $question    = $data['questions'][$nom] ?? "Avez-vous bien vérifié tous les éléments du champ $nom ?";
-                $remarques[] = [
-                    'champ'   => $nom,
-                    'statut'  => 'invalide',
-                    'message' => $question,
-                ];
-            }
-        }
-
-        $reponseJson = ['erreurs' => $erreurs, 'remarques' => $remarques];
-
-        if ($request->input('tentative_id')) {
-            ReponseIA::updateOrCreate(
-                ['tentative_id' => $request->input('tentative_id'), 'element' => 'dico'],
-                ['contenuJson' => $dictionary, 'reponseJson' => $reponseJson, 'dateHeureReponse' => now()]
-            );
-        }
-
+        $data        = $ollama->generateJson($prompt, 500, $this->prompts->systemPrompt('dictionary'));
+        $reponseJson = ['remarques' => $data['remarques'] ?? []];
+        // Sauvegarde pour mise en cache
+        $this->saveReponse($request->input('tentative_id'), 'dico', $dictionary, $reponseJson);
         return response()->json(array_merge(['dictionary' => $dictionary], $reponseJson));
     }
+
+    // --- Analyse Dépendances ---
 
     public function analyzeDependencies(Request $request, OllamaService $ollama): JsonResponse
     {
         set_time_limit(0);
         ini_set('default_socket_timeout', -1);
 
+        // Récupération et validation des dépendances fonctionnelles envoyées par l'étudiant
         $dependencies = $request->input('dependencies');
-
         if (!$dependencies || !is_array($dependencies) || count($dependencies) === 0) {
             return response()->json(['error' => 'Dépendances manquantes ou vides'], 422);
         }
 
-        // Dépendances attendues — placeholder, sera remplacé par la solution de l'exercice
-        // On indexe par la clé source (triée et concaténée) pour identifier chaque DFE
-        $attendu = [];
-        foreach ($dependencies as $dep) {
-            $source = $dep['source'] ?? [];
-            sort($source);
-            $cleSource = implode(',', $source);
-            $attendu[$cleSource] = $dep['cible'] ?? [];
-        }
+        // Chargement de l'énoncé et du corrigé liés à la tentative courante
+        [$enonce, $correctionTentative] = $this->loadContext($request->input('tentative_id'));
+        $correction = $correctionTentative?->dependance; // null si pas de corrigé, sinon les DF stockées dans la colonne `dependance` de la tentative-corrigé
 
-        $erreurs = [];
-
-        foreach ($dependencies as $dep) {
-            $source = $dep['source'] ?? [];
-            $cible  = $dep['cible']  ?? [];
-            sort($source);
-            $cleSource     = implode(',', $source);
-            $erreursDep    = [];
-            $cibleAttendue = $attendu[$cleSource] ?? null;
-
-            if ($cibleAttendue === null) {
-                $erreursDep[] = 'dépendance non attendue';
-            } else {
-                $manquants = array_diff($cibleAttendue, $cible);
-                $enTrop    = array_diff($cible, $cibleAttendue);
-                foreach ($manquants as $champ) {
-                    $erreursDep[] = "attribut cible '$champ' manquant";
-                }
-                foreach ($enTrop as $champ) {
-                    $erreursDep[] = "attribut cible '$champ' en trop";
-                }
+        // Auto-validation : pas de corrigé ou hash identique → tout valide, sans appel IA
+        if (!$correction || $this->semanticHashDependencies($dependencies) === $this->semanticHashDependencies($correction)) {
+            $remarques = [];
+            foreach ($dependencies as $dep) {
+                // is_array() vérifie si `source` est un tableau ; le ?? null évite une erreur si la clé n'existe pas dans $dep
+                // Si c'est un tableau → on joint les éléments avec une virgule pour l'affichage
+                // Sinon → on prend la valeur telle quelle ; le ?? '?' met un point d'interrogation si la clé est absente
+                $src = is_array($dep['source'] ?? null)
+                    ? implode(',', $dep['source'])
+                    : ($dep['source'] ?? '?');
+                $remarques[] = ['source' => $src, 'statut' => 'valide', 'message' => 'Parfait !'];
             }
-
-            $erreurs[$cleSource] = $erreursDep;
+            $reponseJson = ['remarques' => $remarques];
+            $this->saveReponse($request->input('tentative_id'), 'dep', $dependencies, $reponseJson);
+            return response()->json(array_merge(['dependencies' => $dependencies], $reponseJson));
         }
 
-        // Dépendances attendues non soumises
-        $sourcesSoumises = [];
-        foreach ($dependencies as $dep) {
-            $s = $dep['source'] ?? [];
-            sort($s);
-            $sourcesSoumises[] = implode(',', $s);
-        }
-        foreach ($attendu as $cleSource => $_) {
-            if (!in_array($cleSource, $sourcesSoumises)) {
-                $erreurs[$cleSource] = ["dépendance fonctionnelle manquante"];
-            }
-        }
+        // Les dépendances diffèrent du corrigé : analyse par l'IA
+        // L'énoncé de l'exercice sert de contexte à l'IA ; message par défaut si l'exercice n'en a pas
+        $contexte = $enonce ?? 'Contexte de l\'exercice non disponible.';
+        // Construction du prompt utilisateur : on passe le type d'analyse, le contexte, les DF de l'étudiant et celles du corrigé (en JSON lisible)
+        $prompt   = $this->prompts->userPrompt(
+            'dependencies',
+            $contexte,
+            json_encode($dependencies, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+            json_encode($correction,   JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+        );
 
-        $avecErreurs = array_filter($erreurs, fn($e) => count($e) > 0);
-        $remarques   = [];
-
-        foreach ($erreurs as $cleSource => $liste) {
-            if (count($liste) === 0) {
-                $remarques[] = [
-                    'source'  => $cleSource,
-                    'statut'  => 'valide',
-                    'message' => "La dépendance $cleSource est correcte, bien joué !",
-                ];
-            }
-        }
-
-        if (count($avecErreurs) > 0) {
-            $erreursAbstraites = [];
-            foreach ($avecErreurs as $cleSource => $liste) {
-                $categories = [];
-                foreach ($liste as $erreur) {
-                    if (str_contains($erreur, 'manquant'))     $categories[] = 'un ou plusieurs attributs cibles manquants';
-                    elseif (str_contains($erreur, 'en trop'))  $categories[] = 'un ou plusieurs attributs cibles en trop';
-                    elseif (str_contains($erreur, 'non attendue')) $categories[] = 'une dépendance non attendue';
-                }
-                $erreursAbstraites[$cleSource] = [
-                    'type'       => 'dépendance',
-                    'categories' => array_unique($categories),
-                ];
-            }
-            $erreursJson = json_encode($erreursAbstraites, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
-            $systemPrompt = <<<SYSTEM
-Tu es un professeur de bases de données bienveillant, spécialisé en modélisation Merise, qui enseigne à des étudiants de première année de BUT Informatique.
-Tu pratiques exclusivement le dialogue socratique : tu ne donnes jamais la réponse, tu poses une courte question qui amène l'étudiant à trouver son erreur par lui-même.
-Ton ton est pédagogique, encourageant et positif.
-Tu ne réponds qu'aux questions liées à la correction de dépendances fonctionnelles élémentaires (attributs cibles manquants, en trop, ou dépendance non attendue).
-Tu réponds UNIQUEMENT en JSON valide, sans aucun texte autour.
-SYSTEM;
-
-            $prompt = <<<PROMPT
-Voici les problèmes détectés dans les dépendances fonctionnelles élémentaires de l'étudiant :
-{$erreursJson}
-
-Pour chaque dépendance (identifiée par sa source), génère une courte question socratique (une seule phrase).
-Le champ "type" vaut "dépendance" — utilise "cette dépendance" dans ta question.
-Le champ "categories" liste les catégories de problèmes — oriente ta question vers ces catégories.
-Ne mentionne jamais de noms ou valeurs précises. Utilise toujours "cette dépendance" pour désigner la DFE.
-
-Exemples :
-- "un ou plusieurs attributs cibles manquants" → "Avez-vous bien identifié tous les attributs qui dépendent fonctionnellement de cette source ?"
-- "un ou plusieurs attributs cibles en trop" → "Chacun des attributs cibles de cette dépendance est-il vraiment déterminé uniquement par cette source ?"
-- "une dépendance non attendue" → "Cette dépendance est-elle vraiment élémentaire, ou peut-elle être déduite d'une autre ?"
-
-Retourne uniquement cet objet JSON où les clés sont les sources (telles que fournies) :
-{"questions": {"source1,source2": "question..."}}
-PROMPT;
-
-            $data = $ollama->generateJson($prompt, 300, $systemPrompt);
-            foreach ($avecErreurs as $cleSource => $_) {
-                $question    = $data['questions'][$cleSource] ?? "Avez-vous bien vérifié tous les attributs de cette dépendance ?";
-                $remarques[] = [
-                    'source'  => $cleSource,
-                    'statut'  => 'invalide',
-                    'message' => $question,
-                ];
-            }
-        }
-
-        $reponseJson = ['erreurs' => $erreurs, 'remarques' => $remarques];
-
-        if ($request->input('tentative_id')) {
-            ReponseIA::updateOrCreate(
-                ['tentative_id' => $request->input('tentative_id'), 'element' => 'dep'],
-                ['contenuJson' => $dependencies, 'reponseJson' => $reponseJson, 'dateHeureReponse' => now()]
-            );
-        }
-
+        // Envoi du prompt à Mistral avec le prompt système adapté aux dépendances ; 500 = nombre max de tokens en réponse
+        $data        = $ollama->generateJson($prompt, 500, $this->prompts->systemPrompt('dependencies'));
+        // On extrait uniquement le tableau "remarques" de la réponse ; ?? [] évite une erreur si la clé est absente
+        $reponseJson = ['remarques' => $data['remarques'] ?? []];
+        // Sauvegarde en base pour la mise en cache : évite de rappeler l'IA si les mêmes DF sont soumises à nouveau
+        $this->saveReponse($request->input('tentative_id'), 'dep', $dependencies, $reponseJson);
+        // Retourne les dépendances originales + les remarques de l'IA au frontend
         return response()->json(array_merge(['dependencies' => $dependencies], $reponseJson));
+    }
+
+    // --- CRUD ReponseIA ---
+
+    public function ask(Request $request, OllamaService $ollama): JsonResponse
+    {
+        $prompt  = $request->input('prompt', 'Est-ce qu\'il fait beau aujourd\'hui ?');
+        $reponse = $ollama->generate($prompt);
+        return response()->json(['prompt' => $prompt, 'reponse' => $reponse]);
     }
 
     public function index(): JsonResponse
@@ -479,10 +279,7 @@ PROMPT;
             'reponseJson'      => 'required|array',
             'dateHeureReponse' => 'required|date',
         ]);
-
-        $reponse = ReponseIA::create($validated);
-
-        return response()->json($reponse, 201);
+        return response()->json(ReponseIA::create($validated), 201);
     }
 
     public function show(ReponseIA $reponseIA): JsonResponse
@@ -498,16 +295,13 @@ PROMPT;
             'reponseJson'      => 'sometimes|array',
             'dateHeureReponse' => 'sometimes|date',
         ]);
-
         $reponseIA->update($validated);
-
         return response()->json($reponseIA);
     }
 
     public function destroy(ReponseIA $reponseIA): JsonResponse
     {
         $reponseIA->delete();
-
         return response()->json(null, 204);
     }
 }
