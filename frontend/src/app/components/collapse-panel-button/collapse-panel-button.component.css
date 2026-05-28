@@ -1,0 +1,26 @@
+.collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #c7d2fe;
+  border-radius: 4px;
+  background: #eff1fd;
+  color: #3b5bdb;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.collapse-btn:hover {
+  background: #3b5bdb;
+  color: white;
+  border-color: #3b5bdb;
+}
+
+.arrow-icon {
+  display: block;
+  transition: transform 0.2s ease;
+}

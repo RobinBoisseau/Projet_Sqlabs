@@ -1,0 +1,155 @@
+<div class="create-wrapper">
+
+  <!-- Header -->
+  <div class="create-header">
+    <div class="create-header-left">
+      <a routerLink="/admin/exercices" class="back-link">← Gestion des exercices</a>
+      <h1 class="create-title">Nouvel exercice</h1>
+    </div>
+    <button class="save-btn" (click)="onSave()" [disabled]="isSaving">
+      <span *ngIf="isSaving">Enregistrement…</span>
+      <span *ngIf="!isSaving">💾 Enregistrer l'exercice</span>
+    </button>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-bar">{{ errorMessage }}</div>
+
+  <as-split direction="horizontal" unit="percent" gutterSize="8" class="main-split">
+
+    <!-- COLONNE 1 : Énoncé éditable -->
+    <as-split-area [size]="sizes.enonce" [minSize]="0" [maxSize]="100">
+      <div class="col-side">
+        <div class="col-collapsed-labels" [style.display]="isCollapsed.enonce ? 'flex' : 'none'">
+          <span class="col-collapsed-label">Énoncé</span>
+        </div>
+        <div class="col-side-content col-side-content--fill"
+             [style.display]="isCollapsed.enonce ? 'none' : 'flex'">
+          <div class="enonce-form">
+            <input
+              class="titre-input"
+              type="text"
+              [(ngModel)]="titre"
+              (ngModelChange)="onTitreChange()"
+              placeholder="Titre de l'exercice…"/>
+            <select class="type-select" [(ngModel)]="type" (ngModelChange)="onTypeChange()">
+              <option value="SQL">SQL</option>
+              <option value="BPMN">BPMN</option>
+            </select>
+            <div #quillEditor class="quill-container"></div>
+          </div>
+        </div>
+        <div class="col-side-tab col-side-tab--right" (click)="togglePanel('enonce')" role="button">
+          <svg class="col-tab-arrow"
+               [style.transform]="isCollapsed.enonce ? 'rotate(0deg)' : 'rotate(180deg)'"
+               xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+               viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </div>
+      </div>
+    </as-split-area>
+
+    <!-- COLONNE 2 : Dictionnaire + Dépendances (correction) -->
+    <as-split-area [size]="sizes.dictionnaire" [minSize]="0" [maxSize]="100" cdkDropListGroup>
+      <div class="col-middle">
+
+        <div class="col-middle-content" [style.display]="isCollapsed.dictionnaire ? 'none' : 'flex'">
+          <as-split direction="vertical" gutterSize="8" style="flex:1;min-height:0">
+
+            <as-split-area [size]="sizesVertical.dictionnaire" [minSize]="0" [maxSize]="100">
+              <div class="row-panel">
+                <div class="row-panel-content" [style.display]="isCollapsed.dictionnaireV ? 'none' : 'flex'">
+                  <app-panel title="Dictionnaire des données (correction)">
+                    <app-dictionary-table
+                      [lines]="dictionary"
+                      (dictionaryChanged)="onDictionaryChanged($event)">
+                    </app-dictionary-table>
+                  </app-panel>
+                </div>
+                <div class="row-panel-tab row-panel-tab--bottom"
+                     (click)="toggleVerticalPanel('dictionnaire')" role="button">
+                  <svg class="col-tab-arrow"
+                       [style.transform]="isCollapsed.dictionnaireV ? 'rotate(90deg)' : 'rotate(270deg)'"
+                       xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                       viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 18l6-6-6-6"/>
+                  </svg>
+                </div>
+              </div>
+            </as-split-area>
+
+            <as-split-area [size]="sizesVertical.dependances" [minSize]="0" [maxSize]="100">
+              <div class="row-panel">
+                <div class="row-panel-tab row-panel-tab--top"
+                     (click)="toggleVerticalPanel('dependances')" role="button">
+                  <svg class="col-tab-arrow"
+                       [style.transform]="isCollapsed.dependancesV ? 'rotate(270deg)' : 'rotate(90deg)'"
+                       xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                       viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 18l6-6-6-6"/>
+                  </svg>
+                </div>
+                <div class="row-panel-content" [style.display]="isCollapsed.dependancesV ? 'none' : 'flex'">
+                  <app-panel title="Dépendances fonctionnelles (correction)">
+                    <app-dependence-table
+                      [lines]="dependencies"
+                      [technicalNames]="technicalNames"
+                      (dependenciesChanged)="onDependenciesChanged($event)">
+                    </app-dependence-table>
+                  </app-panel>
+                </div>
+              </div>
+            </as-split-area>
+
+          </as-split>
+        </div>
+
+        <div class="col-collapsed-labels" [style.display]="isCollapsed.dictionnaire ? 'flex' : 'none'">
+          <span class="col-collapsed-label">Dictionnaire</span>
+          <span class="col-collapsed-label">Dépendances</span>
+        </div>
+
+        <div class="col-middle-tab" (click)="togglePanel('dictionnaire')" role="button">
+          <svg class="col-tab-arrow"
+               [style.transform]="isCollapsed.dictionnaire ? 'rotate(0deg)' : 'rotate(180deg)'"
+               xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+               viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </div>
+
+      </div>
+    </as-split-area>
+
+    <!-- COLONNE 3 : MCD (correction) -->
+    <as-split-area [size]="sizes.modelisation" [minSize]="0" [maxSize]="100">
+      <div class="col-side">
+        <div class="col-side-tab col-side-tab--left" (click)="togglePanel('modelisation')" role="button">
+          <svg class="col-tab-arrow"
+               [style.transform]="isCollapsed.modelisation ? 'rotate(180deg)' : 'rotate(0deg)'"
+               xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+               viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </div>
+        <div class="col-collapsed-labels" [style.display]="isCollapsed.modelisation ? 'flex' : 'none'">
+          <span class="col-collapsed-label">Zone de modélisation</span>
+        </div>
+        <div class="col-side-content col-side-content--fill"
+             [style.display]="isCollapsed.modelisation ? 'none' : 'flex'">
+          <app-mcd-editor
+            [slug]="SLUG"
+            [mcd]="mcd"
+            (saveRequested)="save()">
+          </app-mcd-editor>
+        </div>
+      </div>
+    </as-split-area>
+
+  </as-split>
+</div>
