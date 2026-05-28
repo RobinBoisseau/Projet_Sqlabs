@@ -6,4 +6,5 @@ export interface Exercice {
   type: 'SQL' | 'BPMN';
   status: 'completed' | 'in_progress' | 'to_do';
   etat?: string;
+  visibility?: boolean;
 }

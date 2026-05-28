@@ -91,7 +91,10 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   private runSilentSave() {
-    if (this.exercice && this.isLoaded) {
+    const hasWork = this.dictionary.some(f => f.TechnicalName?.trim())
+      || this.dependencies.some(d => d.source.length > 0 || d.cible.length > 0);
+
+    if (this.exercice && this.isLoaded && hasWork) {
       const data = {
         dictionary: this.dictionary,
         dependencies: this.dependencies,

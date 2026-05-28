@@ -18,14 +18,13 @@ export class ExerciceService {
     return this.http.get<any>(`${this.apiUrl}/${slug}`).pipe(map(res => res.data || res));
   }
 
-  // Sauvegarde — on envoie les noms anglais, le controller fait le mapping vers FR
+  // Sauvegarde
   saveAttempt(exerciceId: number, data: any): Observable<any> {
     const payload = {
       exercice_id: exerciceId,
       dictionary: data.dictionary,
       dependencies: data.dependencies,
-      model: data.model,
-      toto: 3
+      model: data.model
     };
     return this.http.post(this.tentativesUrl, payload);
   }
@@ -65,6 +64,14 @@ export class ExerciceService {
 
   analyzeDependencies(dependencies: any[], tentativeId?: number): Observable<any> {
     return this.http.post('http://localhost:8000/api/ia/analyze-dependencies', { dependencies, tentative_id: tentativeId });
+  }
+
+  getCorrection(slug: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${slug}/correction`);
+  }
+
+  updateExercice(slug: string, data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${slug}/correction`, data);
   }
 
   createExercice(data: any): Observable<any> {

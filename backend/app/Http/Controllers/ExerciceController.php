@@ -5,13 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Exercice;
 use App\Http\Resources\ExerciceResource;
 use Illuminate\Http\Request;
+use App\Models\Tentative;
 
 class ExerciceController extends Controller
 {
     // GET /api/exercices
     public function index()
     {
-        $exercices = Exercice::all();
+        $user = auth()->user();
+
+        if ($user && ($user->role === 'admin' || $user->role === 'professeur')) {
+            $exercices = Exercice::all();
+        } else {
+            $exercices = Exercice::where('visibility', true)->get();
+        }
+
         return ExerciceResource::collection($exercices);
     }
 
@@ -71,6 +79,48 @@ class ExerciceController extends Controller
         if (!$exercice) {
             return response()->json(['message' => 'Exercice non trouvé'], 404);
         }
+
+        return new ExerciceResource($exercice);
+    }
+
+    // GET /api/exercices/{slug}/correction
+    public function getCorrection($slug)
+    {
+        $exercice = Exercice::where('slug', $slug)->firstOrFail();
+        $correction = Tentative::where('exercice_id', $exercice->id)
+            ->where('is_correction', true)
+            ->first();
+        return response()->json([
+            'exercice'   => new ExerciceResource($exercice),
+            'correction' => $correction ? [
+                'dictionary'   => $correction->dictionnaire,
+                'dependencies' => $correction->dependance,
+                'model'        => $correction->modele,
+            ] : null,
+        ]);
+    }
+
+    // PUT /api/exercices/{slug}/correction
+    public function updateWithCorrection(Request $request, $slug)
+    {
+        $exercice = Exercice::where('slug', $slug)->firstOrFail();
+        $exercice->update([
+            'titre'  => $request->titre,
+            'enonce' => $request->enonce,
+            'type'   => $request->type,
+            'etat'   => $request->etat ?? $exercice->etat,
+        ]);
+
+        Tentative::updateOrCreate(
+            ['exercice_id' => $exercice->id, 'is_correction' => true],
+            [
+                'user_id'            => auth()->id(),
+                'dictionnaire'       => $request->dictionary ?? [],
+                'dependance'         => $request->dependencies ?? [],
+                'modele'             => $request->model ?? [],
+                'dateHeureTentative' => now(),
+            ]
+        );
 
         return new ExerciceResource($exercice);
     }

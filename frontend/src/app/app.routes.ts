@@ -30,6 +30,7 @@ import { adminGuard } from './guards/admin.guard';
 import { teacherGuard } from './guards/teacher.guard';
 import { ExerciceAdminListComponent } from './components/admin/exercice-list/exercice-admin-list.component';
 import { ExerciceCreateComponent } from './components/admin/exercice-create/exercice-create.component';
+import { ExerciceEditComponent } from './components/admin/exercice-edit/exercice-edit.component';
 
 export const routes: Routes = [
   // Routes publiques
@@ -51,6 +52,7 @@ export const routes: Routes = [
   { path: 'admin/cours',          component: CoursListComponent,      canActivate: [adminGuard] },
   { path: 'admin/exercices', component: ExerciceAdminListComponent, canActivate: [adminGuard] },
   { path: 'admin/exercices/create', component: ExerciceCreateComponent, canActivate: [adminGuard] },
+  { path: 'admin/exercices/:slug/edit', component: ExerciceEditComponent, canActivate: [adminGuard] },
   {
     path: 'admin/cours/:id',
     component: CoursLayoutComponent,
