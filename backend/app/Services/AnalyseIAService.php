@@ -25,16 +25,18 @@ class AnalyseIAService
         $resDico = $this->analyseComponent('dico', $dictionary,   $current->id, $last, $hashes['dico'], 'hash_dico', $ollama);
         $resDep  = $this->analyseComponent('dep',  $dependencies, $current->id, $last, $hashes['dep'],  'hash_dep',  $ollama);
 
-        // Succès global : les 3 composants sont validés (hash identiques à la correction)
-        $success = $this->isFullyValid($resMcd)
-                && $this->isFullyValid($resDico)
-                && $this->isFullyValid($resDep);
-
         return [
             'mcd'          => $resMcd,
             'dictionary'   => $resDico,
             'dependencies' => $resDep,
-            'success'      => $success,
+            'succes'       => [
+                'DD'      => $this->isFullyValid($resDico),
+                'DF'      => $this->isFullyValid($resDep),
+                'MCD'     => $this->isFullyValid($resMcd),
+                'message' => ($this->isFullyValid($resDico) && $this->isFullyValid($resDep) && $this->isFullyValid($resMcd))
+                             ? 'Félicitations, tout est correct !'
+                             : '',
+            ],
         ];
     }
 
