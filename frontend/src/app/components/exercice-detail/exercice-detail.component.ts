@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, AfterViewInit, HostListener, ViewChild, C
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AngularSplitModule } from 'angular-split';
 
 import { ExerciceService } from '../../services/exercice.service';
@@ -35,6 +36,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
   dependencies: DependenceLine[] = [];
   technicalNames: string[] = [];
 
+  safeStatement: SafeHtml = '';
   isLoaded: boolean = false;
   isTentativeDisabled: boolean = false;
   isSubmitting: boolean = false;
@@ -42,6 +44,13 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
   showIaResults = false;
   hasChangedSinceSubmit = true;
   private currentTentativeId: number | null = null;
+
+  sizes = { enonce: 25, dictionnaire: 30, modelisation: 45 };
+  previousSizes = { enonce: 25, dictionnaire: 30, modelisation: 45 };
+  isCollapsed = { enonce: false, dictionnaire: false, modelisation: false, dictionnaireV: false, dependancesV: false };
+
+  sizesVertical = { dictionnaire: 50, dependances: 50 };
+  previousSizesVertical = { dictionnaire: 50, dependances: 50 };
 
   @ViewChild(McdEditorComponent) mcdEditor!: McdEditorComponent;
 
@@ -51,7 +60,8 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
     private dictionaryService: DictionaryService,
     private dependenceService: DependenceService,
     private mcdService: McdService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private sanitizer: DomSanitizer
   ) { }
 
   // --- 1. SAUVEGARDE AUTOMATIQUE (Navigation et Fermeture) ---
@@ -83,7 +93,10 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   private runSilentSave() {
-    if (this.exercice && this.isLoaded) {
+    const hasWork = this.dictionary.some(f => f.TechnicalName?.trim())
+      || this.dependencies.some(d => d.source.length > 0 || d.cible.length > 0);
+
+    if (this.exercice && this.isLoaded && hasWork) {
       const data = {
         dictionary: this.dictionary,
         dependencies: this.dependencies,
@@ -100,6 +113,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
     if (slug) {
       this.exerciceService.getExerciceBySlug(slug).subscribe((response: any) => {
         this.exercice = response.data || response;
+        this.safeStatement = this.sanitizer.bypassSecurityTrustHtml(this.exercice?.statement ?? '');
 
         if (this.exercice?.id) {
           this.exerciceService.getLastAttempt(this.exercice.id).subscribe((res: any) => {
@@ -289,6 +303,68 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
         next: (res: any) => { this.currentTentativeId = res?.data?.id ?? null; },
         error: () => {}
       });
+    }
+  }
+
+  // --- COLLAPSE PANELS ---
+
+  readonly COLLAPSED_SIZE = 4;
+
+  private bestPanelFor(
+    exclude: 'enonce' | 'dictionnaire' | 'modelisation'
+  ): 'enonce' | 'dictionnaire' | 'modelisation' | null {
+    const allPanels: Array<'enonce' | 'dictionnaire' | 'modelisation'> =
+      this.exercice?.type === 'SQL'
+        ? ['enonce', 'dictionnaire', 'modelisation']
+        : ['enonce', 'modelisation'];
+
+    const candidates = allPanels.filter(p => p !== exclude && !this.isCollapsed[p]);
+    if (candidates.length === 0) return null;
+    return candidates.reduce((best, p) => this.sizes[p] > this.sizes[best] ? p : best);
+  }
+
+  togglePanel(panel: 'enonce' | 'dictionnaire' | 'modelisation'): void {
+    if (this.isCollapsed[panel]) {
+      const toRestore = this.previousSizes[panel];
+      const donor = this.bestPanelFor(panel);
+      const newSizes = { ...this.sizes, [panel]: toRestore };
+      if (donor) newSizes[donor] = this.sizes[donor] - (toRestore - this.COLLAPSED_SIZE);
+      this.sizes = newSizes;
+      this.isCollapsed = { ...this.isCollapsed, [panel]: false };
+    } else {
+      const freed = this.sizes[panel] - this.COLLAPSED_SIZE;
+      const recipient = this.bestPanelFor(panel);
+      this.previousSizes = { ...this.previousSizes, [panel]: this.sizes[panel] };
+      const newSizes = { ...this.sizes, [panel]: this.COLLAPSED_SIZE };
+      if (recipient) newSizes[recipient] = this.sizes[recipient] + freed;
+      this.sizes = newSizes;
+      this.isCollapsed = { ...this.isCollapsed, [panel]: true };
+    }
+  }
+
+  toggleVerticalPanel(panel: 'dictionnaire' | 'dependances'): void {
+    const key: 'dictionnaireV' | 'dependancesV' =
+      panel === 'dictionnaire' ? 'dictionnaireV' : 'dependancesV';
+    const partner: 'dictionnaire' | 'dependances' =
+      panel === 'dictionnaire' ? 'dependances' : 'dictionnaire';
+
+    if (this.isCollapsed[key]) {
+      const toRestore = this.previousSizesVertical[panel];
+      this.sizesVertical = {
+        ...this.sizesVertical,
+        [panel]: toRestore,
+        [partner]: this.sizesVertical[partner] - (toRestore - this.COLLAPSED_SIZE)
+      };
+      this.isCollapsed = { ...this.isCollapsed, [key]: false };
+    } else {
+      const freed = this.sizesVertical[panel] - this.COLLAPSED_SIZE;
+      this.previousSizesVertical = { ...this.previousSizesVertical, [panel]: this.sizesVertical[panel] };
+      this.sizesVertical = {
+        ...this.sizesVertical,
+        [panel]: this.COLLAPSED_SIZE,
+        [partner]: this.sizesVertical[partner] + freed
+      };
+      this.isCollapsed = { ...this.isCollapsed, [key]: true };
     }
   }
 }

@@ -15,7 +15,12 @@ class Exercice extends Model
         'slug',
         'type',
         'etat',
+        'visibility',
         'user_id',
+    ];
+
+    protected $casts = [
+        'visibility' => 'boolean',
     ];
 
     public function getRouteKeyName(){

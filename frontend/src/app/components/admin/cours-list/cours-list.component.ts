@@ -9,7 +9,6 @@ import { Cours } from '../../../models/cours';
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './cours-list.component.html',
-  styleUrl: './cours-list.component.css'
 })
 export class CoursListComponent implements OnInit {
   cours: Cours[] = [];

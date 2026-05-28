@@ -43,6 +43,8 @@ class ExerciceResource extends JsonResource
             'type' => $this->type,
             'status' => $status,
             'statement' => $this->enonce,
+            'etat'       => $this->etat,
+            'visibility' => (bool) $this->visibility,
         ];
     }
 
