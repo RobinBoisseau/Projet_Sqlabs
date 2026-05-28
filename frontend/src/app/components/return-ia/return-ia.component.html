@@ -16,7 +16,7 @@
              [ngClass]="r.statut === 'valide' ? 'ia-item--ok' : 'ia-item--warn'">
           <span class="ia-icon">{{ r.statut === 'valide' ? '✓' : '?' }}</span>
           <div class="ia-content">
-            <span class="ia-nom">{{ r.champ }}</span>
+            <span class="ia-nom" *ngIf="r.champ">{{ r.champ }}</span>
             <span class="ia-msg">{{ r.message }}</span>
           </div>
         </div>

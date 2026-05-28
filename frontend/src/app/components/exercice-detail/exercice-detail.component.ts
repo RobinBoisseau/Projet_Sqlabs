@@ -3,8 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { AngularSplitModule } from 'angular-split';
-import { of, concat } from 'rxjs';
-import { switchMap, toArray } from 'rxjs/operators';
 
 import { ExerciceService } from '../../services/exercice.service';
 import { Exercice } from '../../models/exercice';
@@ -248,32 +246,14 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
       model: this.getCurrentModel()
     };
 
-    this.exerciceService.saveAttempt(this.exercice.id, data).pipe(
-      switchMap((saved: any) => {
-        const tentativeId = saved?.data?.id;
-        this.currentTentativeId = tentativeId ?? this.currentTentativeId;
-        const mcd = saved?.data?.model ?? saved?.model;
-
-        const mcd$ = mcd
-          ? this.exerciceService.analyzeMcd(mcd, tentativeId)
-          : of(null);
-
-        const dict$ = data.dictionary?.length
-          ? this.exerciceService.analyzeDictionary(data.dictionary, tentativeId)
-          : of(null);
-
-        const deps$ = data.dependencies?.length
-          ? this.exerciceService.analyzeDependencies(data.dependencies, tentativeId)
-          : of(null);
-
-        return concat(mcd$, dict$, deps$).pipe(toArray());
-      })
-    ).subscribe({
-      next: ([mcdResult, dictResult, depsResult]) => {
-        console.log('mcdResult', mcdResult);
-        console.log('dictResult', dictResult);
-        console.log('depsResult', depsResult);
-        this.iaResults = { mcd: mcdResult, dictionary: dictResult, dependencies: depsResult };
+    this.exerciceService.saveAttempt(this.exercice.id, data).subscribe({
+      next: (saved: any) => {
+        const ia = saved?.ia;
+        this.iaResults = {
+          mcd:          ia?.mcd          ?? null,
+          dictionary:   ia?.dictionary   ?? null,
+          dependencies: ia?.dependencies ?? null,
+        };
         this.showIaResults = true;
         this.isSubmitting = false;
         this.isTentativeDisabled = true;

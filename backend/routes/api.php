@@ -8,7 +8,6 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ClasseController;
 use App\Http\Controllers\TentativeController;
 use App\Http\Controllers\FichierController;
-use App\Http\Controllers\ReponseIAController;
 use App\Http\Controllers\CoursController;
 
 // Routes publiques
@@ -37,11 +36,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tentatives/exercice/{exercice_id}', [TentativeController::class, 'getByExercice']);
     Route::apiResource('tentatives', TentativeController::class);
 
-    Route::apiResource('reponse-ia', ReponseIAController::class);
-    Route::post('ia/ask', [ReponseIAController::class, 'ask']);
-    Route::post('ia/analyze-mcd', [ReponseIAController::class, 'analyzeMcd']);
-    Route::post('ia/analyze-dictionary', [ReponseIAController::class, 'analyzeDictionary']);
-    Route::post('ia/analyze-dependencies', [ReponseIAController::class, 'analyzeDependencies']);
     Route::post('classe/join', [ClasseController::class, 'join']);
     Route::post('classe/{id}/teachers', [ClasseController::class, 'addTeacher']);
     Route::delete('classe/{id}/teachers', [ClasseController::class, 'removeTeacher']);

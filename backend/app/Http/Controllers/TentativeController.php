@@ -1,9 +1,12 @@
 <?php
 namespace App\Http\Controllers;
+
 use App\Models\Tentative;
-use App\Models\ReponseIA;
 use App\Http\Resources\TentativeResource;
+use App\Services\AnalyseIAService;
+use App\Services\OllamaService;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class TentativeController extends Controller
 {
@@ -11,90 +14,104 @@ class TentativeController extends Controller
         return TentativeResource::collection(Tentative::all());
     }
 
-    public function store(Request $request) {
-        $hashDico = $this->hashData($request->dictionary);
-        $hashDep  = $this->hashData($request->dependencies);
-        $hashMcd  = $this->hashData($request->model);
+    public function store(Request $request, AnalyseIAService $analyseService, OllamaService $ollama): JsonResponse
+    {
+        $hashes = $this->computeHashes($request);          // Calcule les hash DD, DF, MCD de la tentative entrante
+        $last   = $this->getLastTentative($request->exercice_id); // Récupère la dernière tentative de l'étudiant en BD
 
-        $tentative = Tentative::create([
+        // Tentative identique à la dernière → on renvoie les réponses en cache sans rien stocker
+        if ($this->isSameTentative($last, $hashes)) {
+            return $this->returnLastResponses($last, $analyseService, $request);
+        }
+
+        // Nouvelle tentative → on la stocke
+        $tentative = $this->storeTentative($request, $hashes);
+
+        // Analyse chaque composant (cache ou appel IA)
+        $iaResults = $analyseService->analyseAll(
+            $tentative,
+            $last,
+            $request->model        ?? [],
+            $request->dictionary   ?? [],
+            $request->dependencies ?? [],
+            $hashes,
+            $ollama
+        );
+
+        return response()->json([
+            'data' => (new TentativeResource($tentative))->toArray($request),
+            'ia'   => $iaResults,
+        ]);
+    }
+
+    // ── Helpers store() ──────────────────────────────────────────────────────
+
+    private function computeHashes(Request $request): array
+    {
+        return [
+            'mcd'  => $this->hashData($request->model),
+            'dico' => $this->hashData($request->dictionary),
+            'dep'  => $this->hashData($request->dependencies),
+        ];
+    }
+
+    private function getLastTentative(int $exerciceId): ?Tentative
+    {
+        return Tentative::where('exercice_id', $exerciceId)
+            ->where('user_id', auth()->id())
+            ->where('is_correction', false)
+            ->latest('id')
+            ->first();
+    }
+
+    private function isSameTentative(?Tentative $last, array $hashes): bool
+    {
+        if (!$last) return false;
+
+        return $last->hash_mcd  === $hashes['mcd']
+            && $last->hash_dico === $hashes['dico']
+            && $last->hash_dep  === $hashes['dep'];
+    }
+
+    private function returnLastResponses(Tentative $last, AnalyseIAService $analyseService, Request $request): JsonResponse
+    {
+        return response()->json([
+            'data' => (new TentativeResource($last))->toArray($request),
+            'ia'   => $analyseService->getAllLastResponses($last),
+        ]);
+    }
+
+    private function storeTentative(Request $request, array $hashes): Tentative
+    {
+        return Tentative::create([
             'exercice_id'        => $request->exercice_id,
             'user_id'            => auth()->id(),
             'dictionnaire'       => $request->dictionary,
             'dependance'         => $request->dependencies,
             'modele'             => $request->model,
-            'hash_dico'          => $hashDico,
-            'hash_dep'           => $hashDep,
-            'hash_mcd'           => $hashMcd,
-            'dateHeureTentative' => now()
-        ]);
-
-        // Chercher dans toutes les tentatives précédentes si un hash identique existe
-        $precedentes = Tentative::where('exercice_id', $request->exercice_id)
-            ->where('user_id', auth()->id())
-            ->where('is_correction', false)
-            ->where('id', '!=', $tentative->id)
-            ->get();
-
-        $hashMap = [
-            'model'        => ['hash' => $hashMcd,  'col' => 'hash_mcd',  'element' => 'mcd'],
-            'dictionary'   => ['hash' => $hashDico, 'col' => 'hash_dico', 'element' => 'dico'],
-            'dependencies' => ['hash' => $hashDep,  'col' => 'hash_dep',  'element' => 'dep'],
-        ];
-
-        $changed = [];
-        $cached  = [];
-
-        foreach ($hashMap as $key => $info) {
-            $reponse = null;
-
-            foreach ($precedentes->where($info['col'], $info['hash'])->sortByDesc('id') as $t) {
-                $reponse = ReponseIA::where('tentative_id', $t->id)
-                    ->where('element', $info['element'])
-                    ->latest()
-                    ->first();
-                if ($reponse) break;
-            }
-
-            if ($reponse) {
-                $changed[$key] = false;
-                $cached[$key]  = $reponse->reponseJson;
-            } else {
-                $changed[$key] = true;
-            }
-        }
-
-        return (new TentativeResource($tentative))->additional([
-            'changed' => $changed,
-            'cached'  => $cached,
+            'hash_mcd'           => $hashes['mcd'],
+            'hash_dico'          => $hashes['dico'],
+            'hash_dep'           => $hashes['dep'],
+            'dateHeureTentative' => now(),
         ]);
     }
 
-    private function hashData(mixed $data): string {
-        return hash('sha256', json_encode($this->normalizeForHash($data), JSON_UNESCAPED_UNICODE));
-    }
-
-    private function normalizeForHash(mixed $data): mixed {
-        if (!is_array($data)) return $data;
-        if (array_is_list($data)) return array_map(fn($item) => $this->normalizeForHash($item), $data);
-        ksort($data);
-        return array_map(fn($item) => $this->normalizeForHash($item), $data);
-    }
+    // ── Autres routes ────────────────────────────────────────────────────────
 
     public function show($id) {
-        $tentative = Tentative::findOrFail($id);
-        return new TentativeResource($tentative);
+        return new TentativeResource(Tentative::findOrFail($id));
     }
 
     public function update(Request $request, $id) {
         $tentative = Tentative::findOrFail($id);
         $tentative->update([
-            'dictionnaire' => $request->dictionary,
-            'dependance'   => $request->dependencies,
-            'modele'       => $request->model,
-            'hash_dico'    => $this->hashData($request->dictionary),
-            'hash_dep'     => $this->hashData($request->dependencies),
-            'hash_mcd'     => $this->hashData($request->model),
-            'dateHeureTentative' => now()
+            'dictionnaire'       => $request->dictionary,
+            'dependance'         => $request->dependencies,
+            'modele'             => $request->model,
+            'hash_mcd'           => $this->hashData($request->model),
+            'hash_dico'          => $this->hashData($request->dictionary),
+            'hash_dep'           => $this->hashData($request->dependencies),
+            'dateHeureTentative' => now(),
         ]);
         return new TentativeResource($tentative);
     }
@@ -108,13 +125,24 @@ class TentativeController extends Controller
         $tentative = Tentative::where('exercice_id', $exercice_id)
             ->where('user_id', auth()->id())
             ->where('is_correction', false)
-            ->latest()
+            ->latest('id')
             ->first();
 
-        if (!$tentative) {
-            return response()->json(['data' => null], 200);
-        }
+        return $tentative
+            ? new TentativeResource($tentative)
+            : response()->json(['data' => null], 200);
+    }
 
-        return new TentativeResource($tentative);
+    // ── Hash ─────────────────────────────────────────────────────────────────
+
+    private function hashData(mixed $data): string {
+        return hash('sha256', json_encode($this->normalizeForHash($data), JSON_UNESCAPED_UNICODE));
+    }
+
+    private function normalizeForHash(mixed $data): mixed {
+        if (!is_array($data)) return $data;
+        if (array_is_list($data)) return array_map(fn($item) => $this->normalizeForHash($item), $data);
+        ksort($data);
+        return array_map(fn($item) => $this->normalizeForHash($item), $data);
     }
 }

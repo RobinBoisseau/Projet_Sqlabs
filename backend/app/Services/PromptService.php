@@ -82,7 +82,11 @@ Voici la correction attendue :
 
 Compare les deux dictionnaires. Tu DOIS générer une remarque pour CHAQUE champ du dictionnaire de l'étudiant, sans en omettre aucun.
 - Si le champ correspond à la correction (nom technique, type, clé primaire) : statut "valide" + message d'encouragement court (ex : "Parfait !", "Correct !", "Très bien !"). NE pose PAS de question.
-- Si le champ diffère de la correction OU est un attribut calculé/dérivé : statut "invalide" + une seule question socratique courte, sans donner la réponse ni révéler la correction.
+- Si le champ a un TYPE différent de la correction : statut "invalide" + question sur le type. Ne confonds PAS un mauvais type avec un attribut calculé.
+- Si le champ a une CLEF PRIMAIRE incorrecte : statut "invalide" + question sur l'identifiant.
+- Si le champ est un attribut CALCULÉ ou DÉRIVÉ (ex : un total, un âge) : statut "invalide" + question sur le fait qu'il puisse être calculé.
+- Si le champ est en TROP par rapport à la correction : statut "invalide" + question sur sa nécessité.
+- Si l'étudiant a MOINS de champs que la correction : ajoute UNE remarque supplémentaire à la fin avec champ "" (chaîne vide), statut "invalide", et une question du type de l'exemple ci-dessous.
 
 Ne mentionne jamais de noms ou valeurs précises issus de la correction. Utilise toujours "ce champ" pour désigner l'attribut concerné.
 
@@ -91,7 +95,7 @@ Exemples pour les invalides :
 - clé primaire incorrecte → "Ce champ est-il vraiment celui qui identifie de façon unique chaque enregistrement ?"
 - attribut calculé → "Ce champ peut-il être calculé depuis d'autres données ? Si oui, doit-il figurer dans le dictionnaire ?"
 - champ en trop → "Ce champ est-il vraiment nécessaire dans le contexte de cet exercice ?"
-- champ en moins → "Avez vous la certitude qu'il y a le bon nombre de champs"
+- champ en moins → "Avez vous la certitude qu'il y a le bon nombre de champs ?"
 Retourne uniquement ce JSON :
 {
   "remarques": [
