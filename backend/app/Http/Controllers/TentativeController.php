@@ -41,15 +41,30 @@ class TentativeController extends Controller
             'dependencies' => ['hash' => $hashDep,  'col' => 'hash_dep',  'element' => 'dep'],
         ];
 
-        $changed = [];
-        $cached  = [];
+        $tentative = Tentative::updateOrCreate(
+            [
+                'exercice_id' => $request->exercice_id,
+                'user_id' => auth()->id(),
+                'is_correction' => false
+            ],
+            [
+                'dictionnaire' => $request->dictionary,
+                'dependance'   => $request->dependencies,
+                'modele'       => $request->model,
+                'hash_dico'    => $hashDico,
+                'hash_dep'     => $hashDep,
+                'hash_mcd'     => $hashMcd,
+                'dateHeureTentative' => now()
+            ]
+        );
 
-        foreach ($hashMap as $key => $info) {
-            $reponse = null;
-
-            foreach ($precedentes->where($info['col'], $info['hash'])->sortByDesc('id') as $t) {
-                $reponse = ReponseIA::where('tentative_id', $t->id)
-                    ->where('element', $info['element'])
+        // Récupérer les réponses IA en cache pour les parties inchangées
+        $cached = [];
+        $elementMap = ['model' => 'mcd', 'dictionary' => 'dico', 'dependencies' => 'dep'];
+        foreach ($elementMap as $key => $element) {
+            if (!$changed[$key]) {
+                $reponse = ReponseIA::where('tentative_id', $tentative->id)
+                    ->where('element', $element)
                     ->latest()
                     ->first();
                 if ($reponse) break;

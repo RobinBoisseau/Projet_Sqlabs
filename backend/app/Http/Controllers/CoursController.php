@@ -46,6 +46,9 @@ class CoursController extends Controller
                 $sync[$ex['id']] = ['order' => $ex['order']];
             }
             $cours->exercices()->sync($sync);
+
+            \App\Models\Exercice::whereIn('id', array_keys($sync))
+                ->update(['etat' => 'Fini', 'visibility' => true]);
         }
 
         $cours->load('exercices');
@@ -67,22 +70,40 @@ class CoursController extends Controller
     }
 
     public function updateExercices(Request $request, Cours $cours)
-    {
-        $data = $request->validate([
-            'exercices'         => 'required|array',
-            'exercices.*.id'    => 'required|exists:exercices,id',
-            'exercices.*.order' => 'required|integer|min:0',
-        ]);
+{
+    $data = $request->validate([
+        'exercices'         => 'required|array',
+        'exercices.*.id'    => 'required|exists:exercices,id',
+        'exercices.*.order' => 'required|integer|min:0',
+    ]);
 
-        $sync = [];
-        foreach ($data['exercices'] as $ex) {
-            $sync[$ex['id']] = ['order' => $ex['order']];
-        }
-        $cours->exercices()->sync($sync);
-
-        $cours->load('exercices');
-        return new CoursResource($cours);
+    $sync = [];
+    foreach ($data['exercices'] as $ex) {
+        $sync[$ex['id']] = ['order' => $ex['order']];
     }
+
+    // Charger les IDs actuels depuis la BD (pas depuis le cache Eloquent)
+    $ancienIds = $cours->exercices()->pluck('exercices.id')->toArray();
+    $nouveauxIds = array_keys($sync);
+
+    $cours->exercices()->sync($sync);
+
+    // Tous les exercices maintenant dans le cours → Fini + visible
+    if (!empty($nouveauxIds)) {
+        \App\Models\Exercice::whereIn('id', $nouveauxIds)
+            ->update(['etat' => 'Fini', 'visibility' => true]);
+    }
+
+    // Exercices retirés du cours → Non fini + masqué
+    $retires = array_diff($ancienIds, $nouveauxIds);
+    if (!empty($retires)) {
+        \App\Models\Exercice::whereIn('id', $retires)
+            ->update(['etat' => 'Non fini', 'visibility' => false]);
+    }
+
+    $cours->load('exercices');
+    return new CoursResource($cours);
+}
 
     public function stats(Cours $cours)
     {

@@ -57,6 +57,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('cours/{cours}/stats', [CoursController::class, 'stats']);
 
     Route::middleware('admin')->group(function () {
+        Route::get('/exercices/{slug}/correction', [ExerciceController::class, 'getCorrection']);
+        Route::put('/exercices/{slug}/correction', [ExerciceController::class, 'updateWithCorrection']);
         Route::apiResource('users', UserController::class);
 
         Route::post('cours', [CoursController::class, 'store']);

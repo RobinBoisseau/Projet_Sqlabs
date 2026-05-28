@@ -1,6 +1,35 @@
-<div class="panel-container">
-  <div class="panel-header">{{ title }}</div>
-  <div class="panel-body" [class.scrollable]="scrollable">
+<div class="panel-container" [class.panel-collapsed]="collapsed">
+
+  <!-- Header normal (caché quand collapsed) -->
+  <div class="panel-header" [style.display]="collapsed ? 'none' : 'flex'">
+    <span class="panel-title">{{ title }}</span>
+    <app-collapse-panel-button
+      *ngIf="collapsible"
+      [direction]="collapseDirection"
+      [collapsed]="collapsed"
+      (toggle)="toggleCollapse.emit()">
+    </app-collapse-panel-button>
+  </div>
+
+  <!-- Vue collapsed : layout vertical (left/right) ou horizontal (up/down) -->
+  <div class="panel-collapsed-inner"
+       [class.panel-collapsed-inner--row]="collapseDirection === 'up' || collapseDirection === 'down'"
+       *ngIf="collapsed">
+    <app-collapse-panel-button
+      *ngIf="collapsible"
+      [direction]="collapseDirection"
+      [collapsed]="collapsed"
+      (toggle)="toggleCollapse.emit()">
+    </app-collapse-panel-button>
+    <span class="panel-title-vertical"
+          [class.panel-title-horizontal]="collapseDirection === 'up' || collapseDirection === 'down'">
+      {{ title }}
+    </span>
+  </div>
+
+  <!-- Body : toujours dans le DOM pour préserver l'état des composants enfants -->
+  <div class="panel-body" [class.scrollable]="scrollable" [style.display]="collapsed ? 'none' : 'flex'">
     <ng-content></ng-content>
   </div>
+
 </div>

@@ -14,7 +14,6 @@ type SortDir    = 'asc'  | 'desc';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './user-list.component.html',
-  styleUrl: './user-list.component.css'
 })
 export class UserListComponent implements OnInit {
   users: User[] = [];

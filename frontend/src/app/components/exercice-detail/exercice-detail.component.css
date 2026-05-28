@@ -25,8 +25,9 @@
   display: flex !important;
   flex-direction: column !important;
   height: 100% !important;
-  min-height: 0 !important; /* CRUCIAL POUR LE SCROLL */
-  overflow: hidden !important; 
+  min-height: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
 }
 
 /* FORCE LE COMPOSANT PANEL A REMPLIR SA ZONE */
@@ -55,10 +56,177 @@ app-panel {
   font-size: 0.95rem;
 }
 
+/* --- COLONNES LATÉRALES (Énoncé, Zone de modélisation) --- */
+
+.col-side {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.col-side-content {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.col-side-content--scrollable {
+  overflow-y: auto;
+  padding: 12px 16px;
+  flex-direction: column;
+}
+
+.col-side-content--fill {
+  flex-direction: column;
+}
+
+.col-side-tab {
+  width: 18px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #f8fafc;
+  color: #94a3b8;
+  transition: background 0.15s, color 0.15s;
+}
+
+.col-side-tab--right {
+  border-left: 1px solid #e2e8f0;
+}
+
+.col-side-tab--left {
+  border-right: 1px solid #e2e8f0;
+}
+
+.col-side-tab:hover {
+  background: #eff1fd;
+  color: #3b5bdb;
+}
+
+app-mcd-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* --- COLONNE MILIEU : tab collapse --- */
+
+.col-middle {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.col-middle-content {
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.col-collapsed-labels {
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.col-collapsed-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #3b5bdb;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 45%;
+}
+
+.col-middle-tab {
+  width: 18px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #f8fafc;
+  border-left: 1px solid #e2e8f0;
+  color: #94a3b8;
+  transition: background 0.15s, color 0.15s;
+}
+
+.col-middle-tab:hover {
+  background: #eff1fd;
+  color: #3b5bdb;
+}
+
+.col-tab-arrow {
+  transition: transform 0.2s ease;
+  display: block;
+}
+
 /* Gouttières du split */
 ::ng-deep .as-split-gutter {
   background-color: #e2e8f0 !important;
   flex-basis: 8px !important;
+}
+
+/* --- PANNEAUX INTERNES VERTICAUX (Dictionnaire / Dépendances) --- */
+
+.row-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.row-panel-content {
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.row-panel-tab {
+  height: 18px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #f8fafc;
+  color: #94a3b8;
+  transition: background 0.15s, color 0.15s;
+}
+
+.row-panel-tab--bottom {
+  border-top: 1px solid #e2e8f0;
+}
+
+.row-panel-tab--top {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.row-panel-tab:hover {
+  background: #eff1fd;
+  color: #3b5bdb;
 }
 
 /* --- OVERLAY SOUMISSION IA --- */
