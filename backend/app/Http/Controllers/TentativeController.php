@@ -12,13 +12,29 @@ class TentativeController extends Controller
     }
 
     public function store(Request $request) {
-        $hashDico = $this->hashData($request->dictionary);
-        $hashDep  = $this->hashData($request->dependencies);
-        $hashMcd  = $this->hashData($request->model);
+    $hashDico = $this->hashData($request->dictionary);
+    $hashDep  = $this->hashData($request->dependencies);
+    $hashMcd  = $this->hashData($request->model);
 
-        $tentative = Tentative::create([
-            'exercice_id'        => $request->exercice_id,
-            'user_id'            => auth()->id(),
+    // Récupérer la tentative existante pour comparer les hashes
+    $existing = Tentative::where('exercice_id', $request->exercice_id)
+        ->where('user_id', auth()->id())
+        ->where('is_correction', false)
+        ->first();
+
+    $changed = [
+        'dictionary'   => $hashDico !== $existing?->hash_dico,
+        'dependencies' => $hashDep  !== $existing?->hash_dep,
+        'model'        => $hashMcd  !== $existing?->hash_mcd,
+    ];
+
+    $tentative = Tentative::updateOrCreate(
+        [
+            'exercice_id'   => $request->exercice_id,
+            'user_id'       => auth()->id(),
+            'is_correction' => false
+        ],
+        [
             'dictionnaire'       => $request->dictionary,
             'dependance'         => $request->dependencies,
             'modele'             => $request->model,
@@ -26,63 +42,29 @@ class TentativeController extends Controller
             'hash_dep'           => $hashDep,
             'hash_mcd'           => $hashMcd,
             'dateHeureTentative' => now()
-        ]);
+        ]
+    );
 
-        // Chercher dans toutes les tentatives précédentes si un hash identique existe
-        $precedentes = Tentative::where('exercice_id', $request->exercice_id)
-            ->where('user_id', auth()->id())
-            ->where('is_correction', false)
-            ->where('id', '!=', $tentative->id)
-            ->get();
-
-        $hashMap = [
-            'model'        => ['hash' => $hashMcd,  'col' => 'hash_mcd',  'element' => 'mcd'],
-            'dictionary'   => ['hash' => $hashDico, 'col' => 'hash_dico', 'element' => 'dico'],
-            'dependencies' => ['hash' => $hashDep,  'col' => 'hash_dep',  'element' => 'dep'],
-        ];
-
-        $tentative = Tentative::updateOrCreate(
-            [
-                'exercice_id' => $request->exercice_id,
-                'user_id' => auth()->id(),
-                'is_correction' => false
-            ],
-            [
-                'dictionnaire' => $request->dictionary,
-                'dependance'   => $request->dependencies,
-                'modele'       => $request->model,
-                'hash_dico'    => $hashDico,
-                'hash_dep'     => $hashDep,
-                'hash_mcd'     => $hashMcd,
-                'dateHeureTentative' => now()
-            ]
-        );
-
-        // Récupérer les réponses IA en cache pour les parties inchangées
-        $cached = [];
-        $elementMap = ['model' => 'mcd', 'dictionary' => 'dico', 'dependencies' => 'dep'];
-        foreach ($elementMap as $key => $element) {
-            if (!$changed[$key]) {
-                $reponse = ReponseIA::where('tentative_id', $tentative->id)
-                    ->where('element', $element)
-                    ->latest()
-                    ->first();
-                if ($reponse) break;
-            }
-
+    // Récupérer les réponses IA en cache pour les parties inchangées
+    $cached = [];
+    $elementMap = ['model' => 'mcd', 'dictionary' => 'dico', 'dependencies' => 'dep'];
+    foreach ($elementMap as $key => $element) {
+        if (!$changed[$key]) {
+            $reponse = ReponseIA::where('tentative_id', $tentative->id)
+                ->where('element', $element)
+                ->latest()
+                ->first();
             if ($reponse) {
-                $changed[$key] = false;
-                $cached[$key]  = $reponse->reponseJson;
-            } else {
-                $changed[$key] = true;
+                $cached[$key] = $reponse->reponseJson;
             }
         }
-
-        return (new TentativeResource($tentative))->additional([
-            'changed' => $changed,
-            'cached'  => $cached,
-        ]);
     }
+
+    return (new TentativeResource($tentative))->additional([
+        'changed' => $changed,
+        'cached'  => $cached,
+    ]);
+}
 
     private function hashData(mixed $data): string {
         return hash('sha256', json_encode($this->normalizeForHash($data), JSON_UNESCAPED_UNICODE));

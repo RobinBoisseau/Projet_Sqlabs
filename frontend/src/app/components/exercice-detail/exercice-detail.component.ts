@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, AfterViewInit, HostListener, ViewChild, C
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AngularSplitModule } from 'angular-split';
 import { of, concat } from 'rxjs';
 import { switchMap, toArray } from 'rxjs/operators';
@@ -37,6 +38,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
   dependencies: DependenceLine[] = [];
   technicalNames: string[] = [];
 
+  safeStatement: SafeHtml = '';
   isLoaded: boolean = false;
   isTentativeDisabled: boolean = false;
   isSubmitting: boolean = false;
@@ -60,7 +62,8 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
     private dictionaryService: DictionaryService,
     private dependenceService: DependenceService,
     private mcdService: McdService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private sanitizer: DomSanitizer
   ) { }
 
   // --- 1. SAUVEGARDE AUTOMATIQUE (Navigation et Fermeture) ---
@@ -112,6 +115,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
     if (slug) {
       this.exerciceService.getExerciceBySlug(slug).subscribe((response: any) => {
         this.exercice = response.data || response;
+        this.safeStatement = this.sanitizer.bypassSecurityTrustHtml(this.exercice?.statement ?? '');
 
         if (this.exercice?.id) {
           this.exerciceService.getLastAttempt(this.exercice.id).subscribe((res: any) => {

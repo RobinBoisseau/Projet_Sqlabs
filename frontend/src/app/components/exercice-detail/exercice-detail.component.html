@@ -11,7 +11,7 @@
         <div class="col-side-content col-side-content--scrollable"
              [style.display]="isCollapsed.enonce ? 'none' : 'flex'">
           <h3 class="ex-title">{{ exercice.title }}</h3>
-          <div class="ex-statement" [innerHTML]="exercice.statement"></div>
+          <div class="ex-statement" [innerHTML]="safeStatement"></div>
         </div>
         <div class="col-side-tab col-side-tab--right" (click)="togglePanel('enonce')" role="button">
           <svg class="col-tab-arrow"
