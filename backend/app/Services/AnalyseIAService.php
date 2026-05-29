@@ -160,7 +160,7 @@ class AnalyseIAService
         }
 
         // MCD différent du corrigé → envoie à l'IA pour analyse
-        $prompt      = $this->prompts->userPrompt('mcd', $enonce, json_encode($mcd, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), json_encode($correction, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        $prompt      = $this->prompts->userPrompt('mcd', $enonce, json_encode($this->flattenMcd($mcd), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), json_encode($this->flattenMcd($correction), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         $data        = $ollama->generateJson($prompt, 500, $this->prompts->systemPrompt('mcd')); // ← APPEL IA
         $reponseJson = ['remarques' => $data['remarques'] ?? []];
         $this->saveReponse($tentativeId, 'mcd', $mcd, $reponseJson);
@@ -209,6 +209,37 @@ class AnalyseIAService
         $reponseJson = ['remarques' => $data['remarques'] ?? []];
         $this->saveReponse($tentativeId, 'dep', $dependencies, $reponseJson);
         return $reponseJson;
+    }
+
+    // ── Transforme le MCD pour l'IA : intègre les cardinalités directement dans chaque association ──
+
+    private function flattenMcd(array $mcd): array
+    {
+        $entityIdToName = array_column($mcd['Entities'] ?? [], 'name', 'id');
+
+        $entities = array_map(fn($e) => [
+            'id'     => $e['id'],
+            'name'   => $e['name'] ?? '',
+            'fields' => $e['fields'] ?? [],
+        ], $mcd['Entities'] ?? []);
+
+        $associations = [];
+        foreach ($mcd['Associations'] ?? [] as $assoc) {
+            $cardinalities = [];
+            foreach ($mcd['Links'] ?? [] as $link) {
+                if ((string)$link['assocId'] !== (string)$assoc['id']) continue;
+                $entityName = $entityIdToName[(string)$link['entityId']] ?? $link['entityId'];
+                $cardinalities[] = ['entity' => $entityName, 'cardinality' => $link['cardinality'] ?? ''];
+            }
+            $associations[] = [
+                'id'            => $assoc['id'],
+                'name'          => $assoc['name'] ?? '',
+                'fields'        => $assoc['fields'] ?? [],
+                'cardinalities' => $cardinalities,
+            ];
+        }
+
+        return ['Entities' => $entities, 'Associations' => $associations];
     }
 
     // ── Hash sémantiques : ignorent positions, IDs et ordre pour comparer uniquement le contenu ──
