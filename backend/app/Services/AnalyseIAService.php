@@ -104,12 +104,17 @@ class AnalyseIAService
     }
 
     // Récupère les 3 dernières réponses IA en cache pour une tentative (cas "tentative identique")
+    // Applique la même logique séquentielle : DF seulement si DD valide, MCD seulement si DF valide
     public function getAllLastResponses(Tentative $tentative): array
     {
+        $dico = $this->getCachedResponse($tentative->id, 'dico');
+        $dep  = $this->isFullyValid($dico) ? $this->getCachedResponse($tentative->id, 'dep') : null;
+        $mcd  = $this->isFullyValid($dep)  ? $this->getCachedResponse($tentative->id, 'mcd') : null;
+
         return [
-            'mcd'          => $this->getCachedResponse($tentative->id, 'mcd'),
-            'dictionary'   => $this->getCachedResponse($tentative->id, 'dico'),
-            'dependencies' => $this->getCachedResponse($tentative->id, 'dep'),
+            'mcd'          => $mcd,
+            'dictionary'   => $dico,
+            'dependencies' => $dep,
         ];
     }
 
