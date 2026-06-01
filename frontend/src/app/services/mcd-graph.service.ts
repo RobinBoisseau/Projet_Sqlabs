@@ -6,10 +6,10 @@ import { Transform } from '@antv/x6-plugin-transform';
 
 const ENTITY_PORTS = {
   groups: {
-    top:    { position: 'top',    attrs: { circle: { r: 4, magnet: 'passive', stroke: '#1890ff', style: { visibility: 'hidden' } } } },
-    bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: 'passive', stroke: '#1890ff', style: { visibility: 'hidden' } } } },
-    left:   { position: 'left',   attrs: { circle: { r: 4, magnet: 'passive', stroke: '#1890ff', style: { visibility: 'hidden' } } } },
-    right:  { position: 'right',  attrs: { circle: { r: 4, magnet: 'passive', stroke: '#1890ff', style: { visibility: 'hidden' } } } },
+    top:    { position: 'top',    attrs: { circle: { r: 4, magnet: true, stroke: '#1890ff', style: { visibility: 'hidden' } } } },
+    bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: true, stroke: '#1890ff', style: { visibility: 'hidden' } } } },
+    left:   { position: 'left',   attrs: { circle: { r: 4, magnet: true, stroke: '#1890ff', style: { visibility: 'hidden' } } } },
+    right:  { position: 'right',  attrs: { circle: { r: 4, magnet: true, stroke: '#1890ff', style: { visibility: 'hidden' } } } },
   },
   items: [{ group: 'top' }, { group: 'bottom' }, { group: 'left' }, { group: 'right' }],
 };
@@ -55,7 +55,8 @@ export class McdGraphService {
           const src = sourceView?.cell as any;
           const tgt = targetView?.cell as any;
           if (!src?.isNode?.() || !tgt?.isNode?.()) return false;
-          return src.shape === 'merise-assoc' && tgt.shape === 'merise-entity';
+          return (src.shape === 'merise-assoc' && tgt.shape === 'merise-entity') ||
+                 (src.shape === 'merise-entity' && tgt.shape === 'merise-assoc');
         },
         createEdge() {
           return this.createEdge({

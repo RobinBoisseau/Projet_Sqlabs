@@ -11,15 +11,16 @@
     <div class="ia-panel" *ngIf="hasInvalidItems('dictionary')">
       <div class="ia-panel-title">Dictionnaire des données</div>
       <div class="ia-list">
-        <label *ngFor="let r of getInvalidRemarques('dictionary')"
-               class="ia-item"
-               [class.ia-item--warn]="!getState('dictionary', getId(r, 'dictionary'))"
-               [class.ia-item--showing]="isShowing('dictionary', getId(r, 'dictionary'))"
-               [class.ia-item--ok]="isResolved('dictionary', getId(r, 'dictionary'))">
+        <div *ngFor="let r of getInvalidRemarques('dictionary')"
+             class="ia-item"
+             [class.ia-item--warn]="!getState('dictionary', getId(r, 'dictionary'))"
+             [class.ia-item--showing]="isShowing('dictionary', getId(r, 'dictionary'))"
+             [class.ia-item--ok]="isResolved('dictionary', getId(r, 'dictionary'))"
+             (click)="onCheckboxChange('dictionary', r)">
           <input type="checkbox" class="ia-checkbox"
                  [checked]="!!getState('dictionary', getId(r, 'dictionary'))"
                  [disabled]="isResolved('dictionary', getId(r, 'dictionary'))"
-                 (change)="onCheckboxChange('dictionary', r)">
+                 (click)="$event.stopPropagation(); onCheckboxChange('dictionary', r)">
           <div class="ia-content">
             <span class="ia-nom" *ngIf="r.champ">{{ r.champ }}</span>
             <span class="ia-msg">{{ r.message }}</span>
@@ -29,7 +30,7 @@
                 (click)="markResolved('dictionary', r, $event)">
             ✓ Traité
           </span>
-        </label>
+        </div>
       </div>
     </div>
 
@@ -37,15 +38,16 @@
     <div class="ia-panel" *ngIf="hasInvalidItems('dependencies')">
       <div class="ia-panel-title">Dépendances fonctionnelles</div>
       <div class="ia-list">
-        <label *ngFor="let r of getInvalidRemarques('dependencies')"
-               class="ia-item"
-               [class.ia-item--warn]="!getState('dependencies', getId(r, 'dependencies'))"
-               [class.ia-item--showing]="isShowing('dependencies', getId(r, 'dependencies'))"
-               [class.ia-item--ok]="isResolved('dependencies', getId(r, 'dependencies'))">
+        <div *ngFor="let r of getInvalidRemarques('dependencies')"
+             class="ia-item"
+             [class.ia-item--warn]="!getState('dependencies', getId(r, 'dependencies'))"
+             [class.ia-item--showing]="isShowing('dependencies', getId(r, 'dependencies'))"
+             [class.ia-item--ok]="isResolved('dependencies', getId(r, 'dependencies'))"
+             (click)="onCheckboxChange('dependencies', r)">
           <input type="checkbox" class="ia-checkbox"
                  [checked]="!!getState('dependencies', getId(r, 'dependencies'))"
                  [disabled]="isResolved('dependencies', getId(r, 'dependencies'))"
-                 (change)="onCheckboxChange('dependencies', r)">
+                 (click)="$event.stopPropagation(); onCheckboxChange('dependencies', r)">
           <div class="ia-content">
             <span class="ia-nom" *ngIf="r.source">{{ r.source }}</span>
             <span class="ia-msg">{{ r.message }}</span>
@@ -55,7 +57,7 @@
                 (click)="markResolved('dependencies', r, $event)">
             ✓ Traité
           </span>
-        </label>
+        </div>
       </div>
     </div>
 
@@ -63,15 +65,16 @@
     <div class="ia-panel" *ngIf="hasInvalidItems('mcd')">
       <div class="ia-panel-title">MCD</div>
       <div class="ia-list">
-        <label *ngFor="let r of getInvalidRemarques('mcd')"
-               class="ia-item"
-               [class.ia-item--warn]="!getState('mcd', getId(r, 'mcd'))"
-               [class.ia-item--showing]="isShowing('mcd', getId(r, 'mcd'))"
-               [class.ia-item--ok]="isResolved('mcd', getId(r, 'mcd'))">
+        <div *ngFor="let r of getInvalidRemarques('mcd')"
+             class="ia-item"
+             [class.ia-item--warn]="!getState('mcd', getId(r, 'mcd'))"
+             [class.ia-item--showing]="isShowing('mcd', getId(r, 'mcd'))"
+             [class.ia-item--ok]="isResolved('mcd', getId(r, 'mcd'))"
+             (click)="onCheckboxChange('mcd', r)">
           <input type="checkbox" class="ia-checkbox"
                  [checked]="!!getState('mcd', getId(r, 'mcd'))"
                  [disabled]="isResolved('mcd', getId(r, 'mcd'))"
-                 (change)="onCheckboxChange('mcd', r)">
+                 (click)="$event.stopPropagation(); onCheckboxChange('mcd', r)">
           <div class="ia-content">
             <span class="ia-nom" *ngIf="r.id">{{ r.id }}</span>
             <span class="ia-msg">{{ r.message }}</span>
@@ -81,7 +84,7 @@
                 (click)="markResolved('mcd', r, $event)">
             ✓ Traité
           </span>
-        </label>
+        </div>
       </div>
     </div>
 
