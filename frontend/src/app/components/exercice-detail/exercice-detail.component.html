@@ -37,7 +37,10 @@
               <div class="row-panel">
                 <div class="row-panel-content" [style.display]="isCollapsed.dictionnaireV ? 'none' : 'flex'">
                   <app-panel title="Dictionnaire des données">
-                    <app-dictionary-table [lines]="dictionary" (dictionaryChanged)="onDictionaryChanged($event)">
+                    <app-dictionary-table
+                      [lines]="dictionary"
+                      [iaRemarks]="dictionaryIaRemarks"
+                      (dictionaryChanged)="onDictionaryChanged($event)">
                     </app-dictionary-table>
                   </app-panel>
                 </div>
@@ -66,7 +69,10 @@
                 </div>
                 <div class="row-panel-content" [style.display]="isCollapsed.dependancesV ? 'none' : 'flex'">
                   <app-panel title="Dépendances fonctionnelles">
-                    <app-dependence-table [lines]="dependencies" [technicalNames]="technicalNames"
+                    <app-dependence-table
+                      [lines]="dependencies"
+                      [technicalNames]="technicalNames"
+                      [iaRemarks]="dependencyIaRemarks"
                       (dependenciesChanged)="onDependenciesChanged($event)">
                     </app-dependence-table>
                   </app-panel>
@@ -114,7 +120,11 @@
         </div>
         <div class="col-side-content col-side-content--fill"
              [style.display]="isCollapsed.modelisation ? 'none' : 'flex'">
-          <app-mcd-editor [slug]="exercice.slug" [mcd]="mcd" (saveRequested)="save()">
+          <app-mcd-editor
+            [slug]="exercice.slug"
+            [mcd]="mcd"
+            [iaRemarks]="mcdIaRemarks"
+            (saveRequested)="save()">
           </app-mcd-editor>
         </div>
       </div>
@@ -122,8 +132,18 @@
 
   </as-split>
 
-  <app-return-ia *ngIf="showIaResults && iaResults" [results]="iaResults!" (closed)="showIaResults = false">
+  <app-return-ia
+    *ngIf="showIaResults && iaResults"
+    [results]="iaResults!"
+    (closed)="showIaResults = false"
+    (itemChecked)="onIaItemChecked($event)">
   </app-return-ia>
+
+  <app-success-page
+    *ngIf="showSuccessPage"
+    [nextSlug]="nextSlug"
+    (closed)="showSuccessPage = false">
+  </app-success-page>
 
   <app-tentative-button [isDisabled]="isTentativeDisabled" (submitted)="onTentativeSubmitted()">
   </app-tentative-button>

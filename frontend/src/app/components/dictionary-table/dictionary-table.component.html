@@ -14,8 +14,11 @@
           <td>
             <input type="text" [(ngModel)]="line.name" (ngModelChange)="emitChanges()" placeholder="ex: Customer Name">
           </td>
-          <td>
+          <td class="td-technical">
             <input type="text" [(ngModel)]="line.TechnicalName" (blur)="emitChanges()" placeholder="ex: customer_name">
+            <span *ngIf="line.TechnicalName && iaRemarks.get(line.TechnicalName)"
+                  class="ia-tooltip-trigger"
+                  [attr.data-tooltip]="iaRemarks.get(line.TechnicalName)">?</span>
           </td>
           <td>
             <select [(ngModel)]="line.Type" (ngModelChange)="emitChanges()">

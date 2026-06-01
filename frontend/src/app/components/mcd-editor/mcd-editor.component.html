@@ -10,6 +10,15 @@
 
   <div #container class="x6-graph-container"></div>
 
+  <!-- Badges IA positionnés sur les nodes concernés -->
+  <div class="ia-badge-overlay" *ngIf="badges.length">
+    <span *ngFor="let b of badges"
+          class="ia-badge"
+          [style.left.px]="b.x"
+          [style.top.px]="b.y"
+          [attr.data-tooltip]="b.tooltip">?</span>
+  </div>
+
   <app-mcd-picker-modal
     [isVisible]="showPicker"
     [availableNames]="pickerAvailableNames"

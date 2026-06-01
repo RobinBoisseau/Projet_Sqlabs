@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface IaRemarqueMcd {
-  entite: string;
+  id: string;
   statut: 'valide' | 'invalide';
   message: string;
 }
@@ -25,6 +25,13 @@ export interface IaResults {
   dependencies: { remarques: IaRemarqueDependency[] }   | null;
 }
 
+export interface IaItemCheckedEvent {
+  section: 'mcd' | 'dictionary' | 'dependencies';
+  id: string;
+  message: string;
+  action: 'add' | 'remove';
+}
+
 @Component({
   selector: 'app-return-ia',
   standalone: true,
@@ -35,4 +42,63 @@ export interface IaResults {
 export class ReturnIaComponent {
   @Input() results!: IaResults;
   @Output() closed = new EventEmitter<void>();
+  @Output() itemChecked = new EventEmitter<IaItemCheckedEvent>();
+
+  // État par item : 'showing' = ? affiché dans la table, 'resolved' = vert permanent
+  itemStates = new Map<string, 'showing' | 'resolved'>();
+
+  hasInvalidItems(section: 'mcd' | 'dictionary' | 'dependencies'): boolean {
+    return this.results?.[section]?.remarques.some(r => r.statut === 'invalide') ?? false;
+  }
+
+  getInvalidRemarques(section: 'mcd' | 'dictionary' | 'dependencies'): any[] {
+    return this.results?.[section]?.remarques.filter(r => r.statut === 'invalide') ?? [];
+  }
+
+  getId(r: any, section: string): string {
+    if (section === 'mcd') return r.id ?? r.entite ?? '';
+    if (section === 'dictionary') return r.champ ?? '';
+    return r.source ?? '';
+  }
+
+  getState(section: string, id: string): 'showing' | 'resolved' | undefined {
+    return this.itemStates.get(`${section}:${id}`);
+  }
+
+  isShowing(section: string, id: string): boolean {
+    return this.itemStates.get(`${section}:${id}`) === 'showing';
+  }
+
+  isResolved(section: string, id: string): boolean {
+    return this.itemStates.get(`${section}:${id}`) === 'resolved';
+  }
+
+  // Cliquer sur la checkbox ou le texte : bascule entre orange ↔ showing
+  onCheckboxChange(section: 'mcd' | 'dictionary' | 'dependencies', r: any): void {
+    const id = this.getId(r, section);
+    const key = `${section}:${id}`;
+    const state = this.itemStates.get(key);
+
+    if (state === 'resolved') return; // immuable
+
+    if (!state) {
+      // Orange → showing : affiche le ? dans la table
+      this.itemStates = new Map(this.itemStates).set(key, 'showing');
+      this.itemChecked.emit({ section, id, message: r.message, action: 'add' });
+    } else {
+      // Showing → orange : retire le ? de la table
+      const next = new Map(this.itemStates);
+      next.delete(key);
+      this.itemStates = next;
+      this.itemChecked.emit({ section, id, message: r.message, action: 'remove' });
+    }
+  }
+
+  // Bouton "Traité" : passe en vert permanent, ? reste dans la table
+  markResolved(section: 'mcd' | 'dictionary' | 'dependencies', r: any, event: MouseEvent): void {
+    event.preventDefault(); // empêche le label d'activer la checkbox
+    const id = this.getId(r, section);
+    const key = `${section}:${id}`;
+    this.itemStates = new Map(this.itemStates).set(key, 'resolved');
+  }
 }

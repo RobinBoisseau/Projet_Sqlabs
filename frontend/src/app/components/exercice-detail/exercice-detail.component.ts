@@ -19,12 +19,13 @@ import { DependenceTableComponent } from '../dependence-table/dependence-table.c
 import { McdEditorComponent } from '../mcd-editor/mcd-editor.component';
 import { TentativeButtonComponent } from '../tentative-button/tentative-button.component';
 import { DependenceService } from '../../services/dependence.service';
-import { ReturnIaComponent, IaResults } from '../return-ia/return-ia.component';
+import { ReturnIaComponent, IaResults, IaItemCheckedEvent } from '../return-ia/return-ia.component';
+import { SuccessPageComponent } from '../success-page/success-page.component';
 
 @Component({
   selector: 'app-exercice-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, AngularSplitModule, PanelComponent, DictionaryTableComponent, DependenceTableComponent, McdEditorComponent, TentativeButtonComponent, ReturnIaComponent],
+  imports: [CommonModule, FormsModule, AngularSplitModule, PanelComponent, DictionaryTableComponent, DependenceTableComponent, McdEditorComponent, TentativeButtonComponent, ReturnIaComponent, SuccessPageComponent],
   templateUrl: './exercice-detail.component.html',
   styleUrls: ['./exercice-detail.component.css']
 })
@@ -42,7 +43,20 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
   isSubmitting: boolean = false;
   iaResults: IaResults | null = null;
   showIaResults = false;
+  showSuccessPage = false;
+  nextSlug: string | null = null;
   hasChangedSinceSubmit = true;
+
+  dictionaryIaRemarks = new Map<string, string>();
+  dependencyIaRemarks = new Map<string, string>();
+  mcdIaRemarks = new Map<string, string>();
+
+  get iaAllValid(): boolean {
+    if (!this.iaResults) return false;
+    const ok = (s: { remarques: { statut: string }[] } | null) =>
+      !s || s.remarques.every(r => r.statut === 'valide');
+    return ok(this.iaResults.mcd) && ok(this.iaResults.dictionary) && ok(this.iaResults.dependencies);
+  }
   private currentTentativeId: number | null = null;
 
   sizes = { enonce: 25, dictionnaire: 30, modelisation: 45 };
@@ -116,6 +130,12 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
         this.safeStatement = this.sanitizer.bypassSecurityTrustHtml(this.exercice?.statement ?? '');
 
         if (this.exercice?.id) {
+          // Charger tous les exercices pour calculer le suivant
+          this.exerciceService.getExercices().subscribe(all => {
+            const idx = all.findIndex(e => e.slug === this.exercice!.slug);
+            this.nextSlug = idx >= 0 && idx < all.length - 1 ? all[idx + 1].slug : null;
+          });
+
           this.exerciceService.getLastAttempt(this.exercice.id).subscribe((res: any) => {
             if (res && res.data) {
               const attempt = res.data;
@@ -268,7 +288,13 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
           dictionary:   ia?.dictionary   ?? null,
           dependencies: ia?.dependencies ?? null,
         };
-        this.showIaResults = true;
+        if (this.iaAllValid) {
+          this.showSuccessPage = true;
+          this.showIaResults = false;
+        } else {
+          this.showIaResults = true;
+          this.showSuccessPage = false;
+        }
         this.isSubmitting = false;
         this.isTentativeDisabled = true;
         this.cdr.detectChanges();
@@ -278,6 +304,19 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
         this.isTentativeDisabled = true;
       }
     })
+  }
+
+  onIaItemChecked(event: IaItemCheckedEvent): void {
+    const apply = (map: Map<string, string>): Map<string, string> => {
+      const m = new Map(map);
+      if (event.action === 'add') m.set(event.id, event.message);
+      else m.delete(event.id);
+      return m;
+    };
+    if (event.section === 'dictionary')    this.dictionaryIaRemarks  = apply(this.dictionaryIaRemarks);
+    else if (event.section === 'dependencies') this.dependencyIaRemarks = apply(this.dependencyIaRemarks);
+    else if (event.section === 'mcd')      this.mcdIaRemarks         = apply(this.mcdIaRemarks);
+    this.cdr.detectChanges();
   }
 
   // --- SAUVEGARDE LA TENTATIVE ---

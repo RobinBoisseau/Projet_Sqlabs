@@ -51,6 +51,11 @@ class OllamaService
             ->timeout(60)
             ->post('https://api.mistral.ai/v1/chat/completions', $payload);
 
+        \Log::debug('Mistral raw response', [
+            'status'  => $response->status(),
+            'body'    => $response->body(),
+        ]);
+
         $result = json_decode($response->json('choices.0.message.content') ?? '{}', true);
 
         return $result;

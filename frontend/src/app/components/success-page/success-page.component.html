@@ -1,0 +1,24 @@
+<div class="sp-backdrop" (click)="closed.emit()">
+  <div class="sp-card" (click)="$event.stopPropagation()">
+
+    <button class="sp-close" (click)="closed.emit()" aria-label="Fermer">✕</button>
+
+    <div class="sp-icon">🎉</div>
+
+    <h2 class="sp-title">Exercice réussi !</h2>
+    <p class="sp-subtitle">L'IA a validé toutes tes réponses. Bravo !</p>
+
+    <div class="sp-actions">
+      <button class="sp-btn sp-btn--secondary" (click)="goToList()">
+        ← Retour à la liste
+      </button>
+      <button class="sp-btn sp-btn--primary"
+              (click)="goToNext()"
+              [disabled]="!nextSlug"
+              [title]="!nextSlug ? 'Dernier exercice disponible' : ''">
+        Exercice suivant →
+      </button>
+    </div>
+
+  </div>
+</div>

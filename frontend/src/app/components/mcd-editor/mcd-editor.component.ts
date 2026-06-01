@@ -1,4 +1,4 @@
-import { Component, OnInit, OnChanges, AfterViewInit, OnDestroy, Input, Output, ViewChild, EventEmitter, ElementRef, HostListener, SimpleChanges } from '@angular/core';
+import { Component, OnInit, OnChanges, AfterViewInit, OnDestroy, Input, Output, ViewChild, EventEmitter, ElementRef, HostListener, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Node, Edge } from '@antv/x6';
 import { Subscription } from 'rxjs';
@@ -37,6 +37,15 @@ export class McdEditorComponent implements OnInit, OnChanges, AfterViewInit, OnD
   @Input() mcd: Mcd | undefined;
   @Output() saveRequested = new EventEmitter<void>();
 
+  private _iaRemarks: Map<string, string> = new Map();
+  @Input() set iaRemarks(value: Map<string, string>) {
+    this._iaRemarks = value ?? new Map();
+    this.updateBadges();
+  }
+  get iaRemarks(): Map<string, string> { return this._iaRemarks; }
+
+  badges: { x: number; y: number; tooltip: string }[] = [];
+
 
   // State variables kept here so services can read/write them via callbacks
   connecting = false;
@@ -62,7 +71,37 @@ export class McdEditorComponent implements OnInit, OnChanges, AfterViewInit, OnD
     private graphService: McdGraphService,
     private nodeService: McdNodeService,
     private eventsService: McdEventsService,
+    private cdr: ChangeDetectorRef,
   ) { }
+
+  updateBadges(): void {
+    const graph = this.graph;
+    if (!graph || !this._iaRemarks.size) {
+      this.badges = [];
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // Indexer les nodes par leur data.id (id entité/asso) ≠ id X6 interne
+    const nodeByDataId = new Map<string, import('@antv/x6').Node>();
+    graph.getNodes().forEach(n => {
+      const dataId = n.getData()?.id;
+      if (dataId) nodeByDataId.set(dataId, n);
+    });
+
+    const newBadges: { x: number; y: number; tooltip: string }[] = [];
+    for (const [entityId, tooltip] of this._iaRemarks) {
+      const node = nodeByDataId.get(entityId);
+      if (!node) continue;
+      const pos = node.getPosition();
+      const size = node.getSize();
+      // Coin supérieur droit converti en pixels container
+      const local = graph.graphToLocal(pos.x + size.width, pos.y);
+      newBadges.push({ x: local.x - 9, y: local.y - 9, tooltip });
+    }
+    this.badges = newBadges;
+    this.cdr.detectChanges();
+  }
 
   get graph() { return this.graphService.graph; }
 
@@ -160,6 +199,10 @@ export class McdEditorComponent implements OnInit, OnChanges, AfterViewInit, OnD
 
       this.eventsService.bindGraphEvents(graph, callbacks);
       if (this.mcd) this.drawMcd();
+
+      // Repositionner les badges IA lors d'un pan ou zoom
+      graph.on('translate', () => this.updateBadges());
+      graph.on('scale', () => this.updateBadges());
     }, 100);
   }
 
