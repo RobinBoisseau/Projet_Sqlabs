@@ -506,7 +506,7 @@ export class McdEventsService {
         {
           name: 'button',
           args: {
-            distance: '50%',
+            distance: '52%',
             offset: -16,
             markup: [
               { tagName: 'circle', selector: 'button', attrs: { stroke: '#2ecc71', 'stroke-width': 2, r: 8, fill: '#fff', cursor: 'pointer' } },
@@ -522,15 +522,25 @@ export class McdEventsService {
               const link = edge.getData<Link>();
               if (!link) return;
 
-              // Centre du lien en coordonnées écran
-              const bbox = edge.getBBox();
-              const containerRect = graph.container.getBoundingClientRect();
-              const localCenter = graph.graphToLocal(
-                bbox.x + bbox.width  / 2,
-                bbox.y + bbox.height / 2,
-              );
-              const clientX = containerRect.left + localCenter.x;
-              const clientY = containerRect.top  + localCenter.y;
+              // Position du label de cardinalité dans le DOM
+              let clientX: number;
+              let clientY: number;
+              const view = graph.findViewByCell(edge);
+              const labelEl = view?.container?.querySelector('.x6-edge-label');
+              if (labelEl) {
+                const rect = (labelEl as HTMLElement).getBoundingClientRect();
+                clientX = rect.left + rect.width  / 2;
+                clientY = rect.top  + rect.height / 2;
+              } else {
+                const bbox = edge.getBBox();
+                const containerRect = graph.container.getBoundingClientRect();
+                const localCenter = graph.graphToLocal(
+                  bbox.x + bbox.width  / 2,
+                  bbox.y + bbox.height / 2,
+                );
+                clientX = containerRect.left + localCenter.x;
+                clientY = containerRect.top  + localCenter.y;
+              }
 
               const CARD_REGEX = /^[0-9],[0-9Nn]$/;
               this.openInlineInput({

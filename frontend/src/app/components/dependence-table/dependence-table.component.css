@@ -89,7 +89,8 @@
 .ia-tooltip-trigger:hover::after {
   content: attr(data-tooltip);
   position: absolute;
-  bottom: 125%;
+  top: 125%;
+  bottom: auto;
   left: 50%;
   transform: translateX(-50%);
   background: #333;
@@ -98,9 +99,16 @@
   border-radius: 6px;
   font-size: 12px;
   white-space: normal;
-  max-width: 300px;
+  min-width: 260px;
+  max-width: 420px;
   z-index: 1000;
   pointer-events: none;
+}
+
+/* Fond rouge pastel quand le panel parent signale une erreur IA */
+:host-context(.has-ia-error) .dep-container {
+  background: #ffd6d6;
+  border-color: #e03131;
 }
 
 /* --- DROPDOWN (ACTIONS) --- */

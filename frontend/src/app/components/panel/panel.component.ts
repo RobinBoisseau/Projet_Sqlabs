@@ -15,5 +15,7 @@ export class PanelComponent {
   @Input() collapsible: boolean = false;
   @Input() collapsed: boolean = false;
   @Input() collapseDirection: 'left' | 'right' | 'up' | 'down' = 'left';
+  @Input() hasIaError = false;
+  @Input() globalIaQuestion: string = '';
   @Output() toggleCollapse = new EventEmitter<void>();
 }

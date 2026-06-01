@@ -10,9 +10,11 @@ use App\Http\Controllers\TentativeController;
 use App\Http\Controllers\FichierController;
 use App\Http\Controllers\CoursController;
 
-// Routes publiques
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login',    [AuthController::class, 'login']);
+// Routes publiques (anti brute-force : 10 requêtes/minute)
+Route::middleware('throttle:10,1')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login',    [AuthController::class, 'login']);
+});
 
 // Token de dev local uniquement
 if (app()->environment('local')) {
@@ -22,8 +24,8 @@ if (app()->environment('local')) {
     });
 }
 
-// Routes protégées
-Route::middleware('auth:sanctum')->group(function () {
+// Routes protégées (60 requêtes/minute)
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me',      [AuthController::class, 'me']);
     Route::put('/profile', [ProfileController::class, 'update']);

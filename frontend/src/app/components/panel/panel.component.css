@@ -46,6 +46,51 @@
   min-height: 0;
 }
 
+/* --- Erreur IA --- */
+
+.panel-container.has-ia-error {
+  background: #ffd6d6;
+  border-left: 3px solid #e03131;
+  transition: background 0.3s ease;
+}
+
+.ia-global-tooltip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f08c00;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: help;
+  margin-left: 8px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.ia-global-tooltip:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 125%;
+  bottom: auto;
+  right: 0;
+  left: auto;
+  transform: none;
+  background: #333;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: normal;
+  min-width: 200px;
+  max-width: 280px;
+  z-index: 1000;
+  pointer-events: none;
+}
+
 /* --- État collapsed --- */
 
 .panel-collapsed {

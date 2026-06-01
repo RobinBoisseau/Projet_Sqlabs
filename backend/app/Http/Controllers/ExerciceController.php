@@ -27,10 +27,10 @@ class ExerciceController extends Controller
     public function store(Request $request)
 {
     $validated = $request->validate([
-        'titre'    => 'required|string|max:100',
-        'enonce'   => 'required|string|max:1000',
-        'type'     => 'required|in:SQL,BPMN',
-        'etat'     => 'sometimes|string|max:10',
+        'titre'        => 'required|string|max:100',
+        'enonce'       => 'required|string',
+        'type'         => 'required|in:SQL,BPMN',
+        'etat'         => 'sometimes|string|in:Fini,Non fini',
         'dictionary'   => 'nullable|array',
         'dependencies' => 'nullable|array',
         'model'        => 'nullable|array',
@@ -45,11 +45,11 @@ class ExerciceController extends Controller
     }
 
     $exercice = Exercice::create([
-        'titre'  => $validated['titre'],
-        'slug'   => $slug,
-        'enonce' => $validated['enonce'],
-        'type'   => $validated['type'],
-        'etat'   => $validated['etat'] ?? 'Non fini',
+        'titre'   => $validated['titre'],
+        'slug'    => $slug,
+        'enonce'  => $this->purifyHtml($validated['enonce']),
+        'type'    => $validated['type'],
+        'etat'    => $validated['etat'] ?? 'Non fini',
         'user_id' => auth()->id(),
     ]);
 
@@ -104,20 +104,31 @@ class ExerciceController extends Controller
     public function updateWithCorrection(Request $request, $slug)
     {
         $exercice = Exercice::where('slug', $slug)->firstOrFail();
+
+        $validated = $request->validate([
+            'titre'        => 'sometimes|string|max:100',
+            'enonce'       => 'sometimes|string',
+            'type'         => 'sometimes|in:SQL,BPMN',
+            'etat'         => 'sometimes|string|in:Fini,Non fini',
+            'dictionary'   => 'nullable|array',
+            'dependencies' => 'nullable|array',
+            'model'        => 'nullable|array',
+        ]);
+
         $exercice->update([
-            'titre'  => $request->titre,
-            'enonce' => $request->enonce,
-            'type'   => $request->type,
-            'etat'   => $request->etat ?? $exercice->etat,
+            'titre'  => $validated['titre']  ?? $exercice->titre,
+            'enonce' => isset($validated['enonce']) ? $this->purifyHtml($validated['enonce']) : $exercice->enonce,
+            'type'   => $validated['type']   ?? $exercice->type,
+            'etat'   => $validated['etat']   ?? $exercice->etat,
         ]);
 
         Tentative::updateOrCreate(
             ['exercice_id' => $exercice->id, 'is_correction' => true],
             [
                 'user_id'            => auth()->id(),
-                'dictionnaire'       => $request->dictionary ?? [],
-                'dependance'         => $request->dependencies ?? [],
-                'modele'             => $request->model ?? [],
+                'dictionnaire'       => $validated['dictionary'] ?? [],
+                'dependance'         => $validated['dependencies'] ?? [],
+                'modele'             => $validated['model'] ?? [],
                 'dateHeureTentative' => now(),
             ]
         );
@@ -132,7 +143,17 @@ class ExerciceController extends Controller
         if (!$exercice) {
             return response()->json(['message' => 'Exercice non trouvé'], 404);
         }
-        $exercice->update($request->all());
+        $validated = $request->validate([
+            'titre'      => 'sometimes|string|max:100',
+            'enonce'     => 'sometimes|string',
+            'type'       => 'sometimes|in:SQL,BPMN',
+            'etat'       => 'sometimes|string|in:Fini,Non fini',
+            'visibility' => 'sometimes|boolean',
+        ]);
+        if (isset($validated['enonce'])) {
+            $validated['enonce'] = $this->purifyHtml($validated['enonce']);
+        }
+        $exercice->update($validated);
         return new ExerciceResource($exercice);
     }
 
@@ -157,5 +178,12 @@ class ExerciceController extends Controller
 
         return new ExerciceResource($exercice);
     }
-    
+
+    private function purifyHtml(string $html): string
+    {
+        $allowed = '<p><br><strong><em><u><s><ol><ul><li><h1><h2><h3><span><a><blockquote><pre><code>';
+        $clean = strip_tags($html, $allowed);
+        $clean = preg_replace('/\s+on\w+\s*=\s*("[^"]*"|\'[^\']*\')/i', '', $clean);
+        return preg_replace('/\s+href\s*=\s*"javascript:[^"]*"/i', ' href="#"', $clean);
+    }
 }

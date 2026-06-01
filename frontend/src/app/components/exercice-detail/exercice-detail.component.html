@@ -36,7 +36,10 @@
             <as-split-area [size]="sizesVertical.dictionnaire" [minSize]="0" [maxSize]="100">
               <div class="row-panel">
                 <div class="row-panel-content" [style.display]="isCollapsed.dictionnaireV ? 'none' : 'flex'">
-                  <app-panel title="Dictionnaire des données">
+                  <app-panel
+                    title="Dictionnaire des données"
+                    [hasIaError]="dictionaryHasError"
+                    [globalIaQuestion]="dictionaryGlobalQuestion">
                     <app-dictionary-table
                       [lines]="dictionary"
                       [iaRemarks]="dictionaryIaRemarks"
@@ -68,7 +71,10 @@
                   </svg>
                 </div>
                 <div class="row-panel-content" [style.display]="isCollapsed.dependancesV ? 'none' : 'flex'">
-                  <app-panel title="Dépendances fonctionnelles">
+                  <app-panel
+                    title="Dépendances fonctionnelles"
+                    [hasIaError]="dependenciesHasError"
+                    [globalIaQuestion]="dependenciesGlobalQuestion">
                     <app-dependence-table
                       [lines]="dependencies"
                       [technicalNames]="technicalNames"
@@ -120,12 +126,17 @@
         </div>
         <div class="col-side-content col-side-content--fill"
              [style.display]="isCollapsed.modelisation ? 'none' : 'flex'">
-          <app-mcd-editor
-            [slug]="exercice.slug"
-            [mcd]="mcd"
-            [iaRemarks]="mcdIaRemarks"
-            (saveRequested)="save()">
-          </app-mcd-editor>
+          <app-panel
+            title="Zone de modélisation"
+            [hasIaError]="mcdHasError"
+            [globalIaQuestion]="mcdGlobalQuestion">
+            <app-mcd-editor
+              [slug]="exercice.slug"
+              [mcd]="mcd"
+              [iaRemarks]="mcdIaRemarks"
+              (saveRequested)="save()">
+            </app-mcd-editor>
+          </app-panel>
         </div>
       </div>
     </as-split-area>

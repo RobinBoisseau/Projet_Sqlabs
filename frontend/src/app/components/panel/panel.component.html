@@ -1,8 +1,14 @@
-<div class="panel-container" [class.panel-collapsed]="collapsed">
+<div class="panel-container" [class.panel-collapsed]="collapsed" [class.has-ia-error]="hasIaError">
 
   <!-- Header normal (caché quand collapsed) -->
   <div class="panel-header" [style.display]="collapsed ? 'none' : 'flex'">
     <span class="panel-title">{{ title }}</span>
+    <span
+      *ngIf="globalIaQuestion"
+      class="ia-global-tooltip"
+      [attr.data-tooltip]="globalIaQuestion">
+      ?
+    </span>
     <app-collapse-panel-button
       *ngIf="collapsible"
       [direction]="collapseDirection"

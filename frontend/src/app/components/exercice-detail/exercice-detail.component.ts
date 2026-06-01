@@ -51,6 +51,29 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
   dependencyIaRemarks = new Map<string, string>();
   mcdIaRemarks = new Map<string, string>();
 
+  get dictionaryHasError(): boolean {
+    return this.iaResults?.dictionary?.remarques
+      ?.some(r => r.statut === 'invalide') ?? false;
+  }
+  get dependenciesHasError(): boolean {
+    return this.iaResults?.dependencies?.remarques
+      ?.some(r => r.statut === 'invalide') ?? false;
+  }
+  get mcdHasError(): boolean {
+    return this.iaResults?.mcd?.remarques
+      ?.some(r => r.statut === 'invalide') ?? false;
+  }
+
+  get dictionaryGlobalQuestion(): string {
+    return this.dictionaryIaRemarks.get('') ?? '';
+  }
+  get dependenciesGlobalQuestion(): string {
+    return this.dependencyIaRemarks.get('') ?? '';
+  }
+  get mcdGlobalQuestion(): string {
+    return this.mcdIaRemarks.get('') ?? '';
+  }
+
   get iaAllValid(): boolean {
     if (!this.iaResults) return false;
     const ok = (s: { remarques: { statut: string }[] } | null) =>
@@ -127,6 +150,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
     if (slug) {
       this.exerciceService.getExerciceBySlug(slug).subscribe((response: any) => {
         this.exercice = response.data || response;
+        // Safe: l'énoncé est rédigé par l'admin via Quill et sanitizé par purifyHtml() côté Laravel avant stockage
         this.safeStatement = this.sanitizer.bypassSecurityTrustHtml(this.exercice?.statement ?? '');
 
         if (this.exercice?.id) {

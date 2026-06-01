@@ -18,7 +18,13 @@ class FichierController extends Controller
 // POST /api/fichiers
    public function store(Request $request)
    {
-       $fichier = Fichier::create($request->all());
+       $validated = $request->validate([
+           'exercice_id' => 'required|exists:exercices,id',
+           'type'        => 'required|string|max:50',
+           'nom'         => 'required|string|max:255',
+           'contenu'     => 'required|string',
+       ]);
+       $fichier = Fichier::create($validated);
        return new FichierResource($fichier);
    }
 
@@ -41,7 +47,12 @@ class FichierController extends Controller
        if (!$fichier) {
            return response()->json(['message' => 'Fichier non trouvé'], 404);
        }
-       $fichier->update($request->all());
+       $validated = $request->validate([
+           'type'    => 'sometimes|string|max:50',
+           'nom'     => 'sometimes|string|max:255',
+           'contenu' => 'sometimes|string',
+       ]);
+       $fichier->update($validated);
        return new FichierResource($fichier);
    }
 
