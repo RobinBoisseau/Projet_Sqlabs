@@ -25,6 +25,7 @@ export class DependenceTableComponent implements OnInit {
   get lines(): DependenceLine[] { return this._lines; }
 
   @Input() technicalNames: string[] = [];
+  @Input() iaRemarks: Map<string, string> = new Map();
 
   @Output() dependenciesChanged = new EventEmitter<DependenceLine[]>();
 
@@ -146,5 +147,9 @@ removeAttribute(list: string[], index: number) {
     return this.technicalNames.filter(nom =>
       nom.toLowerCase().includes(search.toLowerCase())
     );
+  }
+
+  getIaRemark(ligne: DependenceLine): string | undefined {
+    return this.iaRemarks.get(ligne.source.join(','));
   }
 }

@@ -15,6 +15,7 @@ import { InfoTooltipComponent } from '../info-tooltip/info-tooltip.component';
 export class DictionaryTableComponent implements OnChanges {
 
   @Input() lines: Field[] = [];
+  @Input() iaRemarks: Map<string, string> = new Map();
   @Output() technicalNamesChanged = new EventEmitter<string[]>();
   @Output() dictionaryChanged = new EventEmitter<Field[]>();
 

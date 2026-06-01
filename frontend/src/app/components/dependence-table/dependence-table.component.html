@@ -16,8 +16,13 @@
         placeholder="Ajouter source..." (selectionChanged)="majDep(i, 'source', $event)">
       </app-choix-champ>
 
-      <!-- FLÈCHE -->
-      <div class="arrow-icon">➔</div>
+      <!-- FLÈCHE + badge IA -->
+      <div class="arrow-col">
+        <div class="arrow-icon">➔</div>
+        <span *ngIf="getIaRemark(ligne)"
+              class="ia-tooltip-trigger"
+              [attr.data-tooltip]="getIaRemark(ligne)">?</span>
+      </div>
 
       <!-- ZONE CIBLES -->
       <app-choix-champ [champsSelectionnes]="ligne.cible" [champsDisponibles]="technicalNames"

@@ -55,12 +55,52 @@
   overflow: visible; /* CRUCIAL pour le dropdown */
 }
 
+.arrow-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 40px;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
 .arrow-icon {
   color: #94a3b8;
   font-size: 18px;
-  width: 40px;
   text-align: center;
-  flex-shrink: 0;
+}
+
+/* --- Tooltip IA --- */
+.ia-tooltip-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f08c00;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: help;
+  position: relative;
+}
+
+.ia-tooltip-trigger:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: normal;
+  max-width: 300px;
+  z-index: 1000;
+  pointer-events: none;
 }
 
 /* --- DROPDOWN (ACTIONS) --- */
