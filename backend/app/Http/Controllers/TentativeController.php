@@ -21,7 +21,25 @@ class TentativeController extends Controller
 
         // Tentative identique à la dernière → on renvoie les réponses en cache sans rien stocker
         if ($this->isSameTentative($last, $hashes)) {
-            return $this->returnLastResponses($last, $analyseService, $request);
+            $cached = $analyseService->getAllLastResponses($last);
+            // Si au moins une réponse IA existe en cache, on la renvoie
+            if ($cached['mcd'] !== null || $cached['dictionary'] !== null || $cached['dependencies'] !== null) {
+                return $this->returnLastResponses($last, $analyseService, $request);
+            }
+            // Aucune réponse IA en cache (l'IA avait échoué) → on relance l'analyse sur la tentative existante
+            $iaResults = $analyseService->analyseAll(
+                $last,
+                null,
+                $request->model        ?? [],
+                $request->dictionary   ?? [],
+                $request->dependencies ?? [],
+                $hashes,
+                $ollama
+            );
+            return response()->json([
+                'data' => (new TentativeResource($last))->toArray($request),
+                'ia'   => $iaResults,
+            ]);
         }
 
         // Nouvelle tentative → on la stocke

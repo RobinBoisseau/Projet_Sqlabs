@@ -20,10 +20,20 @@ class AnalyseIAService
         array $hashes,       // hash DD, DF, MCD de la tentative courante
         OllamaService $ollama
     ): array {
-        // Analyse indépendante de chaque composant (cache ou appel IA)
-        $resMcd  = $this->analyseComponent('mcd',  $mcd,          $current->id, $last, $hashes['mcd'],  'hash_mcd',  $ollama);
-        $resDico = $this->analyseComponent('dico', $dictionary,   $current->id, $last, $hashes['dico'], 'hash_dico', $ollama);
-        $resDep  = $this->analyseComponent('dep',  $dependencies, $current->id, $last, $hashes['dep'],  'hash_dep',  $ollama);
+        // 1. DD — toujours analysé en premier
+        $resDico = $this->analyseComponent('dico', $dictionary, $current->id, $last, $hashes['dico'], 'hash_dico', $ollama);
+
+        // 2. DF — analysé uniquement si le DD est entièrement valide
+        $resDep = null;
+        if ($this->isFullyValid($resDico)) {
+            $resDep = $this->analyseComponent('dep', $dependencies, $current->id, $last, $hashes['dep'], 'hash_dep', $ollama);
+        }
+
+        // 3. MCD — analysé uniquement si les DF sont entièrement valides
+        $resMcd = null;
+        if ($this->isFullyValid($resDep)) {
+            $resMcd = $this->analyseComponent('mcd', $mcd, $current->id, $last, $hashes['mcd'], 'hash_mcd', $ollama);
+        }
 
         return [
             'mcd'          => $resMcd,
