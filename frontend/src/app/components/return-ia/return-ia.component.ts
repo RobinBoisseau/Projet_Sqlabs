@@ -94,11 +94,14 @@ export class ReturnIaComponent {
     }
   }
 
-  // Bouton "Traité" : passe en vert permanent, ? reste dans la table
+  // Bouton "Traité" : passe en vert permanent et retire le ? du panel
   markResolved(section: 'mcd' | 'dictionary' | 'dependencies', r: any, event: MouseEvent): void {
     event.stopPropagation(); // empêche le click de remonter sur le div parent (onCheckboxChange)
     const id = this.getId(r, section);
     const key = `${section}:${id}`;
+    if (this.itemStates.get(key) === 'showing') {
+      this.itemChecked.emit({ section, id, message: r.message, action: 'remove' });
+    }
     this.itemStates = new Map(this.itemStates).set(key, 'resolved');
   }
 }
