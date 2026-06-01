@@ -1,0 +1,251 @@
+{
+  "info": {
+    "_postman_id": "53ffa87b-b4bf-4925-96cf-c7c005ce2828",
+    "name": "SqlLabs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "9835907"
+  },
+  "item": [
+    {
+      "name": "Authenticator",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Parse JSON response\r",
+                  "const response = pm.response.json();\r",
+                  "\r",
+                  "// 1. Vérifier le status HTTP\r",
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "// 2. Vérifier que le schema de la Response est valide\r",
+                  "const schema = {\r",
+                  "    type: \"object\",\r",
+                  "    required: [\"user\", \"token\"],\r",
+                  "    properties: {\r",
+                  "        user: {\r",
+                  "            type: \"object\",\r",
+                  "            required: [\"id\", \"name\", \"email\", \"role\"],\r",
+                  "            properties: {\r",
+                  "                id: { type: \"number\" },\r",
+                  "                name: { type: \"string\" },\r",
+                  "                email: { type: \"string\" },\r",
+                  "                role: { type: \"string\" }\r",
+                  "            }\r",
+                  "        },\r",
+                  "        token: { type: \"string\" }\r",
+                  "    }\r",
+                  "};\r",
+                  "\r",
+                  "pm.test(\"Response schema is valid\", function () {\r",
+                  "    pm.response.to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  "\r",
+                  "// 5. Sauvegarder le token\r",
+                  "pm.collectionVariables.set(\"token\", response.token);\r",
+                  "\r",
+                  "// 6. Sauvegarder infos utiles\r",
+                  "pm.collectionVariables.set(\"user_id\", response.user.id);\r",
+                  "pm.collectionVariables.set(\"user_email\", response.user.email);\r",
+                  "pm.collectionVariables.set(\"user_role\", response.user.role);\r",
+                  "\r",
+                  "console.log(\"Token saved:\", response.token);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"admin@sqlabs.fr\",\r\n    \"password\": \"admin1234\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Exercices",
+      "item": [
+        {
+          "name": "Lister les exercies",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Parse JSON response\r",
+                  "const response = pm.response.json();\r",
+                  "\r",
+                  "// 1. Vérifier le status HTTP\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "// 2. Vérifier que le schema de la Response est valide\r",
+                  "pm.test(\"Response has data array\", () => {\r",
+                  "    pm.expect(response.data).to.be.an(\"array\");\r",
+                  "});\r",
+                  "\r",
+                  "const schema = {\r",
+                  "    type: \"object\",\r",
+                  "    required: [\"data\"],\r",
+                  "    properties: {\r",
+                  "        data: {\r",
+                  "            type: \"array\",\r",
+                  "            items: {\r",
+                  "                type: \"object\",\r",
+                  "                required: [\"id\", \"title\", \"slug\", \"type\", \"status\", \"statement\"],\r",
+                  "                properties: {\r",
+                  "                    id: { type: \"integer\" },\r",
+                  "                    title: { type: \"string\" },\r",
+                  "                    slug: { type: \"string\" },\r",
+                  "                    type: { type: \"string\" },\r",
+                  "                    status: { type: \"string\" },\r",
+                  "                    statement: { type: \"string\" }\r",
+                  "                }\r",
+                  "            }\r",
+                  "        }\r",
+                  "    }\r",
+                  "};\r",
+                  "\r",
+                  "pm.test(\"Schema is valid\", () => {\r",
+                  "    pm.response.to.have.jsonSchema(schema);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/exercices",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "exercices"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cours",
+      "item": [
+        {
+          "name": "Lister les cours",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/cours",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "cours"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "user_id",
+      "value": ""
+    },
+    {
+      "key": "user_email",
+      "value": ""
+    },
+    {
+      "key": "user_role",
+      "value": ""
+    }
+  ]
+}
