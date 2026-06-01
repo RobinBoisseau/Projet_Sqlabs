@@ -96,7 +96,7 @@ export class ReturnIaComponent {
 
   // Bouton "Traité" : passe en vert permanent, ? reste dans la table
   markResolved(section: 'mcd' | 'dictionary' | 'dependencies', r: any, event: MouseEvent): void {
-    event.preventDefault(); // empêche le label d'activer la checkbox
+    event.stopPropagation(); // empêche le click de remonter sur le div parent (onCheckboxChange)
     const id = this.getId(r, section);
     const key = `${section}:${id}`;
     this.itemStates = new Map(this.itemStates).set(key, 'resolved');
