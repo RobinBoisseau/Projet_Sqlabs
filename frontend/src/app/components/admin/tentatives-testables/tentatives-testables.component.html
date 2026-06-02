@@ -1,0 +1,65 @@
+<div class="max-w-5xl mx-auto py-10 px-6">
+
+  <!-- En-tête -->
+  <div class="mb-8 flex items-start justify-between">
+    <div>
+      <div class="text-sm text-gray-400 mb-1">
+        <a routerLink="/admin" class="text-primary hover:underline">Administration</a>
+        &nbsp;/&nbsp;
+        <a routerLink="/admin/exercices" class="text-primary hover:underline">Gestion des exercices</a>
+        &nbsp;/
+      </div>
+      <h1 class="text-2xl font-bold text-gray-900 mt-1">Tentatives testables</h1>
+    </div>
+    <span class="text-xl font-semibold text-gray-700 mt-6">{{ exerciceTitle }}</span>
+  </div>
+
+  <!-- Chargement -->
+  <div *ngIf="isLoading" class="text-gray-400">Chargement...</div>
+
+  <!-- Erreur -->
+  <div *ngIf="error" class="alert alert-error shadow-sm mb-4">
+    <span>{{ error }}</span>
+  </div>
+
+  <!-- Tableau -->
+  <ng-container *ngIf="!isLoading && !error">
+    <div class="overflow-x-auto rounded-xl border border-base-200 shadow-sm bg-white">
+      <table class="table table-zebra w-full">
+        <thead>
+          <tr class="text-xs uppercase tracking-wide text-gray-500">
+            <th>Étudiant</th>
+            <th>Date de soumission</th>
+            <th>Statut</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of tentatives">
+            <td class="font-medium text-gray-800">{{ t.user?.name ?? '—' }}</td>
+            <td class="text-gray-500 text-sm">{{ t.date ? (t.date | date:'dd/MM/yyyy HH:mm') : '—' }}</td>
+            <td>
+              <span class="px-2 py-1 rounded text-xs font-semibold" [ngClass]="statut(t).css">
+                {{ statut(t).label }}
+              </span>
+            </td>
+            <td class="text-right">
+              <a [routerLink]="['/exercice', slug]"
+                 [queryParams]="{ tentativeId: t.id }"
+                 class="btn btn-xs btn-ghost"
+                 title="Consulter la tentative de cet étudiant">
+                →
+              </a>
+            </td>
+          </tr>
+          <tr *ngIf="tentatives.length === 0">
+            <td colspan="4" class="text-center text-gray-400 py-10">
+              Aucune tentative testable pour cet exercice.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+
+</div>

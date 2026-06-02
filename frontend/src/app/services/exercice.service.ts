@@ -90,4 +90,20 @@ export class ExerciceService {
   deleteExercice(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
+
+  getTestableTentatives(slug: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${slug}/tentatives-testables`);
+  }
+
+  getAllTentatives(slug: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${slug}/all-tentatives`);
+  }
+
+  getTentativeById(id: number): Observable<any> {
+    return this.http.get(`${this.tentativesUrl}/${id}`);
+  }
+
+  toggleTestable(id: number): Observable<{ est_testable: boolean }> {
+    return this.http.patch<{ est_testable: boolean }>(`${this.tentativesUrl}/${id}/testable`, {});
+  }
 }

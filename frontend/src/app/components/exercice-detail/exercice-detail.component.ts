@@ -1,8 +1,9 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, HostListener, ViewChild, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { AuthService } from '../../services/auth.service';
 import { AngularSplitModule } from 'angular-split';
 
 import { ExerciceService } from '../../services/exercice.service';
@@ -25,7 +26,7 @@ import { SuccessPageComponent } from '../success-page/success-page.component';
 @Component({
   selector: 'app-exercice-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, AngularSplitModule, PanelComponent, DictionaryTableComponent, DependenceTableComponent, McdEditorComponent, TentativeButtonComponent, ReturnIaComponent, SuccessPageComponent],
+  imports: [CommonModule, FormsModule, RouterModule, DatePipe, AngularSplitModule, PanelComponent, DictionaryTableComponent, DependenceTableComponent, McdEditorComponent, TentativeButtonComponent, ReturnIaComponent, SuccessPageComponent],
   templateUrl: './exercice-detail.component.html',
   styleUrls: ['./exercice-detail.component.css']
 })
@@ -46,6 +47,15 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
   showSuccessPage = false;
   nextSlug: string | null = null;
   hasChangedSinceSubmit = true;
+
+  // Mode lecture (consultation tentative d'un étudiant)
+  isReadOnly = false;
+  viewedStudentName = '';
+
+  // Panneau tentatives (admin/prof)
+  showTentativesPanel = false;
+  panelTentatives: any[] = [];
+  panelLoading = false;
 
   dictionaryIaRemarks = new Map<string, string>();
   dependencyIaRemarks = new Map<string, string>();
@@ -91,6 +101,11 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
 
   @ViewChild(McdEditorComponent) mcdEditor!: McdEditorComponent;
 
+  get isAdminOrProf(): boolean {
+    const role = this.authService.currentUser?.role;
+    return role === 'admin' || role === 'professeur';
+  }
+
   constructor(
     private route: ActivatedRoute,
     private exerciceService: ExerciceService,
@@ -98,7 +113,8 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
     private dependenceService: DependenceService,
     private mcdService: McdService,
     private cdr: ChangeDetectorRef,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private authService: AuthService,
   ) { }
 
   // --- 1. SAUVEGARDE AUTOMATIQUE (Navigation et Fermeture) ---
@@ -130,6 +146,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   private runSilentSave() {
+    if (this.isReadOnly) return;
     const hasWork = this.dictionary.some(f => f.TechnicalName?.trim())
       || this.dependencies.some(d => d.source.length > 0 || d.cible.length > 0);
 
@@ -147,81 +164,86 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
 
   ngOnInit(): void {
     const slug = this.route.snapshot.paramMap.get('slug');
-    if (slug) {
-      this.exerciceService.getExerciceBySlug(slug).subscribe((response: any) => {
-        this.exercice = response.data || response;
-        // Safe: l'énoncé est rédigé par l'admin via Quill et sanitizé par purifyHtml() côté Laravel avant stockage
-        this.safeStatement = this.sanitizer.bypassSecurityTrustHtml(this.exercice?.statement ?? '');
+    const tentativeId = this.route.snapshot.queryParamMap.get('tentativeId');
+    if (!slug) return;
 
-        if (this.exercice?.id) {
-          // Charger tous les exercices pour calculer le suivant
-          this.exerciceService.getExercices().subscribe(all => {
-            const idx = all.findIndex(e => e.slug === this.exercice!.slug);
-            this.nextSlug = idx >= 0 && idx < all.length - 1 ? all[idx + 1].slug : null;
-          });
+    this.exerciceService.getExerciceBySlug(slug).subscribe((response: any) => {
+      this.exercice = response.data || response;
+      this.safeStatement = this.sanitizer.bypassSecurityTrustHtml(this.exercice?.statement ?? '');
 
-          this.exerciceService.getLastAttempt(this.exercice.id).subscribe((res: any) => {
-            if (res && res.data) {
-              const attempt = res.data;
+      if (!this.exercice?.id) return;
 
-              // 1. Dictionnaire — BD en priorité, localStorage en fallback
-              const rawDict = attempt.dictionary || attempt.dictionnaire;
-              this.dictionary = rawDict?.length
-                ? rawDict
-                : this.dictionaryService.load(slug);
-              this.lastSavedDictionary = this.deepCopyFields(this.dictionary);
+      // Calcul de l'exercice suivant (uniquement en mode normal)
+      if (!tentativeId) {
+        this.exerciceService.getExercices().subscribe(all => {
+          const idx = all.findIndex(e => e.slug === this.exercice!.slug);
+          this.nextSlug = idx >= 0 && idx < all.length - 1 ? all[idx + 1].slug : null;
+        });
+      }
 
-              // 2. Dépendances — BD en priorité, localStorage en fallback
-              const rawDeps = attempt.dependencies || attempt.dependance;
-              this.dependencies = rawDeps?.length
-                ? rawDeps.map((d: any) => DependenceLine.fromJSON(d))
-                : this.dependenceService.loadDependences(slug);
-
-              // 3. Nettoyage des noms obsolètes
-              const validNames = this.dictionary
-                .map((f: any) => f.TechnicalName)
-                .filter((n: string) => n && n.trim() !== '');
-
-              this.dependencies = this.dependencies.map(dep => ({
-                ...dep,
-                source: dep.source.filter(s => validNames.includes(s)),
-                cible: dep.cible.filter(c => validNames.includes(c))
-              }));
-
-              // 4. MCD depuis BD — priorité si non vide, sinon localStorage
-              const rawModel = attempt.model;
-              if (rawModel && (rawModel.Entities?.length > 0 || rawModel.Associations?.length > 0)) {
-                this.mcd = Mcd.fromJSON(rawModel);
-                if (this.exercice?.slug) {
-                  this.mcdService.saveMcd(this.exercice.slug, this.mcd);
-                }
-              } else {
-                this.mcd = this.mcdService.loadMcd(slug);
-              }
-
-              // ID de la tentative courante — les saves suivants feront un PUT
-              this.currentTentativeId = attempt.id ?? null;
-
-              // 5. Sync localStorage
-              if (this.exercice?.slug) {
-                this.dictionaryService.save(this.exercice.slug, this.dictionary);
-                this.dependenceService.saveDependences(this.exercice.slug, this.dependencies);
-              }
-            } else {
-              // Aucune tentative en BD — charger depuis localStorage
-              this.dictionary = this.dictionaryService.load(slug);
-              this.lastSavedDictionary = this.deepCopyFields(this.dictionary);
-              this.dependencies = this.dependenceService.loadDependences(slug);
-              this.mcd = this.mcdService.loadMcd(slug);
+      if (tentativeId) {
+        // Mode lecture : consultation de la tentative d'un étudiant
+        this.isReadOnly = true;
+        this.isTentativeDisabled = true;
+        this.exerciceService.getTentativeById(+tentativeId).subscribe((res: any) => {
+          const attempt = res.data || res;
+          this.viewedStudentName = attempt.user?.name ?? 'Étudiant';
+          this.applyAttemptData(slug, attempt);
+        });
+      } else {
+        // Mode normal : charge la dernière tentative de l'utilisateur
+        this.exerciceService.getLastAttempt(this.exercice.id).subscribe((res: any) => {
+          if (res?.data) {
+            this.applyAttemptData(slug, res.data);
+            this.currentTentativeId = res.data.id ?? null;
+            if (this.exercice?.slug) {
+              this.dictionaryService.save(this.exercice.slug, this.dictionary);
+              this.dependenceService.saveDependences(this.exercice.slug, this.dependencies);
             }
+          } else {
+            this.dictionary = this.dictionaryService.load(slug);
+            this.lastSavedDictionary = this.deepCopyFields(this.dictionary);
+            this.dependencies = this.dependenceService.loadDependences(slug);
+            this.mcd = this.mcdService.loadMcd(slug);
+          }
+          this.updateTechnicalNames();
+          this.isLoaded = true;
+          this.cdr.detectChanges();
+        });
+      }
+    });
+  }
 
-            this.updateTechnicalNames();
-            this.isLoaded = true;
-            this.cdr.detectChanges();
-          });
-        }
-      });
+  private applyAttemptData(slug: string, attempt: any): void {
+    const rawDict = attempt.dictionary || attempt.dictionnaire;
+    this.dictionary = rawDict?.length ? rawDict : this.dictionaryService.load(slug);
+    this.lastSavedDictionary = this.deepCopyFields(this.dictionary);
+
+    const rawDeps = attempt.dependencies || attempt.dependance;
+    this.dependencies = rawDeps?.length
+      ? rawDeps.map((d: any) => DependenceLine.fromJSON(d))
+      : this.dependenceService.loadDependences(slug);
+
+    const validNames = this.dictionary
+      .map((f: any) => f.TechnicalName)
+      .filter((n: string) => n?.trim() !== '');
+    this.dependencies = this.dependencies.map(dep => ({
+      ...dep,
+      source: dep.source.filter((s: string) => validNames.includes(s)),
+      cible:  dep.cible.filter((c: string) => validNames.includes(c)),
+    }));
+
+    const rawModel = attempt.model;
+    if (rawModel && (rawModel.Entities?.length > 0 || rawModel.Associations?.length > 0)) {
+      this.mcd = Mcd.fromJSON(rawModel);
+      if (this.exercice?.slug) this.mcdService.saveMcd(this.exercice.slug, this.mcd);
+    } else {
+      this.mcd = this.mcdService.loadMcd(slug);
     }
+
+    this.updateTechnicalNames();
+    this.isLoaded = true;
+    this.cdr.detectChanges();
   }
 
   // --- 3. SYNCHRONISATION ---
@@ -346,7 +368,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
   // --- SAUVEGARDE LA TENTATIVE ---
 
   save(): void {
-    if (!this.exercice || !this.isLoaded) return;
+    if (!this.exercice || !this.isLoaded || this.isReadOnly) return;
 
     this.hasChangedSinceSubmit = true;
     this.isTentativeDisabled = false;
@@ -367,6 +389,43 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
         error: () => {}
       });
     }
+  }
+
+  // --- PANNEAU TENTATIVES (admin/prof) ---
+
+  openTentativesPanel(): void {
+    this.showTentativesPanel = true;
+    if (this.panelTentatives.length > 0 || !this.exercice?.slug) return;
+    this.panelLoading = true;
+    this.exerciceService.getAllTentatives(this.exercice.slug).subscribe({
+      next: (res: any) => {
+        this.panelTentatives = res.data ?? [];
+        this.panelLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => { this.panelLoading = false; },
+    });
+  }
+
+  toggleTestable(t: any): void {
+    this.exerciceService.toggleTestable(t.id).subscribe({
+      next: (res) => {
+        t.est_testable = res.est_testable;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  panelStatut(t: any): string {
+    if (t.dictionnaireValide && t.dependanceValide && t.modeleValide) return 'Valide';
+    if (t.dictionnaireValide || t.dependanceValide || t.modeleValide) return 'Partiel';
+    return 'Non valide';
+  }
+
+  panelStatutCss(t: any): string {
+    if (t.dictionnaireValide && t.dependanceValide && t.modeleValide) return 'bg-green-100 text-green-700';
+    if (t.dictionnaireValide || t.dependanceValide || t.modeleValide) return 'bg-yellow-100 text-yellow-700';
+    return 'bg-red-100 text-red-600';
   }
 
   // --- COLLAPSE PANELS ---

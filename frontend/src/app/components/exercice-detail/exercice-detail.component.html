@@ -1,3 +1,15 @@
+<!-- Bannière mode lecture -->
+<div *ngIf="isReadOnly && exercice" class="view-mode-banner">
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+       fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+    <circle cx="9" cy="7" r="4"/>
+  </svg>
+  <span>Consultation de la tentative de <strong>{{ viewedStudentName }}</strong> — lecture seule</span>
+  <a [routerLink]="['/admin/exercices', exercice.slug, 'tentatives-testables']"
+     class="view-mode-back">← Retour à la liste</a>
+</div>
+
 <div class="workbench-wrapper" *ngIf="exercice">
 
   <as-split direction="horizontal" unit="percent" gutterSize="8" class="main-split">
@@ -169,5 +181,60 @@
   <div class="overlay-content">
     <div class="overlay-spinner"></div>
     <p class="overlay-text">Analyse de la tentative par l'IA...</p>
+  </div>
+</div>
+
+<!-- Bouton flottant panneau tentatives (admin/prof uniquement) -->
+<button *ngIf="isAdminOrProf && !isReadOnly && exercice"
+        class="tentatives-panel-btn"
+        (click)="openTentativesPanel()"
+        title="Voir les tentatives des étudiants">
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+       fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+    <circle cx="9" cy="7" r="4"/>
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  </svg>
+  Tentatives
+</button>
+
+<!-- Tiroir panneau tentatives -->
+<div *ngIf="showTentativesPanel" class="tentatives-drawer-overlay" (click)="showTentativesPanel = false">
+  <div class="tentatives-drawer" (click)="$event.stopPropagation()">
+
+    <div class="tentatives-drawer-header">
+      <h2>Tentatives des étudiants</h2>
+      <button class="tentatives-drawer-close" (click)="showTentativesPanel = false">✕</button>
+    </div>
+
+    <div *ngIf="panelLoading" class="tentatives-drawer-empty">Chargement…</div>
+
+    <div *ngIf="!panelLoading && panelTentatives.length === 0" class="tentatives-drawer-empty">
+      Aucune tentative pour cet exercice.
+    </div>
+
+    <div *ngIf="!panelLoading && panelTentatives.length > 0" class="tentatives-drawer-list">
+      <div *ngFor="let t of panelTentatives" class="tentatives-drawer-row">
+        <div class="tentatives-drawer-info">
+          <span class="tentatives-drawer-name">{{ t.user?.name ?? '—' }}</span>
+          <span class="tentatives-drawer-date">{{ t.date ? (t.date | date:'dd/MM/yy HH:mm') : '—' }}</span>
+          <span class="px-2 py-0.5 rounded text-xs font-semibold" [ngClass]="panelStatutCss(t)">
+            {{ panelStatut(t) }}
+          </span>
+        </div>
+        <div class="tentatives-drawer-actions">
+          <label class="tentatives-drawer-checkbox" [title]="t.est_testable ? 'Retirer des testables' : 'Marquer comme testable'">
+            <input type="checkbox" [checked]="t.est_testable" (change)="toggleTestable(t)" />
+            <span>Testable</span>
+          </label>
+          <a [routerLink]="['/exercice', exercice!.slug]"
+             [queryParams]="{ tentativeId: t.id }"
+             class="tentatives-drawer-view"
+             title="Voir cette tentative">→</a>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>

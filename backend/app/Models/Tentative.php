@@ -13,6 +13,7 @@ class Tentative extends Model {
         'dictionnaire', 'dependance', 'modele',
         'hash_dico', 'hash_dep', 'hash_mcd',
         'dictionnaireValide', 'dependanceValide', 'modeleValide',
+        'est_testable',
         'dateHeureTentative', 'user_id', 'exercice_id',
     ];
 
@@ -24,6 +25,7 @@ class Tentative extends Model {
         'dictionnaireValide' => 'boolean',
         'dependanceValide'   => 'boolean',
         'modeleValide'       => 'boolean',
+        'est_testable'       => 'boolean',
         'dateHeureTentative' => 'datetime',
     ];
 

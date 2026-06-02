@@ -31,6 +31,7 @@ import { teacherGuard } from './guards/teacher.guard';
 import { ExerciceAdminListComponent } from './components/admin/exercice-list/exercice-admin-list.component';
 import { ExerciceCreateComponent } from './components/admin/exercice-create/exercice-create.component';
 import { ExerciceEditComponent } from './components/admin/exercice-edit/exercice-edit.component';
+import { TentativesTestablesComponent } from './components/admin/tentatives-testables/tentatives-testables.component';
 
 export const routes: Routes = [
   // Routes publiques
@@ -53,6 +54,7 @@ export const routes: Routes = [
   { path: 'admin/exercices', component: ExerciceAdminListComponent, canActivate: [adminGuard] },
   { path: 'admin/exercices/create', component: ExerciceCreateComponent, canActivate: [adminGuard] },
   { path: 'admin/exercices/:slug/edit', component: ExerciceEditComponent, canActivate: [adminGuard] },
+  { path: 'admin/exercices/:slug/tentatives-testables', component: TentativesTestablesComponent, canActivate: [adminGuard] },
   {
     path: 'admin/cours/:id',
     component: CoursLayoutComponent,
