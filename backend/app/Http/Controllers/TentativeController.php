@@ -151,7 +151,7 @@ class TentativeController extends Controller
             : response()->json(['data' => null], 200);
     }
 
-    public function getTestableByExercice(string $slug)
+    public function getTestableByExercice(string $slug): JsonResponse
     {
         $exercice  = \App\Models\Exercice::where('slug', $slug)->firstOrFail();
         $tentatives = Tentative::with('user')
@@ -161,42 +161,10 @@ class TentativeController extends Controller
             ->orderByDesc('dateHeureTentative')
             ->get();
 
-        return TentativeResource::collection($tentatives)
-            ->additional(['exercice' => [
-                'id'    => $exercice->id,
-                'title' => $exercice->titre,
-                'slug'  => $exercice->slug,
-            ]]);
-    }
-
-    public function getAllByExercice(string $slug)
-    {
-        $user = auth()->user();
-        if (!in_array($user?->role, ['admin', 'professeur'])) {
-            return response()->json(['message' => 'Accès refusé.'], 403);
-        }
-
-        $exercice  = \App\Models\Exercice::where('slug', $slug)->firstOrFail();
-        $tentatives = Tentative::with('user')
-            ->where('exercice_id', $exercice->id)
-            ->where('is_correction', false)
-            ->orderByDesc('dateHeureTentative')
-            ->get();
-
-        return TentativeResource::collection($tentatives);
-    }
-
-    public function toggleTestable(int $id): JsonResponse
-    {
-        $user = auth()->user();
-        if (!in_array($user?->role, ['admin', 'professeur'])) {
-            return response()->json(['message' => 'Accès refusé.'], 403);
-        }
-
-        $tentative = Tentative::findOrFail($id);
-        $tentative->update(['est_testable' => !$tentative->est_testable]);
-
-        return response()->json(['est_testable' => $tentative->est_testable]);
+        return response()->json([
+            'exercice'   => ['id' => $exercice->id, 'title' => $exercice->titre, 'slug' => $exercice->slug],
+            'data'       => TentativeResource::collection($tentatives),
+        ]);
     }
 
     // ── Hash ─────────────────────────────────────────────────────────────────
