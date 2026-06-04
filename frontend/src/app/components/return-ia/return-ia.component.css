@@ -144,3 +144,15 @@
   transition: background 0.15s;
 }
 .ia-resolve-btn:hover { background: #2b8a3e; }
+
+
+.ia-panel--success {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+}
+
+.ia-success-msg {
+  color: #16a34a;
+  font-size: 0.9rem;
+  font-weight: 600;
+}

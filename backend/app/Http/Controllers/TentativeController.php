@@ -151,6 +151,29 @@ class TentativeController extends Controller
             : response()->json(['data' => null], 200);
     }
 
+    public function getAllByExercice(string $slug): JsonResponse
+    {
+        $exercice  = \App\Models\Exercice::where('slug', $slug)->firstOrFail();
+        $tentatives = Tentative::with('user')
+            ->where('exercice_id', $exercice->id)
+            ->where('is_correction', false)
+            ->orderByDesc('dateHeureTentative')
+            ->get();
+
+        return response()->json([
+            'exercice' => ['id' => $exercice->id, 'title' => $exercice->titre, 'slug' => $exercice->slug],
+            'data'     => TentativeResource::collection($tentatives),
+        ]);
+    }
+
+    public function toggleTestable(int $id): JsonResponse
+    {
+        $tentative = Tentative::findOrFail($id);
+        $tentative->est_testable = !$tentative->est_testable;
+        $tentative->save();
+        return response()->json(['est_testable' => $tentative->est_testable]);
+    }
+
     public function getTestableByExercice(string $slug): JsonResponse
     {
         $exercice  = \App\Models\Exercice::where('slug', $slug)->firstOrFail();

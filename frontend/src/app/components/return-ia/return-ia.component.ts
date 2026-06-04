@@ -51,6 +51,11 @@ export class ReturnIaComponent {
     return this.results?.[section]?.remarques.some(r => r.statut === 'invalide') ?? false;
   }
 
+  isAllValid(section: 'mcd' | 'dictionary' | 'dependencies'): boolean {
+    const remarques = this.results?.[section]?.remarques;
+    return !!remarques && remarques.length > 0 && !remarques.some(r => r.statut === 'invalide');
+  }
+
   getInvalidRemarques(section: 'mcd' | 'dictionary' | 'dependencies'): any[] {
     return this.results?.[section]?.remarques.filter(r => r.statut === 'invalide') ?? [];
   }
