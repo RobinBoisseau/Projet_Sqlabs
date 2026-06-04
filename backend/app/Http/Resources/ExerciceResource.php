@@ -13,24 +13,19 @@ class ExerciceResource extends JsonResource
      * @return array<string, mixed>
      */
    public function toArray(Request $request): array{
-        $tentatives = $this->tentatives()->where('user_id', auth()->id());
+        $tentatives = $this->tentatives()
+            ->where('user_id', auth()->id())
+            ->where('is_correction', false);
 
+        // Terminé : au moins une tentative où les 3 composants sont validés par l'IA
         $estTermine = (clone $tentatives)
             ->where('dictionnaireValide', true)
             ->where('dependanceValide', true)
             ->where('modeleValide', true)
             ->exists();
 
-        $estEnCours = false;
-        if (!$estTermine) {
-            $estEnCours = (clone $tentatives)
-                ->where(function($query) {
-                    $query->where('dictionnaireValide', true)
-                        ->orWhere('dependanceValide', true)
-                        ->orWhere('modeleValide', true);
-                })
-                ->exists();
-        }
+        // En cours : au moins une tentative soumise (peu importe le résultat IA)
+        $estEnCours = !$estTermine && (clone $tentatives)->exists();
 
         $status = 'to_do';
         if ($estTermine) $status = 'completed';

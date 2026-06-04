@@ -7,6 +7,12 @@
 
   <div class="ia-panels">
 
+    <!-- Dictionnaire - succès -->
+    <div class="ia-panel ia-panel--success" *ngIf="isAllValid('dictionary')">
+      <div class="ia-panel-title">Dictionnaire des données</div>
+      <div class="ia-success-msg">✓ Tout est correct !</div>
+    </div>
+
     <!-- Dictionnaire -->
     <div class="ia-panel" *ngIf="hasInvalidItems('dictionary')">
       <div class="ia-panel-title">Dictionnaire des données</div>
@@ -34,6 +40,12 @@
       </div>
     </div>
 
+    <!-- Dépendances - succès -->
+    <div class="ia-panel ia-panel--success" *ngIf="isAllValid('dependencies')">
+      <div class="ia-panel-title">Dépendances fonctionnelles</div>
+      <div class="ia-success-msg">✓ Tout est correct !</div>
+    </div>
+
     <!-- Dépendances -->
     <div class="ia-panel" *ngIf="hasInvalidItems('dependencies')">
       <div class="ia-panel-title">Dépendances fonctionnelles</div>
@@ -59,6 +71,12 @@
           </span>
         </div>
       </div>
+    </div>
+
+    <!-- MCD - succès -->
+    <div class="ia-panel ia-panel--success" *ngIf="isAllValid('mcd')">
+      <div class="ia-panel-title">MCD</div>
+      <div class="ia-success-msg">✓ Tout est correct !</div>
     </div>
 
     <!-- MCD -->
