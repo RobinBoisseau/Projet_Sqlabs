@@ -25,6 +25,7 @@ import { ClassExercisesComponent } from './components/classes/class-exercises/cl
 import { ClassProgressIndividualComponent } from './components/classes/class-progress-individual/class-progress-individual.component';
 import { ClassProgressGlobalComponent } from './components/classes/class-progress-global/class-progress-global.component';
 import { ClassDeleteComponent } from './components/classes/class-delete/class-delete.component';
+import { ClassExerciceDetailComponent } from './components/classes/class-exercice-detail/class-exercice-detail.component';
 import { authGuard } from './guards/auth.guard';
 import { adminGuard } from './guards/admin.guard';
 import { teacherGuard } from './guards/teacher.guard';
@@ -82,6 +83,8 @@ export const routes: Routes = [
       { path: 'delete',              component: ClassDeleteComponent },
     ],
   },
+
+  { path: 'classes/:id/exercises/:slug/details', component: ClassExerciceDetailComponent, canActivate: [teacherGuard] },
 
   { path: '**', redirectTo: 'login' },
 ];

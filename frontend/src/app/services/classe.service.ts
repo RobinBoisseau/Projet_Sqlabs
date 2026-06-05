@@ -56,4 +56,18 @@ export class ClasseService {
   demoteMembers(classeId: number, userIds: number[]): Observable<void> {
     return this.http.post<void>(`${this.api}/${classeId}/members/demote`, { user_ids: userIds });
   }
+
+  getClasseCours(classeId: number): Observable<any[]> {
+    return this.http.get<{ data: any[] }>(`${this.api}/${classeId}/cours`)
+      .pipe(map(r => r.data));
+  }
+
+  updateClasseCours(classeId: number, cours: { id: number; order: number }[]): Observable<void> {
+    return this.http.put<void>(`${this.api}/${classeId}/cours`, { cours });
+  }
+
+  getExerciceDetail(classeId: number, slug: string): Observable<{ exercice: any; students: any[] }> {
+    return this.http.get<{ data: { exercice: any; students: any[] } }>(`${this.api}/${classeId}/exercice/${slug}`)
+      .pipe(map(r => r.data));
+  }
 }

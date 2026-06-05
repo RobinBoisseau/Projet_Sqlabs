@@ -1,0 +1,106 @@
+<div class="max-w-6xl mx-auto px-6 py-8">
+
+  <div *ngIf="error" class="alert alert-error mb-4">
+    <span>{{ error }}</span>
+  </div>
+
+  <div *ngIf="loading" class="flex justify-center py-16">
+    <span class="loading loading-spinner loading-lg text-primary"></span>
+  </div>
+
+  <!-- Vue liste des cours -->
+  <ng-container *ngIf="!loading && !selectedCours">
+
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Les cours de cette classe</h1>
+
+    <div *ngIf="cours.length === 0" class="text-center text-gray-400 py-16">
+      <p>Aucun cours dans cette classe pour le moment.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+        *ngFor="let c of cours"
+        (click)="selectCours(c)"
+        class="card bg-white border border-base-200 shadow-sm hover:shadow-md hover:border-primary transition-all duration-200 cursor-pointer">
+
+        <figure class="h-40 bg-base-200 overflow-hidden">
+          <img
+            *ngIf="c.image"
+            [src]="'http://localhost:8000/storage/' + c.image"
+            [alt]="c.nom"
+            class="w-full h-full object-cover" />
+          <div *ngIf="!c.image" class="w-full h-full flex items-center justify-center text-base-content/30">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"
+              style="fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+          </div>
+        </figure>
+
+        <div class="card-body gap-2 p-5">
+          <h3 class="card-title text-base text-gray-900 leading-snug">{{ c.nom }}</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">{{ c.description }}</p>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <!-- Vue détail d'un cours -->
+  <ng-container *ngIf="!loading && selectedCours">
+
+    <div class="mb-6 flex items-center gap-4">
+      <button class="btn btn-ghost btn-sm gap-2" (click)="backToList()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Retour aux cours
+      </button>
+      <h1 class="text-2xl font-bold text-gray-800">{{ selectedCours.nom }}</h1>
+    </div>
+
+    <div *ngIf="selectedCours.exercices.length === 0" class="text-center text-gray-400 py-16">
+      Aucun exercice dans ce cours.
+    </div>
+
+    <div *ngIf="selectedCours.exercices.length > 0" class="overflow-x-auto">
+      <table class="table table-zebra w-full">
+        <thead>
+          <tr>
+            <th>Exercice</th>
+            <th>Type</th>
+            <th>Non commencé</th>
+            <th>En cours</th>
+            <th>Terminé</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ex of selectedCours.exercices">
+            <td class="font-medium text-gray-800">{{ ex.title }}</td>
+            <td>
+              <span class="badge badge-outline badge-sm">{{ ex.type }}</span>
+            </td>
+            <td>
+              <span class="badge badge-ghost text-xs">{{ ex.stats.not_started }}</span>
+            </td>
+            <td>
+              <span class="badge badge-warning text-xs">{{ ex.stats.in_progress }}</span>
+            </td>
+            <td>
+              <span class="badge badge-success text-xs">{{ ex.stats.completed }}</span>
+            </td>
+            <td>
+              <button class="btn btn-primary btn-xs" (click)="openDetail(ex.slug)">
+                Voir détail
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </ng-container>
+
+</div>

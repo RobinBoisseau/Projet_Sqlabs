@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Classe;
 use App\Models\Cours;
 use App\Models\Tentative;
 use App\Http\Resources\CoursResource;
@@ -50,6 +51,11 @@ class CoursController extends Controller
             \App\Models\Exercice::whereIn('id', array_keys($sync))
                 ->update(['etat' => 'Fini', 'visibility' => true]);
         }
+
+        Classe::all()->each(function (Classe $classe) use ($cours) {
+            $nextOrder = $classe->cours()->count();
+            $classe->cours()->attach($cours->id, ['order' => $nextOrder]);
+        });
 
         $cours->load('exercices');
         return new CoursResource($cours);
