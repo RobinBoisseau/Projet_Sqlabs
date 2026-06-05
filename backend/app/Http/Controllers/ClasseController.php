@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Classe;
+use App\Models\Exercice;
+use App\Models\Tentative;
 use App\Http\Resources\ClasseResource;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class ClasseController extends Controller
 {
@@ -35,6 +38,15 @@ class ClasseController extends Controller
 
         $classe = Classe::create($data);
         $classe->creator()->attach($request->user()->id, ['role' => 'creator']);
+
+        $allCours = \App\Models\Cours::all();
+        $sync = [];
+        foreach ($allCours as $index => $c) {
+            $sync[$c->id] = ['order' => $index];
+        }
+        if (!empty($sync)) {
+            $classe->cours()->sync($sync);
+        }
 
         return new ClasseResource($classe);
     }
@@ -182,6 +194,124 @@ class ClasseController extends Controller
             ->update(['role' => 'student']);
 
         return response()->json(['message' => 'Responsabilité retirée.']);
+    }
+
+    public function getCours(int $id): JsonResponse
+    {
+        $classe     = Classe::findOrFail($id);
+        $cours      = $classe->cours()->with('exercices')->get();
+        $studentIds = $classe->students()->pluck('users.id');
+
+        $result = $cours->map(function ($c) use ($studentIds) {
+            return [
+                'id'          => $c->id,
+                'nom'         => $c->nom,
+                'description' => $c->description,
+                'image'       => $c->image,
+                'exercices'   => $c->exercices->map(function ($e) use ($studentIds) {
+                    $notStarted = $studentIds->filter(function ($uid) use ($e) {
+                        return Tentative::where('exercice_id', $e->id)
+                            ->where('user_id', $uid)
+                            ->where('is_correction', false)
+                            ->doesntExist();
+                    })->count();
+
+                    $completed = $studentIds->filter(function ($uid) use ($e) {
+                        return Tentative::where('exercice_id', $e->id)
+                            ->where('user_id', $uid)
+                            ->where('is_correction', false)
+                            ->where('dictionnaireValide', true)
+                            ->where('dependanceValide', true)
+                            ->where('modeleValide', true)
+                            ->exists();
+                    })->count();
+
+                    $inProgress = $studentIds->count() - $notStarted - $completed;
+
+                    return [
+                        'id'    => $e->id,
+                        'title' => $e->titre,
+                        'slug'  => $e->slug,
+                        'type'  => $e->type,
+                        'stats' => [
+                            'not_started' => $notStarted,
+                            'in_progress' => $inProgress,
+                            'completed'   => $completed,
+                        ],
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json(['data' => $result]);
+    }
+
+    public function updateCours(Request $request, int $id): JsonResponse
+    {
+        $classe = Classe::findOrFail($id);
+
+        if (!$classe->canManageMembers($request->user())) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
+
+        $data = $request->validate([
+            'cours'         => 'required|array',
+            'cours.*.id'    => 'required|exists:cours,id',
+            'cours.*.order' => 'required|integer|min:0',
+        ]);
+
+        $sync = [];
+        foreach ($data['cours'] as $c) {
+            $sync[$c['id']] = ['order' => $c['order']];
+        }
+        $classe->cours()->sync($sync);
+
+        return response()->json(['message' => 'Cours mis à jour.']);
+    }
+
+    public function getExerciceDetail(int $id, string $slug): JsonResponse
+    {
+        $classe   = Classe::findOrFail($id);
+        $exercice = Exercice::where('slug', $slug)->firstOrFail();
+
+        $students = $classe->students()->get()->merge($classe->responsables()->get());
+
+        $result = $students->map(function ($student) use ($exercice) {
+            $tentatives = Tentative::where('exercice_id', $exercice->id)
+                ->where('user_id', $student->id)
+                ->where('is_correction', false)
+                ->get();
+
+            $attemptsCount = $tentatives->count();
+
+            if ($attemptsCount === 0) {
+                $status = 'not_started';
+            } elseif ($tentatives->contains(fn($t) => $t->dictionnaireValide && $t->dependanceValide && $t->modeleValide)) {
+                $status = 'completed';
+            } else {
+                $status = 'in_progress';
+            }
+
+            return [
+                'id'             => $student->id,
+                'name'           => $student->name,
+                'email'          => $student->email,
+                'status'         => $status,
+                'attempts_count' => $attemptsCount,
+            ];
+        })->sortBy('name')->values();
+
+        return response()->json([
+            'data' => [
+                'exercice' => [
+                    'id'    => $exercice->id,
+                    'titre' => $exercice->titre,
+                    'slug'  => $exercice->slug,
+                    'type'  => $exercice->type,
+                ],
+                'students' => $result,
+            ],
+        ]);
     }
 
     public function join(Request $request)

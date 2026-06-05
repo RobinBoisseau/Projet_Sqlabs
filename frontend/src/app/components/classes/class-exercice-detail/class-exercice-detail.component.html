@@ -1,0 +1,85 @@
+<div class="max-w-5xl mx-auto py-8 px-6">
+
+  <div *ngIf="loading" class="flex justify-center py-16">
+    <span class="loading loading-spinner loading-lg text-primary"></span>
+  </div>
+
+  <div *ngIf="error" class="alert alert-error">
+    <span>{{ error }}</span>
+  </div>
+
+  <ng-container *ngIf="!loading && exercice">
+
+    <!-- En-tête exercice -->
+    <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">{{ exercice.titre }}</h1>
+        <div class="flex items-center gap-2 mt-1">
+          <span class="badge badge-outline">{{ exercice.type }}</span>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" (click)="openExercice()">
+        Ouvrir l'exercice
+      </button>
+    </div>
+
+    <!-- Résumé stats -->
+    <div class="stats shadow mb-6 w-full">
+      <div class="stat">
+        <div class="stat-title">Total étudiants</div>
+        <div class="stat-value text-2xl">{{ students.length }}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-title">Non commencé</div>
+        <div class="stat-value text-2xl text-gray-400">{{ countNotStarted }}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-title">En cours</div>
+        <div class="stat-value text-2xl text-warning">{{ countInProgress }}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-title">Terminé</div>
+        <div class="stat-value text-2xl text-success">{{ countCompleted }}</div>
+      </div>
+    </div>
+
+    <!-- Tableau étudiants -->
+    <div class="overflow-x-auto rounded-lg border border-base-300">
+      <table class="table table-zebra w-full">
+        <thead class="bg-base-200">
+          <tr>
+            <th>Étudiant</th>
+            <th>Email</th>
+            <th>Statut</th>
+            <th class="text-center">Tentatives</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="students.length === 0">
+            <td colspan="5" class="text-center text-gray-400 py-8">Aucun étudiant dans cette classe.</td>
+          </tr>
+          <tr *ngFor="let s of students">
+            <td class="font-medium">{{ s.name }}</td>
+            <td class="text-gray-500 text-sm">{{ s.email }}</td>
+            <td>
+              <span class="badge badge-sm" [ngClass]="statusBadgeClass(s.status)">
+                {{ statusLabel(s.status) }}
+              </span>
+            </td>
+            <td class="text-center">{{ s.attempts_count }}</td>
+            <td>
+              <button
+                class="btn btn-ghost btn-xs"
+                [disabled]="s.attempts_count === 0"
+                (click)="openExercice()">
+                Voir tentative
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </ng-container>
+</div>

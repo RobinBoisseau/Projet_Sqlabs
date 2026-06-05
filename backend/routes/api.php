@@ -47,6 +47,9 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::delete('classe/{id}/members', [ClasseController::class, 'removeMembers']);
     Route::post('classe/{id}/members/promote', [ClasseController::class, 'promoteMembers']);
     Route::post('classe/{id}/members/demote', [ClasseController::class, 'demoteMembers']);
+    Route::get('classe/{id}/cours', [ClasseController::class, 'getCours']);
+    Route::put('classe/{id}/cours', [ClasseController::class, 'updateCours']);
+    Route::get('classe/{id}/exercice/{slug}', [ClasseController::class, 'getExerciceDetail']);
     Route::apiResource('classe', ClasseController::class);
 
     // Cours : lecture pour tous, écriture réservée aux admins

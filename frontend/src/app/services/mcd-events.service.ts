@@ -35,6 +35,7 @@ export class McdEventsService {
     clientY: number;
     width: number;
     value: string;
+    fixedHeight?: number;
     validate?: (v: string) => boolean;
     onConfirm: (v: string) => void;
     inputStyle?: { [key: string]: string };
@@ -45,10 +46,13 @@ export class McdEventsService {
 
     const wrapper = document.createElement('div');
     wrapper.id = 'x6-inline-editor-wrapper';
+    // Si fixedHeight fourni : clientY est le CENTRE → top = clientY - h/2
+    // Sinon : fallback à 14px (demi-hauteur CSS d'un input standard ~28px)
+    const topOffset = opts.fixedHeight != null ? opts.fixedHeight / 2 : 14;
     Object.assign(wrapper.style, {
       position:      'fixed',
       left:          `${opts.clientX - w / 2}px`,
-      top:           `${opts.clientY - 14}px`,
+      top:           `${opts.clientY - topOffset}px`,
       width:         `${w}px`,
       zIndex:        '9999',
       display:       'flex',
@@ -75,6 +79,11 @@ export class McdEventsService {
       boxSizing:    'border-box',
     });
     if (opts.inputStyle) Object.assign(input.style, opts.inputStyle);
+    // Hauteur exacte pour coller à l'en-tête (zoom inclus) + suppression du padding vertical
+    if (opts.fixedHeight != null) {
+      input.style.height  = `${opts.fixedHeight}px`;
+      input.style.padding = '0 8px';
+    }
     const defaultBorderColor = input.style.borderColor;
     const defaultColor       = input.style.color;
 
@@ -263,42 +272,81 @@ export class McdEventsService {
   }
 
   private renameNode(node: Node, graph: Graph, cb: McdGraphCallbacks): void {
-    const data      = node.getData();
-    const pos       = node.getPosition();
-    const size      = node.getSize();
-    const isEntity  = node.shape === 'merise-entity';
+    const data     = node.getData();
+    const pos      = node.getPosition();
+    const size     = node.getSize();
+    const isEntity = node.shape === 'merise-entity';
 
-    // Centre vertical du label : en-tête (14px) pour entité, milieu de l'ellipse pour association
-    const labelY        = isEntity ? pos.y + 14 : pos.y + size.height / 2;
-    const containerRect = graph.container.getBoundingClientRect();
-    const localCenter   = graph.graphToLocal(pos.x + size.width / 2, labelY);
-    const clientX       = containerRect.left + localCenter.x;
-    const clientY       = containerRect.top  + localCenter.y;
+    // Insérer un <foreignObject> dans le même groupe SVG que le nœud :
+    // il hérite du transform pan+zoom → immunisé aux CSS transforms parents Angular.
+    const view = graph.findViewByCell(node);
+    if (!view) return;
+    const nodeGroup = view.container as SVGGElement;
+    const canvas    = nodeGroup.parentElement as SVGGElement | null;
+    if (!canvas) return;
+    canvas.querySelector('#x6-rename-fo')?.remove();
 
-    const localLeft  = graph.graphToLocal(pos.x, pos.y);
-    const localRight = graph.graphToLocal(pos.x + size.width, pos.y);
-    const visualW    = localRight.x - localLeft.x - 16;
+    // Coordonnées en espace graphe (28 = hauteur de l'en-tête)
+    const foY = isEntity ? pos.y : pos.y + (size.height - 28) / 2;
 
-    this.openInlineInput({
-      clientX,
-      clientY,
-      width: visualW,
-      value: data.name,
-      inputStyle: isEntity
-        ? { background: '#0061d5', color: '#ffffff', border: 'none', borderBottom: '2px solid rgba(255,255,255,0.5)', borderRadius: '0', boxShadow: 'none', fontSize: '12px' }
-        : { background: '#FFFBEB', color: '#92400E',  border: 'none', borderBottom: '2px solid #F59E0B',               borderRadius: '4px', boxShadow: 'none', fontSize: '12px' },
-      onConfirm: (newName) => {
-        cb.saveToHistory();
-        data.name = newName;
-        node.setData(data, { overwrite: true });
-        node.setAttrs({ label: { text: newName } });
-        const mcd = cb.getMcd();
-        const obj = mcd?.Entities.find(e => e.id === data.id)
-                 || mcd?.Associations.find(a => a.id === data.id);
-        if (obj) obj.name = newName;
-        cb.autoSave();
-      },
+    const fo = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+    fo.id = 'x6-rename-fo';
+    fo.setAttribute('x',      String(pos.x));
+    fo.setAttribute('y',      String(foY));
+    fo.setAttribute('width',  String(size.width));
+    fo.setAttribute('height', '28');
+
+    const input = document.createElement('input');
+    input.type  = 'text';
+    input.value = data.name;
+    Object.assign(input.style, {
+      width:        '100%',
+      height:       '100%',
+      border:       'none',
+      outline:      'none',
+      background:   isEntity ? '#0061d5' : '#FFFBEB',
+      color:        isEntity ? '#ffffff' : '#92400E',
+      fontSize:     '12px',
+      fontWeight:   '600',
+      fontFamily:   'inherit',
+      textAlign:    'center',
+      padding:      '0 8px',
+      boxSizing:    'border-box',
+      borderBottom: isEntity ? '2px solid rgba(255,255,255,0.5)' : '2px solid #F59E0B',
+      borderRadius: isEntity ? '0'                               : '4px',
+      display:      'block',
     });
+
+    fo.appendChild(input);
+    canvas.appendChild(fo);
+
+    let done = false;
+    const confirm = (save: boolean) => {
+      if (done) return;
+      done = true;
+      fo.remove();
+      if (!save) return;
+      const newName = input.value.trim();
+      if (!newName) return;
+      cb.saveToHistory();
+      data.name = newName;
+      node.setData(data, { overwrite: true });
+      node.setAttrs({ label: { text: newName } });
+      const mcd = cb.getMcd();
+      const obj  = mcd?.Entities.find(e => e.id === data.id)
+                || mcd?.Associations.find(a => a.id === data.id);
+      if (obj) obj.name = newName;
+      cb.autoSave();
+    };
+
+    input.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (e.key === 'Enter')  { e.preventDefault(); confirm(true); }
+      if (e.key === 'Escape') { confirm(false); }
+    });
+    input.addEventListener('blur', () => setTimeout(() => confirm(true), 150));
+
+    requestAnimationFrame(() => { input.focus(); input.select(); });
   }
 
   private makeRenameTool(node: Node, cb: McdGraphCallbacks, graph: Graph): any {
