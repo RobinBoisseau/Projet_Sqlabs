@@ -12,15 +12,18 @@ use Illuminate\Http\JsonResponse;
 class ClasseController extends Controller
 {
     public function index(Request $request)
-    {
-        $userId = $request->user()->id;
+{
+    $userId = $request->user()->id;
 
-        $classes = Classe::whereHas('creator', fn($q) => $q->where('user_id', $userId))
-            ->orWhereHas('teachers', fn($q) => $q->where('user_id', $userId))
-            ->get();
+    $classes = Classe::where(function($query) use ($userId) {
+        $query->whereHas('creator', fn($q) => $q->where('user_id', $userId))
+              ->orWhereHas('teachers', fn($q) => $q->where('user_id', $userId))
+              ->orWhereHas('students', fn($q) => $q->where('user_id', $userId))
+              ->orWhereHas('responsables', fn($q) => $q->where('user_id', $userId));
+    })->get();
 
-        return ClasseResource::collection($classes);
-    }
+    return ClasseResource::collection($classes);
+}
 
     public function store(Request $request)
     {

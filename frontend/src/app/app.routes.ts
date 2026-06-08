@@ -74,15 +74,15 @@ export const routes: Routes = [
   {
     path: 'classes/:id',
     component: ClassLayoutComponent,
-    canActivate: [teacherGuard],
+    canActivate: [authGuard],
     children: [
       { path: '',                    component: ClassDetailComponent },
-      { path: 'members',             component: ClassMembersComponent },
-      { path: 'edit',                component: ClassEditComponent },
       { path: 'exercises',           component: ClassExercisesComponent },
-      { path: 'progress/individual', component: ClassProgressIndividualComponent },
-      { path: 'progress/global',     component: ClassProgressGlobalComponent },
-      { path: 'delete',              component: ClassDeleteComponent },
+      { path: 'members',             component: ClassMembersComponent,             canActivate: [teacherGuard] },
+      { path: 'edit',                component: ClassEditComponent,                canActivate: [teacherGuard] },
+      { path: 'progress/individual', component: ClassProgressIndividualComponent,  canActivate: [teacherGuard] },
+      { path: 'progress/global',     component: ClassProgressGlobalComponent,      canActivate: [teacherGuard] },
+      { path: 'delete',              component: ClassDeleteComponent,              canActivate: [teacherGuard] },
     ],
   },
 
