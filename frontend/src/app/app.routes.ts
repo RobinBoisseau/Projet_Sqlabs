@@ -54,7 +54,7 @@ export const routes: Routes = [
   { path: 'admin/cours',          component: CoursListComponent,      canActivate: [adminGuard] },
   { path: 'admin/exercices', component: ExerciceAdminListComponent, canActivate: [adminGuard] },
   { path: 'admin/exercices/create', component: ExerciceCreateComponent, canActivate: [adminGuard] },
-  { path: 'admin/exercices/:slug/edit', component: ExerciceEditComponent, canActivate: [adminGuard] },
+  { path: 'admin/exercices/:slug/edit', component: ExerciceEditComponent, canActivate: [teacherGuard] },
   { path: 'admin/exercices/:slug/tentatives-testables', component: TentativesTestablesComponent, canActivate: [adminGuard] },
   {
     path: 'admin/cours/:id',

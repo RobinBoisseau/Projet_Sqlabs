@@ -16,6 +16,7 @@ export class DictionaryTableComponent implements OnChanges {
 
   @Input() lines: Field[] = [];
   @Input() iaRemarks: Map<string, string> = new Map();
+  @Input() readonly = false;
   @Output() technicalNamesChanged = new EventEmitter<string[]>();
   @Output() dictionaryChanged = new EventEmitter<Field[]>();
 

@@ -1,0 +1,173 @@
+<div class="viewer-overlay" (click)="closed.emit()">
+  <div class="viewer-modal" (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="viewer-header">
+      <div>
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Tentatives de</p>
+        <h2 class="text-lg font-bold text-gray-800">{{ studentName }}</h2>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Infos tentative courante -->
+        <ng-container *ngIf="!loading && tentatives.length > 0 && currentTentative">
+          <span class="text-sm text-gray-500">
+            Tentative {{ currentIndex + 1 }}/{{ tentatives.length }}
+            &nbsp;—&nbsp;{{ formatDate(currentTentative.date) }}
+          </span>
+          <!-- Badges statut -->
+          <span class="badge badge-sm" [class.badge-success]="currentTentative.dictionnaireValide" [class.badge-error]="!currentTentative.dictionnaireValide">
+            Dico {{ currentTentative.dictionnaireValide ? '✓' : '✗' }}
+          </span>
+          <span class="badge badge-sm" [class.badge-success]="currentTentative.dependanceValide" [class.badge-error]="!currentTentative.dependanceValide">
+            Dép. {{ currentTentative.dependanceValide ? '✓' : '✗' }}
+          </span>
+          <span class="badge badge-sm" [class.badge-success]="currentTentative.modeleValide" [class.badge-error]="!currentTentative.modeleValide">
+            MCD {{ currentTentative.modeleValide ? '✓' : '✗' }}
+          </span>
+        </ng-container>
+
+        <button class="btn btn-ghost btn-sm btn-circle" (click)="closed.emit()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+            style="fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="viewer-body">
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="flex items-center justify-center h-full">
+        <span class="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="error" class="flex items-center justify-center h-full">
+        <div class="alert alert-error max-w-sm">{{ error }}</div>
+      </div>
+
+      <!-- Aucune tentative -->
+      <div *ngIf="!loading && !error && tentatives.length === 0"
+        class="flex items-center justify-center h-full text-gray-400">
+        Aucune tentative pour cet exercice.
+      </div>
+
+      <!-- Contenu -->
+      <ng-container *ngIf="!loading && !error && tentatives.length > 0 && currentTentative">
+
+        <!-- Onglets -->
+        <div class="tabs tabs-bordered px-6 pt-4 border-b border-base-200 flex-shrink-0">
+          <button class="tab" [class.tab-active]="activeTab === 'dictionary'" (click)="activeTab = 'dictionary'">
+            Dictionnaire
+          </button>
+          <button class="tab" [class.tab-active]="activeTab === 'dependencies'" (click)="activeTab = 'dependencies'">
+            Dépendances
+          </button>
+          <button class="tab" [class.tab-active]="activeTab === 'model'" (click)="activeTab = 'model'">
+            MCD
+          </button>
+        </div>
+
+        <!-- Panneau onglet -->
+        <div class="tab-content">
+
+          <!-- Dictionnaire -->
+          <div *ngIf="activeTab === 'dictionary'" class="overflow-auto h-full p-5">
+            <div *ngIf="!currentTentative.dictionary?.length" class="text-gray-400 text-center py-10">
+              Aucun champ dans le dictionnaire.
+            </div>
+            <table *ngIf="currentTentative.dictionary?.length" class="table table-sm w-full border border-base-200 rounded-lg">
+              <thead class="bg-base-200">
+                <tr>
+                  <th>Nom Métier</th>
+                  <th>Nom Technique</th>
+                  <th>Type</th>
+                  <th class="text-center">Clé Primaire</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let field of currentTentative.dictionary">
+                  <td>{{ field.name }}</td>
+                  <td class="font-mono text-sm">{{ field.TechnicalName }}</td>
+                  <td>{{ field.Type }}</td>
+                  <td class="text-center">{{ field.PrimaryKey ? '🔑' : '' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Dépendances -->
+          <div *ngIf="activeTab === 'dependencies'" class="overflow-auto h-full p-5">
+            <div *ngIf="!currentTentative.dependencies?.length" class="text-gray-400 text-center py-10">
+              Aucune dépendance soumise.
+            </div>
+            <table *ngIf="currentTentative.dependencies?.length" class="table table-sm w-full border border-base-200 rounded-lg">
+              <thead class="bg-base-200">
+                <tr>
+                  <th>Sources</th>
+                  <th class="text-center w-8">→</th>
+                  <th>Cibles</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let dep of currentTentative.dependencies">
+                  <td class="font-mono text-sm">{{ dep.source?.join(', ') }}</td>
+                  <td class="text-center text-gray-400">→</td>
+                  <td class="font-mono text-sm">{{ dep.cible?.join(', ') }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- MCD -->
+          <div *ngIf="activeTab === 'model'" class="mcd-panel">
+            <div *ngIf="!currentMcd" class="flex items-center justify-center h-full text-gray-400">
+              Aucun MCD soumis pour cette tentative.
+            </div>
+            <app-mcd-editor
+              *ngIf="currentMcd"
+              [slug]="mcdSlug"
+              [mcd]="currentMcd"
+              [readonly]="true">
+            </app-mcd-editor>
+          </div>
+
+        </div>
+      </ng-container>
+
+    </div>
+
+    <!-- Footer — timeline -->
+    <div class="viewer-footer" *ngIf="!loading && tentatives.length > 0">
+      <button class="btn btn-ghost btn-sm btn-circle" (click)="prev()" [disabled]="currentIndex === 0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+          style="fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+
+      <div class="timeline">
+        <div
+          *ngFor="let t of tentatives; let i = index"
+          class="timeline-dot"
+          [class.active]="i === currentIndex"
+          [class.valid]="allValid(t)"
+          [class.partial]="!allValid(t) && hasAnyValid(t)"
+          (click)="goTo(i)">
+          {{ i + 1 }}
+        </div>
+      </div>
+
+      <button class="btn btn-ghost btn-sm btn-circle" (click)="next()" [disabled]="currentIndex === tentatives.length - 1">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+          style="fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </div>
+
+  </div>
+</div>

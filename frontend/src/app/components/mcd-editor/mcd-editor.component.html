@@ -1,6 +1,7 @@
 <div class="canvas-wrapper">
 
   <app-mcd-toolbar
+    *ngIf="!readonly"
     [canUndo]="caretaker.canUndo()"
     [canRedo]="caretaker.canRedo()"
     (dragStart)="onToolbarDragStart($event)"

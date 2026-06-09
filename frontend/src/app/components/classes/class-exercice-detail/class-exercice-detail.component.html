@@ -18,9 +18,11 @@
           <span class="badge badge-outline">{{ exercice.type }}</span>
         </div>
       </div>
-      <button class="btn btn-primary btn-sm" (click)="openExercice()">
+      <a [routerLink]="['/admin/exercices', slug, 'edit']"
+         [queryParams]="{ classeId: classeId }"
+         class="btn btn-primary btn-sm">
         Ouvrir l'exercice
-      </button>
+      </a>
     </div>
 
     <!-- Résumé stats -->
@@ -69,11 +71,9 @@
             </td>
             <td class="text-center">{{ s.attempts_count }}</td>
             <td>
-              <button
-                class="btn btn-ghost btn-xs"
-                [disabled]="s.attempts_count === 0"
-                (click)="openExercice()">
-                Voir tentative
+              <button class="btn btn-xs btn-outline btn-primary" [disabled]="s.attempts_count === 0"
+                (click)="openViewer({ id: s.id, name: s.name })">
+                Voir tentative{{ s.attempts_count > 1 ? 's' : '' }}
               </button>
             </td>
           </tr>
@@ -83,3 +83,8 @@
 
   </ng-container>
 </div>
+
+<!-- Viewer modal -->
+<app-tentative-viewer *ngIf="showViewer && selectedStudent" [studentName]="selectedStudent.name" [classeId]="classeId"
+  [exerciceSlug]="slug" [userId]="selectedStudent.id" (closed)="closeViewer()">
+</app-tentative-viewer>

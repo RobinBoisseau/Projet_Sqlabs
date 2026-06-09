@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ClasseService } from '../../../services/classe.service';
+import { TentativeViewerComponent } from '../tentative-viewer/tentative-viewer.component';
 
 @Component({
   selector: 'app-class-exercice-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TentativeViewerComponent, RouterModule],
   templateUrl: './class-exercice-detail.component.html',
 })
 export class ClassExerciceDetailComponent implements OnInit {
@@ -16,6 +17,9 @@ export class ClassExerciceDetailComponent implements OnInit {
   students: any[] = [];
   loading = true;
   error = '';
+
+  showViewer = false;
+  selectedStudent: { id: number; name: string } | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -36,6 +40,16 @@ export class ClassExerciceDetailComponent implements OnInit {
         this.loading = false;
       },
     });
+  }
+
+  openViewer(student: { id: number; name: string }): void {
+    this.selectedStudent = student;
+    this.showViewer = true;
+  }
+
+  closeViewer(): void {
+    this.showViewer = false;
+    this.selectedStudent = null;
   }
 
   statusLabel(status: string): string {

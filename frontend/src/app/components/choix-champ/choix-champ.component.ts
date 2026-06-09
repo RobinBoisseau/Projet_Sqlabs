@@ -13,6 +13,7 @@ export class ChoixChampComponent {
   @Input() champsSelectionnes: string[] = [];
   @Input() champsDisponibles: string[] = [];
   @Input() placeholder: string = 'Ajouter un champ...';
+  @Input() readonly = false;
 
   @Output() selectionChanged = new EventEmitter<string[]>();
 

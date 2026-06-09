@@ -26,6 +26,7 @@ export class DependenceTableComponent implements OnInit {
 
   @Input() technicalNames: string[] = [];
   @Input() iaRemarks: Map<string, string> = new Map();
+  @Input() readonly = false;
 
   @Output() dependenciesChanged = new EventEmitter<DependenceLine[]>();
 
