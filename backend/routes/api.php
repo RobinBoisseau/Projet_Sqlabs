@@ -9,6 +9,7 @@ use App\Http\Controllers\ClasseController;
 use App\Http\Controllers\TentativeController;
 use App\Http\Controllers\FichierController;
 use App\Http\Controllers\CoursController;
+use App\Http\Controllers\PromptController;
 
 // Routes publiques (anti brute-force : 10 requêtes/minute)
 Route::middleware('throttle:10,1')->group(function () {
@@ -58,6 +59,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::get('cours/{cours}/stats', [CoursController::class, 'stats']);
 
     Route::middleware('admin')->group(function () {
+        Route::apiResource('prompts', PromptController::class);
         Route::get('/exercices/{slug}/tentatives-testables', [TentativeController::class, 'getTestableByExercice']);
         Route::get('/exercices/{slug}/correction', [ExerciceController::class, 'getCorrection']);
         Route::put('/exercices/{slug}/correction', [ExerciceController::class, 'updateWithCorrection']);

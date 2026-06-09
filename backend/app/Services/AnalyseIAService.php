@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Prompt;
 use App\Models\ReponseIA;
 use App\Models\Tentative;
 
@@ -175,7 +176,7 @@ class AnalyseIAService
         }
 
         // MCD différent du corrigé → envoie à l'IA pour analyse
-        $prompt      = $this->prompts->userPrompt('mcd', $enonce, json_encode($this->flattenMcd($mcd), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), json_encode($this->flattenMcd($correction), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        $prompt      = $this->resolvePrompt('mcd', $enonce, json_encode($this->flattenMcd($mcd), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), json_encode($this->flattenMcd($correction), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         $data        = $ollama->generateJson($prompt, 500, $this->prompts->systemPrompt('mcd')); // ← APPEL IA
         $reponseJson = ['remarques' => $data['remarques'] ?? []];
         $this->saveReponse($tentativeId, 'mcd', $mcd, $reponseJson);
@@ -195,7 +196,7 @@ class AnalyseIAService
         }
 
         // Dictionnaire différent du corrigé → envoie à l'IA pour analyse
-        $prompt      = $this->prompts->userPrompt('dictionary', $enonce, json_encode($dictionary, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), json_encode($correction, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        $prompt      = $this->resolvePrompt('dd', $enonce, json_encode($dictionary, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), json_encode($correction, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         $data        = $ollama->generateJson($prompt, 500, $this->prompts->systemPrompt('dictionary')); // ← APPEL IA
         $reponseJson = ['remarques' => $data['remarques'] ?? []];
         $this->saveReponse($tentativeId, 'dico', $dictionary, $reponseJson);
@@ -219,11 +220,31 @@ class AnalyseIAService
         }
 
         // Dépendances différentes du corrigé → envoie à l'IA pour analyse
-        $prompt      = $this->prompts->userPrompt('dependencies', $enonce, json_encode($dependencies, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), json_encode($correction, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        $prompt      = $this->resolvePrompt('df', $enonce, json_encode($dependencies, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), json_encode($correction, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         $data        = $ollama->generateJson($prompt, 500, $this->prompts->systemPrompt('dependencies')); // ← APPEL IA
         $reponseJson = ['remarques' => $data['remarques'] ?? []];
         $this->saveReponse($tentativeId, 'dep', $dependencies, $reponseJson);
         return $reponseJson;
+    }
+
+    // ── Résout le prompt actif depuis la BD et remplace les variables ────────
+
+    private function resolvePrompt(string $categorie, string $contexte, string $studentJson, string $correctionJson): string
+    {
+        $prompt = Prompt::where('categorie', $categorie)->where('actif', true)->first();
+
+        if (!$prompt) {
+            return $this->prompts->userPrompt(
+                match ($categorie) { 'mcd' => 'mcd', 'dd' => 'dictionary', 'df' => 'dependencies' },
+                $contexte, $studentJson, $correctionJson
+            );
+        }
+
+        return str_replace(
+            ['{{contexte}}', '{{student_json}}', '{{correction_json}}'],
+            [$contexte,       $studentJson,       $correctionJson],
+            $prompt->prompt
+        );
     }
 
     // ── Transforme le MCD pour l'IA : intègre les cardinalités directement dans chaque association ──
