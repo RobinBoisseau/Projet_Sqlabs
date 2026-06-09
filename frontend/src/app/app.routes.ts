@@ -33,6 +33,8 @@ import { ExerciceAdminListComponent } from './components/admin/exercice-list/exe
 import { ExerciceCreateComponent } from './components/admin/exercice-create/exercice-create.component';
 import { ExerciceEditComponent } from './components/admin/exercice-edit/exercice-edit.component';
 import { TentativesTestablesComponent } from './components/admin/tentatives-testables/tentatives-testables.component';
+import { PromptListComponent } from './components/admin/prompt-list/prompt-list.component';
+import { PromptCreateComponent } from './components/admin/prompt-create/prompt-create.component';
 
 export const routes: Routes = [
   // Routes publiques
@@ -56,6 +58,9 @@ export const routes: Routes = [
   { path: 'admin/exercices/create', component: ExerciceCreateComponent, canActivate: [adminGuard] },
   { path: 'admin/exercices/:slug/edit', component: ExerciceEditComponent, canActivate: [adminGuard] },
   { path: 'admin/exercices/:slug/tentatives-testables', component: TentativesTestablesComponent, canActivate: [adminGuard] },
+  { path: 'admin/prompts',             component: PromptListComponent,   canActivate: [adminGuard] },
+  { path: 'admin/prompts/create',      component: PromptCreateComponent, canActivate: [adminGuard] },
+  { path: 'admin/prompts/:id/edit',    component: PromptCreateComponent, canActivate: [adminGuard] },
   {
     path: 'admin/cours/:id',
     component: CoursLayoutComponent,
