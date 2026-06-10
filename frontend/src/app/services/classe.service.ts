@@ -70,4 +70,14 @@ export class ClasseService {
     return this.http.get<{ data: { exercice: any; students: any[] } }>(`${this.api}/${classeId}/exercice/${slug}`)
       .pipe(map(r => r.data));
   }
+
+  getStudentTentatives(classeId: number, slug: string, userId: number): Observable<any[]> {
+    return this.http.get<{ data: any[] }>(
+      `${this.api}/${classeId}/exercice/${slug}/student/${userId}/tentatives`
+    ).pipe(map(r => r.data));
+  }
+
+  getStudentProgress(classeId: number, userId: number): Observable<any> {
+    return this.http.get<any>(`${this.api}/${classeId}/student/${userId}/progress`);
+  }
 }

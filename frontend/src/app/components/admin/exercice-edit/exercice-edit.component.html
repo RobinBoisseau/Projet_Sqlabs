@@ -3,20 +3,27 @@
   <!-- Header -->
   <div class="create-header">
     <div class="create-header-left">
-      <a routerLink="/admin/exercices" class="back-link">← Gestion des exercices</a>
-      <h1 class="create-title">Modifier l'exercice</h1>
+      <a [routerLink]="isReadonly ? backUrl : '/admin/exercices'" class="back-link">
+        ← {{ isReadonly ? 'Retour' : 'Gestion des exercices' }}
+      </a>
+      <h1 class="create-title">
+        {{ isReadonly ? 'Consulter l\'exercice' : 'Modifier l\'exercice' }}
+      </h1>
     </div>
-    <button class="save-btn" (click)="onSave()" [disabled]="isSaving || !isLoaded">
+    <button *ngIf="!isReadonly" class="save-btn" (click)="onSave()" [disabled]="isSaving || !isLoaded">
       <span *ngIf="isSaving">Enregistrement…</span>
       <span *ngIf="!isSaving">💾 Enregistrer les modifications</span>
     </button>
+    <span *ngIf="isReadonly" class="badge badge-info badge-lg">
+      👁 Mode lecture seule
+    </span>
   </div>
 
   <div *ngIf="errorMessage" class="error-bar">{{ errorMessage }}</div>
 
   <as-split direction="horizontal" unit="percent" gutterSize="8" class="main-split">
 
-    <!-- COLONNE 1 : Énoncé éditable -->
+    <!-- COLONNE 1 : Énoncé -->
     <as-split-area [size]="sizes.enonce" [minSize]="0" [maxSize]="100">
       <div class="col-side">
         <div class="col-collapsed-labels" [style.display]="isCollapsed.enonce ? 'flex' : 'none'">
@@ -29,8 +36,9 @@
               class="titre-input"
               type="text"
               [(ngModel)]="titre"
-              placeholder="Titre de l'exercice…"/>
-            <select class="type-select" [(ngModel)]="type">
+              placeholder="Titre de l'exercice…"
+              [disabled]="isReadonly"/>
+            <select class="type-select" [(ngModel)]="type" [disabled]="isReadonly">
               <option value="SQL">SQL</option>
               <option value="BPMN">BPMN</option>
             </select>
@@ -62,6 +70,7 @@
                   <app-panel title="Dictionnaire des données (correction)">
                     <app-dictionary-table
                       [lines]="dictionary"
+                      [readonly]="isReadonly"
                       (dictionaryChanged)="onDictionaryChanged($event)">
                     </app-dictionary-table>
                   </app-panel>
@@ -96,6 +105,7 @@
                     <app-dependence-table
                       [lines]="dependencies"
                       [technicalNames]="technicalNames"
+                      [readonly]="isReadonly"
                       (dependenciesChanged)="onDependenciesChanged($event)">
                     </app-dependence-table>
                   </app-panel>
@@ -143,7 +153,9 @@
              [style.display]="isCollapsed.modelisation ? 'none' : 'flex'">
           <app-mcd-editor
             [slug]="editSlug"
-            [mcd]="mcd">
+            [mcd]="mcd"
+            [readonly]="isReadonly"
+            (saveRequested)="onSave()">
           </app-mcd-editor>
         </div>
       </div>

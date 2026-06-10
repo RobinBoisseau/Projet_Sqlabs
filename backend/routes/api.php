@@ -9,6 +9,7 @@ use App\Http\Controllers\ClasseController;
 use App\Http\Controllers\TentativeController;
 use App\Http\Controllers\FichierController;
 use App\Http\Controllers\CoursController;
+use App\Http\Controllers\PromptController;
 
 // Routes publiques (anti brute-force : 10 requêtes/minute)
 Route::middleware('throttle:10,1')->group(function () {
@@ -50,6 +51,8 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::get('classe/{id}/cours', [ClasseController::class, 'getCours']);
     Route::put('classe/{id}/cours', [ClasseController::class, 'updateCours']);
     Route::get('classe/{id}/exercice/{slug}', [ClasseController::class, 'getExerciceDetail']);
+    Route::get('classe/{id}/exercice/{slug}/student/{userId}/tentatives', [ClasseController::class, 'getStudentTentatives']);
+    Route::get('classe/{id}/student/{userId}/progress', [ClasseController::class, 'getStudentProgress']);
     Route::apiResource('classe', ClasseController::class);
 
     // Cours : lecture pour tous, écriture réservée aux admins
@@ -57,9 +60,13 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::get('cours/{cours}', [CoursController::class, 'show']);
     Route::get('cours/{cours}/stats', [CoursController::class, 'stats']);
 
+    // Lecture de la correction : admin + professeur
+    Route::get('/exercices/{slug}/correction', [ExerciceController::class, 'getCorrection'])
+        ->middleware('teacher');
+
     Route::middleware('admin')->group(function () {
+        Route::apiResource('prompts', PromptController::class);
         Route::get('/exercices/{slug}/tentatives-testables', [TentativeController::class, 'getTestableByExercice']);
-        Route::get('/exercices/{slug}/correction', [ExerciceController::class, 'getCorrection']);
         Route::put('/exercices/{slug}/correction', [ExerciceController::class, 'updateWithCorrection']);
         Route::apiResource('users', UserController::class);
 

@@ -20,8 +20,10 @@ export class HeaderComponent {
   }
 
   backLink(): string {
-    const coursId = this.router.parseUrl(this.router.url).queryParams['cours'];
-    return coursId ? `/cours/${coursId}` : '/exercices';
+    const params = this.router.parseUrl(this.router.url).queryParams;
+    if (params['classeId']) return `/classes/${params['classeId']}/exercises`;
+    if (params['cours']) return `/cours/${params['cours']}`;
+    return '/exercices';
   }
 
   toggleDropdown(): void {
