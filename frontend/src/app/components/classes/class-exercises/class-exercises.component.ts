@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, ActivatedRoute } from '@angular/router';
+import { RouterModule, ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { filter, take } from 'rxjs';
 import { ClasseService } from '../../../services/classe.service';
 import { AuthService } from '../../../services/auth.service';
@@ -21,6 +21,7 @@ export class ClassExercisesComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private classeService: ClasseService,
     private authService: AuthService,
   ) {}
@@ -34,6 +35,12 @@ export class ClassExercisesComponent implements OnInit {
         this.isTeacher = u?.role === 'professeur' || u?.role === 'admin';
       });
     }
+
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.selectedCours = null;
+    });
 
     this.classeId = Number(this.route.parent?.snapshot.paramMap.get('id'));
     this.classeService.getClasseCours(this.classeId).subscribe({

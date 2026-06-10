@@ -25,7 +25,7 @@ export class ClassLayoutComponent implements OnInit {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.classeService.getClasse(id).subscribe({
       next: c => this.classe = c,
-      error: () => this.router.navigate(['/classes']),
+      error: () => this.router.navigate(['/']),
     });
   }
 
