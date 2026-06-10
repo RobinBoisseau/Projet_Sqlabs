@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void {
         Schema::table('fichiers', function (Blueprint $table) {
-            // La colonne exercice_id existe déjà, on ajoute uniquement la contrainte FK
+            $table->unsignedBigInteger('exercice_id')->nullable()->after('contenu');
             $table->foreign('exercice_id')->references('id')->on('exercices')->onDelete('cascade');
         });
     }
@@ -15,6 +15,7 @@ return new class extends Migration {
     public function down(): void {
         Schema::table('fichiers', function (Blueprint $table) {
             $table->dropForeign(['exercice_id']);
+            $table->dropColumn('exercice_id');
         });
     }
 };

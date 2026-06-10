@@ -6,22 +6,44 @@ import { Transform } from '@antv/x6-plugin-transform';
 
 const ENTITY_PORTS = {
   groups: {
-    top:    { position: 'top',    attrs: { circle: { r: 4, magnet: true, stroke: '#1890ff', style: { visibility: 'hidden' } } } },
-    bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: true, stroke: '#1890ff', style: { visibility: 'hidden' } } } },
-    left:   { position: 'left',   attrs: { circle: { r: 4, magnet: true, stroke: '#1890ff', style: { visibility: 'hidden' } } } },
-    right:  { position: 'right',  attrs: { circle: { r: 4, magnet: true, stroke: '#1890ff', style: { visibility: 'hidden' } } } },
+    port: {
+      position: 'absolute',
+      attrs: {
+        circle: { r: 4, magnet: true, stroke: '#1890ff', strokeWidth: 2, fill: '#fff', style: { visibility: 'hidden' } },
+      },
+    },
   },
-  items: [{ group: 'top' }, { group: 'bottom' }, { group: 'left' }, { group: 'right' }],
+  items: [
+    { id: 'top',          group: 'port', args: { x: '50%',  y: '0%'   } },
+    { id: 'bottom',       group: 'port', args: { x: '50%',  y: '100%' } },
+    { id: 'left',         group: 'port', args: { x: '0%',   y: '50%'  } },
+    { id: 'right',        group: 'port', args: { x: '100%', y: '50%'  } },
+    { id: 'top-left',     group: 'port', args: { x: '0%',   y: '0%'   } },
+    { id: 'top-right',    group: 'port', args: { x: '100%', y: '0%'   } },
+    { id: 'bottom-left',  group: 'port', args: { x: '0%',   y: '100%' } },
+    { id: 'bottom-right', group: 'port', args: { x: '100%', y: '100%' } },
+  ],
 };
 
 const ASSOC_PORTS = {
   groups: {
-    top:    { position: 'top',    attrs: { circle: { r: 6, magnet: true, fill: '#f59e0b', stroke: '#fff', strokeWidth: 1.5, style: { visibility: 'hidden' } } } },
-    bottom: { position: 'bottom', attrs: { circle: { r: 6, magnet: true, fill: '#f59e0b', stroke: '#fff', strokeWidth: 1.5, style: { visibility: 'hidden' } } } },
-    left:   { position: 'left',   attrs: { circle: { r: 6, magnet: true, fill: '#f59e0b', stroke: '#fff', strokeWidth: 1.5, style: { visibility: 'hidden' } } } },
-    right:  { position: 'right',  attrs: { circle: { r: 6, magnet: true, fill: '#f59e0b', stroke: '#fff', strokeWidth: 1.5, style: { visibility: 'hidden' } } } },
+    port: {
+      position: 'absolute',
+      attrs: {
+        circle: { r: 6, magnet: true, fill: '#f59e0b', stroke: '#fff', strokeWidth: 1.5, style: { visibility: 'hidden' } },
+      },
+    },
   },
-  items: [{ group: 'top' }, { group: 'bottom' }, { group: 'left' }, { group: 'right' }],
+  items: [
+    { id: 'top',          group: 'port', args: { x: '50%', y: '0%'   } },
+    { id: 'bottom',       group: 'port', args: { x: '50%', y: '100%' } },
+    { id: 'left',         group: 'port', args: { x: '0%',  y: '50%'  } },
+    { id: 'right',        group: 'port', args: { x: '100%', y: '50%' } },
+    { id: 'top-left',     group: 'port', args: { x: '15%', y: '15%'  } },
+    { id: 'top-right',    group: 'port', args: { x: '85%', y: '15%'  } },
+    { id: 'bottom-left',  group: 'port', args: { x: '15%', y: '85%'  } },
+    { id: 'bottom-right', group: 'port', args: { x: '85%', y: '85%'  } },
+  ],
 };
 
 @Injectable()
