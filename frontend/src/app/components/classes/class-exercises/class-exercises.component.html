@@ -64,7 +64,8 @@
       Aucun exercice dans ce cours.
     </div>
 
-    <div *ngIf="selectedCours.exercices.length > 0" class="overflow-x-auto">
+    <!-- Vue professeur / admin : stats + détail -->
+    <div *ngIf="isTeacher && selectedCours.exercices.length > 0" class="overflow-x-auto">
       <table class="table table-zebra w-full">
         <thead>
           <tr>
@@ -99,6 +100,19 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Vue étudiant : liste verticale + lien vers l'exercice -->
+    <div *ngIf="!isTeacher && selectedCours.exercices.length > 0" class="flex flex-col gap-3">
+      <a
+        *ngFor="let ex of selectedCours.exercices; let i = index"
+        [routerLink]="['/exercice', ex.slug]"
+        [queryParams]="{ classeId: classeId }"
+        class="flex items-center gap-4 bg-white border border-base-200 rounded-xl px-5 py-4 shadow-sm hover:shadow-md hover:border-primary transition-all duration-200 no-underline">
+        <span class="text-sm font-semibold text-gray-400 w-6 shrink-0">#{{ i + 1 }}</span>
+        <span class="flex-1 text-base font-medium text-gray-900">{{ ex.title }}</span>
+        <span class="badge badge-outline badge-sm shrink-0">{{ ex.type }}</span>
+      </a>
     </div>
 
   </ng-container>

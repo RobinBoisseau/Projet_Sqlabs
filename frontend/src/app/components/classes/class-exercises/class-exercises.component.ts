@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
+import { filter, take } from 'rxjs';
 import { ClasseService } from '../../../services/classe.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-class-exercises',
@@ -15,13 +17,24 @@ export class ClassExercisesComponent implements OnInit {
   selectedCours: any = null;
   loading = true;
   error = '';
+  isTeacher = false;
 
   constructor(
     private route: ActivatedRoute,
     private classeService: ClasseService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
+    const user = this.authService.currentUser;
+    if (user) {
+      this.isTeacher = user.role === 'professeur' || user.role === 'admin';
+    } else {
+      this.authService.currentUser$.pipe(filter(u => u !== null), take(1)).subscribe(u => {
+        this.isTeacher = u?.role === 'professeur' || u?.role === 'admin';
+      });
+    }
+
     this.classeId = Number(this.route.parent?.snapshot.paramMap.get('id'));
     this.classeService.getClasseCours(this.classeId).subscribe({
       next: (data) => {

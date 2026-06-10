@@ -30,7 +30,7 @@ export class LoginComponent {
 
     const { email, password } = this.form.value;
     this.auth.login(email, password).subscribe({
-      next: () => this.router.navigate(['/exercices']),
+      next: () => this.router.navigate(['/']),
       error: err => {
         this.errorMessage = err.error?.message ?? 'Une erreur est survenue.';
         this.loading = false;

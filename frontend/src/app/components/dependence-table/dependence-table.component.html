@@ -13,6 +13,7 @@
 
       <!-- ZONE SOURCES -->
       <app-choix-champ [champsSelectionnes]="ligne.source" [champsDisponibles]="technicalNames"
+        [readonly]="readonly"
         placeholder="Ajouter source..." (selectionChanged)="majDep(i, 'source', $event)">
       </app-choix-champ>
 
@@ -26,11 +27,12 @@
 
       <!-- ZONE CIBLES -->
       <app-choix-champ [champsSelectionnes]="ligne.cible" [champsDisponibles]="technicalNames"
+        [readonly]="readonly"
         placeholder="Ajouter cible..." (selectionChanged)="majDep(i, 'cible', $event)">
       </app-choix-champ>
 
       <!-- ACTIONS ⋮ -->
-      <div class="actions-column">
+      <div *ngIf="!readonly" class="actions-column">
         <div class="dropdown">
           <button class="dots-btn" (mousedown)="$event.stopPropagation()">⋮</button>
           <div class="dropdown-content">
@@ -41,7 +43,7 @@
       </div>
     </div>
   </div>
-  <div class="footer-btn">
+  <div *ngIf="!readonly" class="footer-btn">
     <app-add-button (click)="ajouterDependance()" label="Ajouter une dépendance"></app-add-button>
   </div>
 </div>

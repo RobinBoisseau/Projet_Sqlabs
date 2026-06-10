@@ -35,6 +35,7 @@ export class McdEditorComponent implements OnInit, OnChanges, AfterViewInit, OnD
   @ViewChild('container', { static: true }) containerRef!: ElementRef;
   @Input() slug = '';
   @Input() mcd: Mcd | undefined;
+  @Input() readonly = false;
   @Output() saveRequested = new EventEmitter<void>();
 
   private _iaRemarks: Map<string, string> = new Map();
@@ -111,16 +112,17 @@ export class McdEditorComponent implements OnInit, OnChanges, AfterViewInit, OnD
 
   ngOnChanges(changes: SimpleChanges): void {
     const mcdChange = changes['mcd'];
-    if (mcdChange?.currentValue) {
-      const incoming: Mcd = mcdChange.currentValue;
-      if (incoming.Entities.length > 0 || incoming.Associations.length > 0) {
-        this.mcd = incoming;
-        if (this.graph) this.drawMcd();
-      }
+    if (!mcdChange) return;
+    const incoming: Mcd | undefined = mcdChange.currentValue;
+    if (incoming && (incoming.Entities.length > 0 || incoming.Associations.length > 0 || this.readonly)) {
+      this.mcd = incoming;
+      if (this.graph) this.drawMcd();
     }
   }
 
   ngOnInit(): void {
+    if (this.readonly) return;
+
     const savedMcd = this.mcdService.loadMcd(this.slug);
     if (savedMcd) this.mcd = savedMcd;
 
@@ -197,7 +199,7 @@ export class McdEditorComponent implements OnInit, OnChanges, AfterViewInit, OnD
         getIsResizing: () => this.isResizing,
       };
 
-      this.eventsService.bindGraphEvents(graph, callbacks);
+      if (!this.readonly) this.eventsService.bindGraphEvents(graph, callbacks);
       if (this.mcd) this.drawMcd();
 
       // Repositionner les badges IA lors d'un pan ou zoom
@@ -216,6 +218,7 @@ export class McdEditorComponent implements OnInit, OnChanges, AfterViewInit, OnD
 
   @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent): void {
+    if (this.readonly) return;
     if (event.key !== 'Delete' && event.key !== 'Backspace') return;
     const tag = (event.target as HTMLElement)?.tagName?.toUpperCase();
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
@@ -236,6 +239,7 @@ export class McdEditorComponent implements OnInit, OnChanges, AfterViewInit, OnD
 
   @HostListener('document:keydown.control.z', ['$event'])
   onUndo(event?: KeyboardEvent): void {
+    if (this.readonly) return;
     event?.preventDefault();
     if (!this.mcd || !this.caretaker.canUndo()) return;
     const previous = this.caretaker.undo(this.mcd);
@@ -244,6 +248,7 @@ export class McdEditorComponent implements OnInit, OnChanges, AfterViewInit, OnD
 
   @HostListener('document:keydown.control.y', ['$event'])
   onRedo(event?: KeyboardEvent): void {
+    if (this.readonly) return;
     event?.preventDefault();
     if (!this.mcd || !this.caretaker.canRedo()) return;
     const next = this.caretaker.redo(this.mcd);

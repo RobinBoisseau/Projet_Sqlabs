@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AngularSplitModule } from 'angular-split';
+import { filter, take } from 'rxjs';
 
 declare const Quill: any;
 
@@ -10,6 +11,7 @@ import { ExerciceService } from '../../../services/exercice.service';
 import { DictionaryService } from '../../../services/dictionary.service';
 import { DependenceService } from '../../../services/dependence.service';
 import { McdService } from '../../../services/mcd.service';
+import { AuthService } from '../../../services/auth.service';
 
 import { Field } from '../../../models/field';
 import { DependenceLine } from '../../../models/dependence-line.model';
@@ -43,9 +45,11 @@ export class ExerciceEditComponent implements OnInit, AfterViewInit, OnDestroy {
     technicalNames: string[] = [];
 
     currentSlug = '';
+    backUrl = '/admin/exercices';
     isLoaded = false;
     isSaving = false;
     errorMessage = '';
+    isReadonly = true; // readonly par défaut — admin seulement peut éditer
 
     sizes = { enonce: 25, dictionnaire: 30, modelisation: 45 };
     previousSizes = { enonce: 25, dictionnaire: 30, modelisation: 45 };
@@ -73,10 +77,34 @@ export class ExerciceEditComponent implements OnInit, AfterViewInit, OnDestroy {
         private dependenceService: DependenceService,
         private mcdService: McdService,
         private router: Router,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private authService: AuthService,
     ) { }
 
     ngOnInit(): void {
+        const user = this.authService.currentUser;
+        if (user) {
+            this.isReadonly = user.role !== 'admin';
+        } else {
+            this.authService.currentUser$.pipe(filter(u => u !== null), take(1)).subscribe(u => {
+                this.isReadonly = u?.role !== 'admin';
+                if (this.quillInstance) {
+                    this.quillInstance.enable(!this.isReadonly);
+                    if (this.isReadonly) {
+                        this.quillEditorRef.nativeElement.style.opacity = '0.7';
+                        this.quillEditorRef.nativeElement.style.cursor = 'not-allowed';
+                    }
+                }
+                this.cdr.detectChanges();
+            });
+        }
+
+        const classeId = this.route.snapshot.queryParamMap.get('classeId');
+        if (classeId) {
+            const slug2 = this.route.snapshot.paramMap.get('slug');
+            this.backUrl = `/classes/${classeId}/exercises/${slug2}/details`;
+        }
+
         const slug = this.route.snapshot.paramMap.get('slug');
         if (!slug) return;
         this.currentSlug = slug;
@@ -142,6 +170,12 @@ export class ExerciceEditComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.quillInstance.on('text-change', () => {
                     this.enonce = this.quillInstance.root.innerHTML;
                 });
+
+                if (this.isReadonly) {
+                    this.quillInstance.enable(false);
+                    this.quillEditorRef.nativeElement.style.opacity = '0.7';
+                    this.quillEditorRef.nativeElement.style.cursor = 'not-allowed';
+                }
             }
         }, 0);
     }
@@ -171,6 +205,7 @@ export class ExerciceEditComponent implements OnInit, AfterViewInit, OnDestroy {
     // --- Sauvegarde ---
 
     onSave(): void {
+        if (this.isReadonly) return;
         const htmlEnonce = this.quillInstance?.root.innerHTML ?? this.enonce;
         const plainEnonce = this.quillInstance?.getText().trim() ?? this.enonce.trim();
 
