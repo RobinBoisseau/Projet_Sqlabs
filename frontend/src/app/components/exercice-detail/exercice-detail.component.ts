@@ -164,53 +164,55 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
 
   ngOnInit(): void {
     const slug = this.route.snapshot.paramMap.get('slug');
-    const tentativeId = this.route.snapshot.queryParamMap.get('tentativeId');
     if (!slug) return;
 
     this.exerciceService.getExerciceBySlug(slug).subscribe((response: any) => {
       this.exercice = response.data || response;
       this.safeStatement = this.sanitizer.bypassSecurityTrustHtml(this.exercice?.statement ?? '');
-
       if (!this.exercice?.id) return;
 
-      // Calcul de l'exercice suivant (uniquement en mode normal)
-      if (!tentativeId) {
-        this.exerciceService.getExercices().subscribe(all => {
-          const idx = all.findIndex(e => e.slug === this.exercice!.slug);
-          this.nextSlug = idx >= 0 && idx < all.length - 1 ? all[idx + 1].slug : null;
-        });
-      }
+      this.route.queryParams.subscribe(params => {
+        const tentativeId = params['tentativeId'];
 
-      if (tentativeId) {
-        // Mode lecture : consultation de la tentative d'un étudiant
-        this.isReadOnly = true;
-        this.isTentativeDisabled = true;
-        this.exerciceService.getTentativeById(+tentativeId).subscribe((res: any) => {
-          const attempt = res.data || res;
-          this.viewedStudentName = attempt.user?.name ?? 'Étudiant';
-          this.applyAttemptData(slug, attempt);
-        });
-      } else {
-        // Mode normal : charge la dernière tentative de l'utilisateur
-        this.exerciceService.getLastAttempt(this.exercice.id).subscribe((res: any) => {
-          if (res?.data) {
-            this.applyAttemptData(slug, res.data);
-            this.currentTentativeId = res.data.id ?? null;
-            if (this.exercice?.slug) {
-              this.dictionaryService.save(this.exercice.slug, this.dictionary);
-              this.dependenceService.saveDependences(this.exercice.slug, this.dependencies);
+        if (tentativeId) {
+          // Mode lecture : consultation de la tentative d'un étudiant
+          this.isReadOnly = true;
+          this.isTentativeDisabled = true;
+          this.isLoaded = false;
+          this.exerciceService.getTentativeById(+tentativeId).subscribe((res: any) => {
+            const attempt = res.data || res;
+            this.viewedStudentName = attempt.user?.name ?? 'Étudiant';
+            this.applyAttemptData(slug, attempt);
+          });
+        } else {
+          // Mode normal : charge la dernière tentative de l'utilisateur
+          this.isReadOnly = false;
+          this.isTentativeDisabled = false;
+          this.viewedStudentName = '';
+          this.exerciceService.getExercices().subscribe(all => {
+            const idx = all.findIndex(e => e.slug === this.exercice!.slug);
+            this.nextSlug = idx >= 0 && idx < all.length - 1 ? all[idx + 1].slug : null;
+          });
+          this.exerciceService.getLastAttempt(this.exercice!.id).subscribe((res: any) => {
+            if (res?.data) {
+              this.applyAttemptData(slug, res.data);
+              this.currentTentativeId = res.data.id ?? null;
+              if (this.exercice?.slug) {
+                this.dictionaryService.save(this.exercice.slug, this.dictionary);
+                this.dependenceService.saveDependences(this.exercice.slug, this.dependencies);
+              }
+            } else {
+              this.dictionary = this.dictionaryService.load(slug);
+              this.lastSavedDictionary = this.deepCopyFields(this.dictionary);
+              this.dependencies = this.dependenceService.loadDependences(slug);
+              this.mcd = this.mcdService.loadMcd(slug);
             }
-          } else {
-            this.dictionary = this.dictionaryService.load(slug);
-            this.lastSavedDictionary = this.deepCopyFields(this.dictionary);
-            this.dependencies = this.dependenceService.loadDependences(slug);
-            this.mcd = this.mcdService.loadMcd(slug);
-          }
-          this.updateTechnicalNames();
-          this.isLoaded = true;
-          this.cdr.detectChanges();
-        });
-      }
+            this.updateTechnicalNames();
+            this.isLoaded = true;
+            this.cdr.detectChanges();
+          });
+        }
+      });
     });
   }
 
