@@ -93,9 +93,17 @@ class TentativeController extends Controller
 
     private function returnLastResponses(Tentative $last, AnalyseIAService $analyseService, Request $request): JsonResponse
     {
+        $cached = $analyseService->getAllLastResponses($last);
+
+        $last->update([
+            'dictionnaireValide' => $analyseService->isFullyValid($cached['dictionary']),
+            'dependanceValide'   => $analyseService->isFullyValid($cached['dependencies']),
+            'modeleValide'       => $analyseService->isFullyValid($cached['mcd']),
+        ]);
+
         return response()->json([
             'data' => (new TentativeResource($last))->toArray($request),
-            'ia'   => $analyseService->getAllLastResponses($last),
+            'ia'   => $cached,
         ]);
     }
 

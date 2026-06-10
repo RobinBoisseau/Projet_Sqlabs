@@ -36,15 +36,25 @@ class AnalyseIAService
             $resMcd = $this->analyseComponent('mcd', $mcd, $current->id, $last, $hashes['mcd'], 'hash_mcd', $ollama);
         }
 
+        $ddicoValide = $this->isFullyValid($resDico);
+        $depValide   = $this->isFullyValid($resDep);
+        $mcdValide   = $this->isFullyValid($resMcd);
+
+        $current->update([
+            'dictionnaireValide' => $ddicoValide,
+            'dependanceValide'   => $depValide,
+            'modeleValide'       => $mcdValide,
+        ]);
+
         return [
             'mcd'          => $resMcd,
             'dictionary'   => $resDico,
             'dependencies' => $resDep,
             'succes'       => [
-                'DD'      => $this->isFullyValid($resDico),
-                'DF'      => $this->isFullyValid($resDep),
-                'MCD'     => $this->isFullyValid($resMcd),
-                'message' => ($this->isFullyValid($resDico) && $this->isFullyValid($resDep) && $this->isFullyValid($resMcd))
+                'DD'      => $ddicoValide,
+                'DF'      => $depValide,
+                'MCD'     => $mcdValide,
+                'message' => ($ddicoValide && $depValide && $mcdValide)
                              ? 'Félicitations, tout est correct !'
                              : '',
             ],
