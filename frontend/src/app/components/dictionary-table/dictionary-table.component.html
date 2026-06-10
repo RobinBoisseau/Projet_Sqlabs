@@ -6,22 +6,22 @@
           <th>Nom Métier <app-info-tooltip text="Nom utilisé en langage courant (ex: Identifiant du client)"></app-info-tooltip> </th>
           <th>Nom Technique<app-info-tooltip text="Nom utilisé en base de données (ex: id_Client)"></app-info-tooltip></th>
           <th style="width: 100px;">Type<app-info-tooltip text="Nature définissant les valeurs qu'elle peut contenir (ex: entier, date...)"></app-info-tooltip></th>
-          <th style="width: 40px;"></th>
+          <th *ngIf="!readonly" style="width: 40px;"></th>
         </tr>
       </thead>
       <tbody>
         <tr #tableRow *ngFor="let line of lines; let i = index; trackBy: trackByFn">
           <td>
-            <input type="text" [(ngModel)]="line.name" (ngModelChange)="emitChanges()" placeholder="ex: Customer Name">
+            <input type="text" [(ngModel)]="line.name" (ngModelChange)="emitChanges()" placeholder="ex: Customer Name" [disabled]="readonly">
           </td>
           <td class="td-technical">
-            <input type="text" [(ngModel)]="line.TechnicalName" (blur)="emitChanges()" placeholder="ex: customer_name">
+            <input type="text" [(ngModel)]="line.TechnicalName" (blur)="emitChanges()" placeholder="ex: customer_name" [disabled]="readonly">
             <span *ngIf="line.TechnicalName && iaRemarks.get(line.TechnicalName)"
                   class="ia-tooltip-trigger"
                   [attr.data-tooltip]="iaRemarks.get(line.TechnicalName)">?</span>
           </td>
           <td>
-            <select [(ngModel)]="line.Type" (ngModelChange)="emitChanges()">
+            <select [(ngModel)]="line.Type" (ngModelChange)="emitChanges()" [disabled]="readonly">
               <option value=""></option>
               <option value="INT">Entier</option>
               <option value="VARCHAR2">AlphaNumérique</option>
@@ -30,7 +30,7 @@
               <option value="DATE">Date</option>
             </select>
           </td>
-          <td>
+          <td *ngIf="!readonly">
             <div class="dropdown">
               <button class="dots-btn">⋮</button>
               <div class="dropdown-content">
@@ -43,7 +43,7 @@
       </tbody>
     </table>
   </div>
-  <div class="add-section">
+  <div *ngIf="!readonly" class="add-section">
     <app-add-button (btnClick)="addLine()" label="Ajouter une nouvelle donnée"></app-add-button>
   </div>
 </div>

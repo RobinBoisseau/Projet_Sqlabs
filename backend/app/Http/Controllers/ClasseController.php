@@ -12,15 +12,18 @@ use Illuminate\Http\JsonResponse;
 class ClasseController extends Controller
 {
     public function index(Request $request)
-    {
-        $userId = $request->user()->id;
+{
+    $userId = $request->user()->id;
 
-        $classes = Classe::whereHas('creator', fn($q) => $q->where('user_id', $userId))
-            ->orWhereHas('teachers', fn($q) => $q->where('user_id', $userId))
-            ->get();
+    $classes = Classe::where(function($query) use ($userId) {
+        $query->whereHas('creator', fn($q) => $q->where('user_id', $userId))
+              ->orWhereHas('teachers', fn($q) => $q->where('user_id', $userId))
+              ->orWhereHas('students', fn($q) => $q->where('user_id', $userId))
+              ->orWhereHas('responsables', fn($q) => $q->where('user_id', $userId));
+    })->get();
 
-        return ClasseResource::collection($classes);
-    }
+    return ClasseResource::collection($classes);
+}
 
     public function store(Request $request)
     {
@@ -311,6 +314,103 @@ class ClasseController extends Controller
                 ],
                 'students' => $result,
             ],
+        ]);
+    }
+
+    public function getStudentTentatives(int $id, string $slug, int $userId): JsonResponse
+    {
+        $exercice = Exercice::where('slug', $slug)->firstOrFail();
+
+        $tentatives = Tentative::where('exercice_id', $exercice->id)
+            ->where('user_id', $userId)
+            ->where('is_correction', false)
+            ->orderBy('created_at', 'asc')
+            ->get()
+            ->map(fn($t) => [
+                'id'                 => $t->id,
+                'date'               => $t->dateHeureTentative,
+                'dictionary'         => $t->dictionnaire,
+                'dependencies'       => $t->dependance,
+                'model'              => $t->modele,
+                'dictionnaireValide' => $t->dictionnaireValide,
+                'dependanceValide'   => $t->dependanceValide,
+                'modeleValide'       => $t->modeleValide,
+            ]);
+
+        return response()->json(['data' => $tentatives]);
+    }
+
+    public function getStudentProgress(int $id, int $userId): JsonResponse
+    {
+        $classe  = Classe::findOrFail($id);
+        $student = $classe->students()->where('users.id', $userId)->first();
+
+        if (!$student) {
+            return response()->json(['message' => 'Étudiant non trouvé dans cette classe.'], 404);
+        }
+
+        $cours = $classe->cours()->with('exercices')->get();
+
+        $totalExercices = 0;
+        $totalCompleted = 0;
+        $totalInProgress = 0;
+
+        $coursData = $cours->map(function ($c) use ($userId, &$totalExercices, &$totalCompleted, &$totalInProgress) {
+            $exercices = $c->exercices->map(function ($e) use ($userId, &$totalExercices, &$totalCompleted, &$totalInProgress) {
+                $totalExercices++;
+
+                $tentatives = Tentative::where('exercice_id', $e->id)
+                    ->where('user_id', $userId)
+                    ->where('is_correction', false)
+                    ->count();
+
+                $completed = Tentative::where('exercice_id', $e->id)
+                    ->where('user_id', $userId)
+                    ->where('is_correction', false)
+                    ->where('dictionnaireValide', true)
+                    ->where('dependanceValide', true)
+                    ->where('modeleValide', true)
+                    ->exists();
+
+                if ($completed) {
+                    $totalCompleted++;
+                    $status = 'completed';
+                } elseif ($tentatives > 0) {
+                    $totalInProgress++;
+                    $status = 'in_progress';
+                } else {
+                    $status = 'not_started';
+                }
+
+                return [
+                    'slug'           => $e->slug,
+                    'title'          => $e->titre,
+                    'type'           => $e->type,
+                    'status'         => $status,
+                    'attempts_count' => $tentatives,
+                ];
+            });
+
+            return [
+                'id'        => $c->id,
+                'nom'       => $c->nom,
+                'exercices' => $exercices,
+            ];
+        });
+
+        return response()->json([
+            'student' => [
+                'id'    => $student->id,
+                'name'  => $student->name,
+                'email' => $student->email,
+            ],
+            'stats' => [
+                'total'       => $totalExercices,
+                'completed'   => $totalCompleted,
+                'in_progress' => $totalInProgress,
+                'not_started' => $totalExercices - $totalCompleted - $totalInProgress,
+            ],
+            'cours' => $coursData,
         ]);
     }
 

@@ -33,6 +33,8 @@ import { ExerciceAdminListComponent } from './components/admin/exercice-list/exe
 import { ExerciceCreateComponent } from './components/admin/exercice-create/exercice-create.component';
 import { ExerciceEditComponent } from './components/admin/exercice-edit/exercice-edit.component';
 import { TentativesTestablesComponent } from './components/admin/tentatives-testables/tentatives-testables.component';
+import { PromptListComponent } from './components/admin/prompt-list/prompt-list.component';
+import { PromptCreateComponent } from './components/admin/prompt-create/prompt-create.component';
 
 export const routes: Routes = [
   // Routes publiques
@@ -54,8 +56,11 @@ export const routes: Routes = [
   { path: 'admin/cours',          component: CoursListComponent,      canActivate: [adminGuard] },
   { path: 'admin/exercices', component: ExerciceAdminListComponent, canActivate: [adminGuard] },
   { path: 'admin/exercices/create', component: ExerciceCreateComponent, canActivate: [adminGuard] },
-  { path: 'admin/exercices/:slug/edit', component: ExerciceEditComponent, canActivate: [adminGuard] },
+  { path: 'admin/exercices/:slug/edit', component: ExerciceEditComponent, canActivate: [teacherGuard] },
   { path: 'admin/exercices/:slug/tentatives-testables', component: TentativesTestablesComponent, canActivate: [adminGuard] },
+  { path: 'admin/prompts',             component: PromptListComponent,   canActivate: [adminGuard] },
+  { path: 'admin/prompts/create',      component: PromptCreateComponent, canActivate: [adminGuard] },
+  { path: 'admin/prompts/:id/edit',    component: PromptCreateComponent, canActivate: [adminGuard] },
   {
     path: 'admin/cours/:id',
     component: CoursLayoutComponent,
@@ -74,15 +79,15 @@ export const routes: Routes = [
   {
     path: 'classes/:id',
     component: ClassLayoutComponent,
-    canActivate: [teacherGuard],
+    canActivate: [authGuard],
     children: [
       { path: '',                    component: ClassDetailComponent },
-      { path: 'members',             component: ClassMembersComponent },
-      { path: 'edit',                component: ClassEditComponent },
       { path: 'exercises',           component: ClassExercisesComponent },
-      { path: 'progress/individual', component: ClassProgressIndividualComponent },
-      { path: 'progress/global',     component: ClassProgressGlobalComponent },
-      { path: 'delete',              component: ClassDeleteComponent },
+      { path: 'members',             component: ClassMembersComponent,             canActivate: [teacherGuard] },
+      { path: 'edit',                component: ClassEditComponent,                canActivate: [teacherGuard] },
+      { path: 'progress/individual', component: ClassProgressIndividualComponent,  canActivate: [teacherGuard] },
+      { path: 'progress/global',     component: ClassProgressGlobalComponent,      canActivate: [teacherGuard] },
+      { path: 'delete',              component: ClassDeleteComponent,              canActivate: [teacherGuard] },
     ],
   },
 
