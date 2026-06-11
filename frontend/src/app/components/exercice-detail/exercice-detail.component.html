@@ -158,6 +158,7 @@
   <app-return-ia
     *ngIf="showIaResults && iaResults"
     [results]="iaResults!"
+    [mcd]="mcd"
     (closed)="showIaResults = false"
     (itemChecked)="onIaItemChecked($event)">
   </app-return-ia>

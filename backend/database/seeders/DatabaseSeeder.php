@@ -24,8 +24,8 @@ class DatabaseSeeder extends Seeder
         ClasseUserSeeder::class,
         FichierSeeder::class,
         ReponseIASeeder::class,
-        CoursSeeder::class,
         PlaylistMusicaleSeeder::class,
+        CoursSeeder::class,
         PromptSeeder::class,
     ]);
 }

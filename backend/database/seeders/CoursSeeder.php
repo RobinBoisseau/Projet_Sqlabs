@@ -4,12 +4,13 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Cours;
+use App\Models\Exercice;
 
 class CoursSeeder extends Seeder
 {
     public function run(): void
     {
-        Cours::firstOrCreate(
+        $coursER = Cours::firstOrCreate(
             ['nom' => 'Modéliser une BD entité relation'],
             [
                 'description' => 'Apprenez à concevoir un modèle entité-relation à partir d\'un énoncé.',
@@ -17,6 +18,11 @@ class CoursSeeder extends Seeder
                 'visibility'  => true,
             ]
         );
+
+        $playlist = Exercice::where('slug', 'playlist-musical')->first();
+        if ($playlist && !$coursER->exercices()->where('exercice_id', $playlist->id)->exists()) {
+            $coursER->exercices()->attach($playlist->id, ['order' => 1]);
+        }
 
         Cours::firstOrCreate(
             ['nom' => 'Modéliser une BD en UML'],
