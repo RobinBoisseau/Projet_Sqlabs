@@ -331,6 +331,7 @@ export class ExerciceDetailComponent implements OnInit, OnDestroy, AfterViewInit
     this.exerciceService.saveAttempt(this.exercice.id, data).subscribe({
       next: (saved: any) => {
         const ia = saved?.ia;
+        if (this.mcdEditor?.mcd) this.mcd = this.mcdEditor.mcd;
         this.iaResults = {
           mcd:          ia?.mcd          ?? null,
           dictionary:   ia?.dictionary   ?? null,

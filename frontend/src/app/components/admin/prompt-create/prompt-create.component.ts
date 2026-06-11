@@ -19,11 +19,11 @@ export class PromptCreateComponent implements OnInit, AfterViewInit {
   promptId: number | null = null;
   isSaving = false;
   error = '';
+  warningMessage = '';
 
   form: Partial<Prompt> = {
     nom: '',
     categorie: 'mcd',
-    poid: 0,
     prompt: '',
     actif: false,
   };
@@ -80,6 +80,11 @@ export class PromptCreateComponent implements OnInit, AfterViewInit {
     }, 0);
   }
 
+  confirmWarning(): void {
+    this.warningMessage = '';
+    this.router.navigate(['/admin/prompts']);
+  }
+
   save(): void {
     const plainText = this.quillInstance?.getText().trim() ?? this.form.prompt?.trim();
     if (!this.form.nom?.trim() || !plainText) {
@@ -94,7 +99,14 @@ export class PromptCreateComponent implements OnInit, AfterViewInit {
       : this.promptService.create(this.form);
 
     request.subscribe({
-      next: () => this.router.navigate(['/admin/prompts']),
+      next: (res: any) => {
+        if (res?.forced_actif) {
+          this.warningMessage = 'Aucun prompt de cette catégorie n\'était actif. Le prompt a été automatiquement mis en actif.';
+          this.isSaving = false;
+        } else {
+          this.router.navigate(['/admin/prompts']);
+        }
+      },
       error: () => {
         this.error = 'Une erreur est survenue.';
         this.isSaving = false;

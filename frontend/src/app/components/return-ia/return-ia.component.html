@@ -94,7 +94,7 @@
                  [disabled]="isResolved('mcd', getId(r, 'mcd'))"
                  (click)="$event.stopPropagation(); onCheckboxChange('mcd', r)">
           <div class="ia-content">
-            <span class="ia-nom" *ngIf="r.id">{{ r.id }}</span>
+            <span class="ia-nom" *ngIf="r.id">{{ getMcdName(r.id) }}</span>
             <span class="ia-msg">{{ r.message }}</span>
           </div>
           <span class="ia-resolve-btn"

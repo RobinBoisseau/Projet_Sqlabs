@@ -72,12 +72,14 @@ exit
 
 Cela génère la clé d'application, crée toutes les tables et insère les données d'exemple (utilisateurs, exercices, classes, prompts IA…).
 
-**Identifiants du compte administrateur :**
+**Identifiants du compte administrateur (par défaut) :**
 
 | Champ | Valeur |
 |---|---|
 | E-mail | `admin@sqlabs.fr` |
 | Mot de passe | `admin1234` |
+
+> **Sécurité :** Pensez à changer le mot de passe admin dès la première connexion via la page **Mon profil**.
 
 ## Arrêter le projet
 

@@ -15,15 +15,29 @@ class PromptController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $categorie   = $request->categorie;
+        $actif       = $request->boolean('actif');
+        $forcedActif = false;
+
+        // Si inactif demandé mais aucun prompt actif de cette catégorie → forcer actif
+        if (!$actif && !Prompt::where('categorie', $categorie)->where('actif', true)->exists()) {
+            $actif       = true;
+            $forcedActif = true;
+        }
+
+        // Si actif → désactiver les autres de la même catégorie
+        if ($actif) {
+            Prompt::where('categorie', $categorie)->update(['actif' => false]);
+        }
+
         $prompt = Prompt::create([
             'nom'       => $request->nom,
             'prompt'    => $request->prompt,
-            'categorie' => $request->categorie,
-            'actif'     => $request->boolean('actif'),
-            'poid'      => $request->boolean('poid'),
+            'categorie' => $categorie,
+            'actif'     => $actif,
         ]);
 
-        return response()->json($prompt, 201);
+        return response()->json(['prompt' => $prompt, 'forced_actif' => $forcedActif], 201);
     }
 
     public function show(int $id): JsonResponse
@@ -33,16 +47,30 @@ class PromptController extends Controller
 
     public function update(Request $request, int $id): JsonResponse
     {
-        $prompt = Prompt::findOrFail($id);
+        $prompt      = Prompt::findOrFail($id);
+        $categorie   = $request->categorie ?? $prompt->categorie;
+        $actif       = $request->has('actif') ? $request->boolean('actif') : $prompt->actif;
+        $forcedActif = false;
+
+        // Si inactif demandé mais aucun autre prompt actif de cette catégorie → forcer actif
+        if (!$actif && !Prompt::where('categorie', $categorie)->where('actif', true)->where('id', '!=', $id)->exists()) {
+            $actif       = true;
+            $forcedActif = true;
+        }
+
+        // Si actif → désactiver les autres de la même catégorie
+        if ($actif) {
+            Prompt::where('categorie', $categorie)->where('id', '!=', $id)->update(['actif' => false]);
+        }
+
         $prompt->update([
             'nom'       => $request->nom       ?? $prompt->nom,
             'prompt'    => $request->prompt    ?? $prompt->prompt,
-            'categorie' => $request->categorie ?? $prompt->categorie,
-            'actif'     => $request->has('actif') ? $request->boolean('actif') : $prompt->actif,
-            'poid'      => $request->has('poid')  ? $request->boolean('poid')  : $prompt->poid,
+            'categorie' => $categorie,
+            'actif'     => $actif,
         ]);
 
-        return response()->json($prompt);
+        return response()->json(['prompt' => $prompt, 'forced_actif' => $forcedActif]);
     }
 
     public function destroy(int $id): JsonResponse
