@@ -1,13 +1,40 @@
 # Sqlabs
 
-Application Laravel (API) + Angular (Frontend) conteneurisée avec Docker.
+Application pédagogique de modélisation de bases de données (Merise).  
+Stack : Laravel 11 (API REST) + Angular 18 (Frontend), conteneurisée avec Docker.
+
+**Rôles utilisateurs :** `admin` · `professeur` · `étudiant`
 
 ## Prérequis
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - WSL2 (sous Windows)
 
-## Lancer le projet
+## Installation
+
+### 1. Configurer les variables d'environnement
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+Ouvrez `backend/.env` et remplacez la valeur de `MISTRAL_API_KEY` par votre clé API Mistral (obtenable sur [console.mistral.ai](https://console.mistral.ai/)) :
+
+```
+MISTRAL_API_KEY=votre_clé_api_mistral
+```
+
+> Toutes les autres variables sont déjà configurées pour Docker, vous n'avez rien d'autre à modifier.
+
+### 2. Lancer le projet
+
+Au **premier lancement**, pour construire les images Docker :
+
+```bash
+docker compose up --build
+```
+
+Les lancements suivants :
 
 ```bash
 docker compose up -d
@@ -22,22 +49,28 @@ Les services démarrent automatiquement :
 | phpMyAdmin | http://localhost:8080 |
 | MySQL | port 3306 |
 
-## Initialiser la base de données
+### 3. Initialiser la base de données
 
-A effectuer une seule fois après le premier lancement :
+Dans un **nouveau terminal**, ouvrez un shell dans le conteneur backend :
 
 ```bash
-# Créer les tables
-docker compose exec backend php artisan migrate
-
-# Insérer les données exemples
-docker compose exec backend php artisan db:seed
-
-# Créer le compte administrateur
-docker compose exec backend php artisan db:seed --class=AdminSeeder
+docker exec -it laravel_api bash
 ```
 
-> Le seeder admin est séparé du seeder principal car il ne doit pas être réexécuté lors d'un `db:seed` global (il utilise `firstOrCreate` et ne crée pas de doublon si relancé).
+Vous êtes maintenant à l'intérieur du conteneur. Lancez ces deux commandes :
+
+```bash
+php artisan key:generate
+php artisan migrate:fresh --seed
+```
+
+Puis quittez le conteneur :
+
+```bash
+exit
+```
+
+Cela génère la clé d'application, crée toutes les tables et insère les données d'exemple (utilisateurs, exercices, classes, prompts IA…).
 
 **Identifiants du compte administrateur :**
 
@@ -51,3 +84,10 @@ docker compose exec backend php artisan db:seed --class=AdminSeeder
 ```bash
 docker compose down
 ```
+
+## IA — Mistral API
+
+Le projet utilise l'API Mistral en ligne pour analyser les tentatives des étudiants.  
+Créez un compte sur [console.mistral.ai](https://console.mistral.ai/) pour obtenir une clé API.
+
+> **Alternative locale (Ollama) :** Si vous souhaitez utiliser un modèle local, installez [Ollama](https://ollama.com/), décommentez les variables `OLLAMA_URL` et `OLLAMA_MODEL` dans `backend/.env`, et adaptez le service IA en conséquence.
