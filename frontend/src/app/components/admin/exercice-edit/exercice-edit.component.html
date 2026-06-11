@@ -3,8 +3,8 @@
   <!-- Header -->
   <div class="create-header">
     <div class="create-header-left">
-      <a [routerLink]="isReadonly ? backUrl : '/admin/exercices'" class="back-link">
-        ← {{ isReadonly ? 'Retour' : 'Gestion des exercices' }}
+      <a [routerLink]="backUrl" class="back-link">
+        ← {{ isReadonly ? 'Retour' : 'Retour' }}
       </a>
       <h1 class="create-title">
         {{ isReadonly ? 'Consulter l\'exercice' : 'Modifier l\'exercice' }}

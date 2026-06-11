@@ -229,7 +229,7 @@ export class ExerciceEditComponent implements OnInit, AfterViewInit, OnDestroy {
         this.exerciceService.updateExercice(this.currentSlug, data).subscribe({
             next: () => {
                 this.isSaving = false;
-                this.router.navigate(['/admin/exercices']);
+                this.router.navigateByUrl(this.backUrl);
             },
             error: (err) => {
                 this.errorMessage = `Erreur lors de la modification (${err?.status ?? 'réseau'}).`;
