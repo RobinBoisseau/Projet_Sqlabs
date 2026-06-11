@@ -20,9 +20,9 @@ export interface IaRemarqueDependency {
 }
 
 export interface IaResults {
-  mcd:          { remarques: IaRemarqueMcd[] }          | null;
-  dictionary:   { remarques: IaRemarqueDictionary[] }   | null;
-  dependencies: { remarques: IaRemarqueDependency[] }   | null;
+  mcd: { remarques: IaRemarqueMcd[] } | null;
+  dictionary: { remarques: IaRemarqueDictionary[] } | null;
+  dependencies: { remarques: IaRemarqueDependency[] } | null;
 }
 
 export interface IaItemCheckedEvent {
@@ -44,54 +44,44 @@ export class ReturnIaComponent {
   @Output() closed = new EventEmitter<void>();
   @Output() itemChecked = new EventEmitter<IaItemCheckedEvent>();
 
-  // État par item : 'showing' = ? affiché dans la table, 'resolved' = vert permanent
   itemStates = new Map<string, 'showing' | 'resolved'>();
 
+  // --- LOGIQUE EXISTANTE ---
   hasInvalidItems(section: 'mcd' | 'dictionary' | 'dependencies'): boolean {
     return this.results?.[section]?.remarques.some(r => r.statut === 'invalide') ?? false;
   }
-
   isAllValid(section: 'mcd' | 'dictionary' | 'dependencies'): boolean {
     const remarques = this.results?.[section]?.remarques;
     return !!remarques && remarques.length > 0 && !remarques.some(r => r.statut === 'invalide');
   }
-
   getInvalidRemarques(section: 'mcd' | 'dictionary' | 'dependencies'): any[] {
     return this.results?.[section]?.remarques.filter(r => r.statut === 'invalide') ?? [];
   }
-
   getId(r: any, section: string): string {
     if (section === 'mcd') return r.id ?? r.entite ?? '';
     if (section === 'dictionary') return r.champ ?? '';
     return r.source ?? '';
   }
-
   getState(section: string, id: string): 'showing' | 'resolved' | undefined {
     return this.itemStates.get(`${section}:${id}`);
   }
-
   isShowing(section: string, id: string): boolean {
     return this.itemStates.get(`${section}:${id}`) === 'showing';
   }
-
   isResolved(section: string, id: string): boolean {
     return this.itemStates.get(`${section}:${id}`) === 'resolved';
   }
 
-  // Cliquer sur la checkbox ou le texte : bascule entre orange ↔ showing
   onCheckboxChange(section: 'mcd' | 'dictionary' | 'dependencies', r: any): void {
     const id = this.getId(r, section);
     const key = `${section}:${id}`;
     const state = this.itemStates.get(key);
-
-    if (state === 'resolved') return; // immuable
+    if (state === 'resolved') return;
 
     if (!state) {
-      // Orange → showing : affiche le ? dans la table
       this.itemStates = new Map(this.itemStates).set(key, 'showing');
       this.itemChecked.emit({ section, id, message: r.message, action: 'add' });
     } else {
-      // Showing → orange : retire le ? de la table
       const next = new Map(this.itemStates);
       next.delete(key);
       this.itemStates = next;
@@ -99,14 +89,39 @@ export class ReturnIaComponent {
     }
   }
 
-  // Bouton "Traité" : passe en vert permanent et retire le ? du panel
+  // --- NOUVELLES FONCTIONNALITÉS ---
+
+  // Bouton "Tout traiter" pour une section
+  markAllResolved(section: 'mcd' | 'dictionary' | 'dependencies'): void {
+    const remarques = this.getInvalidRemarques(section);
+    const nextStates = new Map(this.itemStates);
+
+    remarques.forEach(r => {
+      const id = this.getId(r, section);
+      const key = `${section}:${id}`;
+
+      // Si on était en train d'afficher l'aide, on demande au parent de la retirer
+      if (this.itemStates.get(key) === 'showing') {
+        this.itemChecked.emit({ section, id, message: r.message, action: 'remove' });
+      }
+
+      nextStates.set(key, 'resolved');
+    });
+
+    this.itemStates = nextStates;
+  }
+
+  // Modifié pour être appelable n'importe quand (plus besoin du isShowing)
   markResolved(section: 'mcd' | 'dictionary' | 'dependencies', r: any, event: MouseEvent): void {
-    event.stopPropagation(); // empêche le click de remonter sur le div parent (onCheckboxChange)
+    event.stopPropagation();
     const id = this.getId(r, section);
     const key = `${section}:${id}`;
+
+    // Si l'aide était affichée, on la retire
     if (this.itemStates.get(key) === 'showing') {
       this.itemChecked.emit({ section, id, message: r.message, action: 'remove' });
     }
+
     this.itemStates = new Map(this.itemStates).set(key, 'resolved');
   }
 }
