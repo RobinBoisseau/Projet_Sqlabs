@@ -3,6 +3,11 @@
   <div class="max-w-6xl mx-auto px-6">
     <div class="flex items-center gap-6 h-14">
 
+      <!-- Retour à la liste des classes -->
+      <a routerLink="/classes" class="text-sm text-gray-500 hover:text-primary transition-colors">← Mes classes</a>
+
+      <span class="text-gray-300">/</span>
+
       <!-- Nom de la classe (retour au tableau de bord) -->
       <a [routerLink]="['/classes', classe.id]"
         class="font-semibold text-gray-800 hover:text-primary transition-colors truncate max-w-xs">

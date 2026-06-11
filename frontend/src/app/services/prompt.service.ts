@@ -17,12 +17,12 @@ export class PromptService {
     return this.http.get<Prompt>(`${this.apiUrl}/${id}`);
   }
 
-  create(data: Partial<Prompt>): Observable<Prompt> {
-    return this.http.post<Prompt>(this.apiUrl, data);
+  create(data: Partial<Prompt>): Observable<{ prompt: Prompt; forced_actif: boolean }> {
+    return this.http.post<{ prompt: Prompt; forced_actif: boolean }>(this.apiUrl, data);
   }
 
-  update(id: number, data: Partial<Prompt>): Observable<Prompt> {
-    return this.http.put<Prompt>(`${this.apiUrl}/${id}`, data);
+  update(id: number, data: Partial<Prompt>): Observable<{ prompt: Prompt; forced_actif: boolean }> {
+    return this.http.put<{ prompt: Prompt; forced_actif: boolean }>(`${this.apiUrl}/${id}`, data);
   }
 
   delete(id: number): Observable<any> {

@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Mcd } from '../../models/mcd';
 
 export interface IaRemarqueMcd {
   id: string;
@@ -41,6 +42,7 @@ export interface IaItemCheckedEvent {
 })
 export class ReturnIaComponent {
   @Input() results!: IaResults;
+  @Input() mcd?: Mcd;
   @Output() closed = new EventEmitter<void>();
   @Output() itemChecked = new EventEmitter<IaItemCheckedEvent>();
 
@@ -57,6 +59,15 @@ export class ReturnIaComponent {
   getInvalidRemarques(section: 'mcd' | 'dictionary' | 'dependencies'): any[] {
     return this.results?.[section]?.remarques.filter(r => r.statut === 'invalide') ?? [];
   }
+
+  getMcdName(id: string): string {
+    if (!this.mcd) return id;
+    const entity = this.mcd.Entities.find(e => e.id === id);
+    if (entity) return entity.name || id;
+    const assoc = this.mcd.Associations.find(a => a.id === id);
+    return assoc?.name || id;
+  }
+
   getId(r: any, section: string): string {
     if (section === 'mcd') return r.id ?? r.entite ?? '';
     if (section === 'dictionary') return r.champ ?? '';

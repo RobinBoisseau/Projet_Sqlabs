@@ -4,5 +4,4 @@ export interface Prompt {
   prompt: string;
   categorie: 'mcd' | 'dd' | 'df';
   actif: boolean;
-  poid: number;
 }
