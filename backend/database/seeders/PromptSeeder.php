@@ -42,7 +42,7 @@ Compare les deux dictionnaires. Tu DOIS générer une remarque pour CHAQUE champ
 
 RÈGLE ORDRE : L'ordre des champs dans le dictionnaire de l'étudiant n'a pas d'importance.
 RÈGLE CLÉ PRIMAIRE : Ignore complètement le champ PrimaryKey dans ta comparaison. Ne commente jamais la clé primaire.
-RÈGLE NOM : Le nom technique d'un champ n'a pas besoin d'être identique à la correction si sa signification est équivalente (ex : "id_play" et "id_playlist" désignent la même chose). Dans ce cas, si le type correspond, marque le champ VALIDE.
+RÈGLE NOM : Le nom technique d'un champ n'a pas besoin d'être identique à la correction si sa signification est équivalente (ex : "id_play" et "id_playlist" désignent la même chose). Un préfixe ou un suffixe n'est pas obligatoire (ex : "nom" est équivalent à "nom_playlist"). Dans ce cas, si le type correspond, marque le champ VALIDE.
 RÈGLE ABSOLUE : ne spécule jamais. Si le type et le nom technique d'un champ correspondent à la correction, marque-le VALIDE, même si son nom pourrait laisser penser qu'il est calculable. Ne signale jamais un champ comme potentiellement calculé si son type est déjà correct.
 
 Ne mentionne jamais de noms ou valeurs précises issus de la correction. Utilise toujours "ce champ" pour désigner l'attribut concerné.
@@ -88,7 +88,7 @@ Compare les deux dictionnaires. Génère une remarque pour CHAQUE champ de l'ét
 
 RÈGLE ORDRE : L'ordre des champs dans le dictionnaire de l'étudiant n'a pas d'importance.
 RÈGLE CLÉ PRIMAIRE : Ignore complètement le champ PrimaryKey dans ta comparaison. Ne commente jamais la clé primaire.
-RÈGLE NOM : Le nom technique d'un champ n'a pas besoin d'être identique à la correction si sa signification est équivalente (ex : "id_play" et "id_playlist" désignent la même chose). Dans ce cas, si le type correspond, marque le champ VALIDE.
+RÈGLE NOM : Le nom technique d'un champ n'a pas besoin d'être identique à la correction si sa signification est équivalente (ex : "id_play" et "id_playlist" désignent la même chose). Un préfixe ou un suffixe n'est pas obligatoire (ex : "nom" est équivalent à "nom_playlist"). Dans ce cas, si le type correspond, marque le champ VALIDE.
 RÈGLE ABSOLUE : si le type et le nom correspondent à la correction, marque VALIDE même si le nom pourrait laisser croire à un attribut calculé.
 Ne mentionne jamais de valeurs précises issues de la correction. Utilise toujours "ce champ".
 
@@ -162,7 +162,7 @@ Compare les deux listes de dépendances élément par élément :
 - Si la dépendance diffère de la correction : statut "invalide" + une seule question socratique courte, sans donner la réponse ni révéler la correction.
 
 RÈGLE ORDRE : L'ordre des attributs cibles dans une dépendance n'a pas d'importance.
-RÈGLE NOM : Le nom d'un attribut n'a pas besoin d'être identique à la correction si sa signification est équivalente (ex : "id_play" et "id_playlist" désignent la même chose). Dans ce cas, considère l'attribut comme correct.
+RÈGLE NOM : Le nom d'un attribut n'a pas besoin d'être identique à la correction si sa signification est équivalente (ex : "id_play" et "id_playlist" désignent la même chose). Un préfixe ou un suffixe n'est pas obligatoire (ex : "nom" est équivalent à "nom_playlist"). Dans ce cas, considère l'attribut comme correct.
 Ne mentionne jamais de noms ou valeurs précises issus de la correction. Utilise toujours "cette dépendance" pour désigner la DFE.
 
 Exemples pour les invalides :
@@ -200,7 +200,7 @@ Compare les deux listes de dépendances élément par élément :
 - Si la dépendance diffère : statut "invalide" + une seule question socratique courte, sans révéler la correction.
 
 RÈGLE ORDRE : L'ordre des attributs cibles dans une dépendance n'a pas d'importance.
-RÈGLE NOM : Le nom d'un attribut n'a pas besoin d'être identique à la correction si sa signification est équivalente (ex : "id_play" et "id_playlist" désignent la même chose). Dans ce cas, considère l'attribut comme correct.
+RÈGLE NOM : Le nom d'un attribut n'a pas besoin d'être identique à la correction si sa signification est équivalente (ex : "id_play" et "id_playlist" désignent la même chose). Un préfixe ou un suffixe n'est pas obligatoire (ex : "nom" est équivalent à "nom_playlist"). Dans ce cas, considère l'attribut comme correct.
 Ne mentionne jamais de noms ou valeurs précises issus de la correction. Utilise toujours "cette dépendance".
 
 --- EXEMPLE 1 ---
@@ -269,7 +269,7 @@ Compare les deux MCD élément par élément. Pour chaque entité et association
 
 RÈGLE ORDRE : L'ordre des attributs dans une entité ou une association n'a pas d'importance.
 RÈGLE VISUEL : La largeur, la hauteur, la position (x, y) et l'identifiant visuel (id) des entités et associations sont des propriétés graphiques sans rapport avec la correction — ignore-les entièrement.
-RÈGLE NOM : Le nom d'un attribut n'a pas besoin d'être identique à la correction si sa signification est équivalente (ex : "id_play" et "id_playlist" désignent la même chose). Dans ce cas, considère l'attribut comme correct.
+RÈGLE NOM : Le nom d'un attribut n'a pas besoin d'être identique à la correction si sa signification est équivalente (ex : "id_play" et "id_playlist" désignent la même chose). Un préfixe ou un suffixe n'est pas obligatoire (ex : "nom" est équivalent à "nom_playlist"). Dans ce cas, considère l'attribut comme correct.
 Chaque entité et association possède un champ "id" unique. Utilise cet "id" dans ta réponse.
 Ne mentionne jamais de noms ou valeurs précises issus de la correction.
 Utilise "cette entité" ou "cette association" selon le type d'élément concerné.
@@ -310,7 +310,7 @@ Compare les deux MCD élément par élément. Pour chaque entité et association
 
 RÈGLE ORDRE : L'ordre des attributs dans une entité ou une association n'a pas d'importance.
 RÈGLE VISUEL : La largeur, la hauteur, la position (x, y) et l'identifiant visuel (id) des entités et associations sont des propriétés graphiques sans rapport avec la correction — ignore-les entièrement.
-RÈGLE NOM : Le nom d'un attribut n'a pas besoin d'être identique à la correction si sa signification est équivalente (ex : "id_play" et "id_playlist" désignent la même chose). Dans ce cas, considère l'attribut comme correct.
+RÈGLE NOM : Le nom d'un attribut n'a pas besoin d'être identique à la correction si sa signification est équivalente (ex : "id_play" et "id_playlist" désignent la même chose). Un préfixe ou un suffixe n'est pas obligatoire (ex : "nom" est équivalent à "nom_playlist"). Dans ce cas, considère l'attribut comme correct.
 Chaque entité et association possède un champ "id". Utilise cet "id" dans ta réponse.
 Ne mentionne jamais de noms ou valeurs précises issus de la correction.
 
