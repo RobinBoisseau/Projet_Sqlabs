@@ -64,6 +64,7 @@ export class ClassExercisesComponent implements OnInit {
   }
 
   openDetail(slug: string): void {
-    window.open(`/classes/${this.classeId}/exercises/${slug}/details`, '_blank');
+     this.router.navigate(['/classes', this.classeId, 'exercises', slug, 'details']);
   }
 }
+

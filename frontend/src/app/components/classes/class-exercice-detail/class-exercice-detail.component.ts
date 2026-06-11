@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ClasseService } from '../../../services/classe.service';
 import { TentativeViewerComponent } from '../tentative-viewer/tentative-viewer.component';
 
@@ -23,8 +23,9 @@ export class ClassExerciceDetailComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private classeService: ClasseService,
-  ) {}
+    private router: Router,
+    private classeService: ClasseService
+  ) { }
 
   ngOnInit(): void {
     this.classeId = Number(this.route.snapshot.paramMap.get('id'));
@@ -41,6 +42,11 @@ export class ClassExerciceDetailComponent implements OnInit {
       },
     });
   }
+  goBack(): void {
+    // On repart vers l'onglet "exercises" de la classe
+    // Le chemin dans tes routes est 'classes/:id' -> child 'exercises'
+    this.router.navigate(['/classes', this.classeId, 'exercises']);
+  }
 
   openViewer(student: { id: number; name: string }): void {
     this.selectedStudent = student;
@@ -54,17 +60,17 @@ export class ClassExerciceDetailComponent implements OnInit {
 
   statusLabel(status: string): string {
     switch (status) {
-      case 'completed':   return 'Terminé';
+      case 'completed': return 'Terminé';
       case 'in_progress': return 'En cours';
-      default:            return 'Non commencé';
+      default: return 'Non commencé';
     }
   }
 
   statusBadgeClass(status: string): string {
     switch (status) {
-      case 'completed':   return 'badge-success';
+      case 'completed': return 'badge-success';
       case 'in_progress': return 'badge-warning';
-      default:            return 'badge-ghost';
+      default: return 'badge-ghost';
     }
   }
 

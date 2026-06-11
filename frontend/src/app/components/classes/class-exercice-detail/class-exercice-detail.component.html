@@ -1,5 +1,14 @@
 <div class="max-w-5xl mx-auto py-8 px-6">
 
+  <div class="mb-6">
+    <button type="button" (click)="goBack()" class="btn btn-ghost btn-sm gap-2 pl-0 hover:bg-transparent group">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      <span class="hover:underline text-gray-600">Retour aux cours de la classe</span>
+    </button>
+  </div>
+
   <div *ngIf="loading" class="flex justify-center py-16">
     <span class="loading loading-spinner loading-lg text-primary"></span>
   </div>
@@ -19,9 +28,8 @@
           <span class="badge badge-outline">{{ exercice.type }}</span>
         </div>
       </div>
-      <a [routerLink]="['/admin/exercices', slug, 'edit']"
-         [queryParams]="{ classeId: classeId }"
-         class="btn btn-primary btn-sm">
+      <a [routerLink]="['/admin/exercices', slug, 'edit']" [queryParams]="{ classeId: classeId }"
+        class="btn btn-primary btn-sm">
         Voir le corrigé
       </a>
     </div>
