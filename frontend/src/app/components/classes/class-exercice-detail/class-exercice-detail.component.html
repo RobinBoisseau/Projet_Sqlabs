@@ -13,7 +13,8 @@
     <!-- En-tête exercice -->
     <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
       <div>
-        <h1 class="text-2xl font-bold text-gray-800">{{ exercice.titre }}</h1>
+        <a [routerLink]="['/classes', classeId, 'exercises']" class="text-sm text-primary hover:underline">← Retour aux exercices</a>
+        <h1 class="text-2xl font-bold text-gray-800 mt-1">{{ exercice.titre }}</h1>
         <div class="flex items-center gap-2 mt-1">
           <span class="badge badge-outline">{{ exercice.type }}</span>
         </div>
