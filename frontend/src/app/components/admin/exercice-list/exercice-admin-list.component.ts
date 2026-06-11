@@ -19,36 +19,65 @@ interface Exercice {
   templateUrl: './exercice-admin-list.component.html',
 })
 export class ExerciceAdminListComponent implements OnInit {
+  // Source de données brute venant de l'API
   exercices: Exercice[] = [];
+  // Liste affichée à l'écran (filtrée)
   filteredExercices: Exercice[] = [];
+  
   isLoading = true;
-  searchQuery = '';
   exerciceToDelete: Exercice | null = null;
   deleteLoading = false;
   deleteError = '';
 
+  private _searchQuery = '';
+
+  // Getter pour le ngModel
+  get searchQuery(): string {
+    return this._searchQuery;
+  }
+
+  // Setter : dès que l'utilisateur écrit, on filtre la liste
+  set searchQuery(value: string) {
+    this._searchQuery = value;
+    this.applyFilter();
+  }
+
   constructor(private exerciceService: ExerciceService) {}
 
   ngOnInit(): void {
+    this.loadExercices();
+  }
+
+  loadExercices(): void {
+    this.isLoading = true;
     this.exerciceService.getExercices().subscribe({
-      next: (data: any) => {
-        this.exercices = data;
-        this.filteredExercices = this.exercices;
+      next: (response: any) => {
+        // On gère le cas où Laravel renvoie { data: [...] } ou [...]
+        this.exercices = response.data || response;
+        this.applyFilter(); // Initialise la liste filtrée
         this.isLoading = false;
       },
-      error: () => { this.isLoading = false; }
+      error: () => {
+        this.isLoading = false;
+      }
     });
   }
 
-  get searchQueryValue() { return this.searchQuery; }
-  set searchQueryValue(val: string) {
-    this.searchQuery = val;
-    this.filteredExercices = this.exercices.filter(ex =>
-      ex.title?.toLowerCase().includes(val.toLowerCase()) ||
-      ex.type?.toLowerCase().includes(val.toLowerCase())
-    );
+  // Logique de filtrage
+  applyFilter(): void {
+    const query = this._searchQuery.toLowerCase().trim();
+    
+    if (!query) {
+      this.filteredExercices = [...this.exercices];
+    } else {
+      this.filteredExercices = this.exercices.filter(ex => 
+        (ex.title && ex.title.toLowerCase().includes(query)) ||
+        (ex.type && ex.type.toLowerCase().includes(query))
+      );
+    }
   }
 
+  // Actions de suppression
   openDeleteModal(ex: Exercice): void {
     this.exerciceToDelete = ex;
     this.deleteError = '';
@@ -61,16 +90,19 @@ export class ExerciceAdminListComponent implements OnInit {
 
   confirmDelete(): void {
     if (!this.exerciceToDelete) return;
+    
     this.deleteLoading = true;
     this.exerciceService.deleteExercice(this.exerciceToDelete.id).subscribe({
       next: () => {
+        // On supprime de la source locale
         this.exercices = this.exercices.filter(e => e.id !== this.exerciceToDelete!.id);
-        this.filteredExercices = this.filteredExercices.filter(e => e.id !== this.exerciceToDelete!.id);
+        // On met à jour l'affichage filtré
+        this.applyFilter();
         this.deleteLoading = false;
         this.closeDeleteModal();
       },
       error: () => {
-        this.deleteError = 'Erreur lors de la suppression.';
+        this.deleteError = 'Une erreur est survenue lors de la suppression.';
         this.deleteLoading = false;
       }
     });
